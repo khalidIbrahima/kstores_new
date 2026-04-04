@@ -48,9 +48,14 @@ export default async function HomePage() {
   return (
     <div>
       <HeroSection />
-      <FeaturesSection />
+      <div className="hidden md:block">
+        <FeaturesSection />
+      </div>
       <FeaturedProducts products={products} />
       <CategoriesShowcase categories={categories} />
+      <div className="md:hidden">
+        <FeaturesSection />
+      </div>
       {promoProducts.length > 0 && <PromoCountdown products={promoProducts} />}
       <NewsletterSection />
     </div>
