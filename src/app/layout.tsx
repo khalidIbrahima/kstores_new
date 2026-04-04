@@ -1,5 +1,4 @@
 import type { Metadata } from "next"
-import { Inter } from "next/font/google"
 import "./globals.css"
 import LayoutShell from "@/components/LayoutShell"
 import PostHogProvider from "@/components/PostHogProvider"
@@ -10,8 +9,6 @@ import ScrollToTop from "@/components/ScrollToTop"
 import DynamicFavicon from "@/components/DynamicFavicon"
 import MaintenanceGuard from "@/components/MaintenanceGuard"
 import ErrorBoundary from "@/components/ErrorBoundary"
-
-const inter = Inter({ subsets: ["latin"] })
 
 export const metadata: Metadata = {
   title: "Kapital Stores - Boutique en ligne",
@@ -39,7 +36,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <body className={`${inter.className} antialiased`}>
+      <body className="antialiased">
         <AuthProvider>
           <CartProvider>
             <ToastProvider>

@@ -51,6 +51,8 @@ interface ShippingAddress {
   }
 }
 
+type ShippingAddressFieldKey = Exclude<keyof ShippingAddress, '_meta'>
+
 interface Order {
   id: string
   created_at: string
@@ -110,7 +112,7 @@ function EditCustomerModal({
   onClose: () => void
 }) {
   const [form, setForm] = useState<ShippingAddress>({ ...address })
-  const fields: { key: keyof ShippingAddress; label: string }[] = [
+  const fields: { key: ShippingAddressFieldKey; label: string }[] = [
     { key: 'firstName', label: 'Prenom' },
     { key: 'lastName', label: 'Nom' },
     { key: 'email', label: 'Email' },
