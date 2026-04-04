@@ -9,7 +9,7 @@ const features = [
   {
     icon: Truck,
     title: 'Livraison rapide',
-    description: 'Recevez vos commandes rapidement à votre porte. 1-2 jours à Dakar, 3-5 jours autres villes.',
+    description: 'Recevez vos commandes rapidement à votre porte.Moins de 3h à Dakar, 5h à 2 jours autres villes.',
   },
   {
     icon: CreditCard,

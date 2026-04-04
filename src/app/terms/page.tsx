@@ -15,7 +15,7 @@ export default function TermsPage() {
         </section>
         <section>
           <h2 className="text-white font-bold text-lg mb-3">3. Livraison</h2>
-          <p>Nous livrons dans tout le Sénégal. Dakar : 1-2 jours ouvrables. Autres villes : 3-5 jours ouvrables. Livraison gratuite à Dakar pour les commandes de plus de 50 000 F CFA.</p>
+          <p>Nous livrons dans tout le Sénégal. Dakar : moins 3h en jours ouvrables. Autres villes : 5h à moins de 2 jours ouvrables. Livraison gratuite à Dakar pour les commandes de plus de 50 000 F CFA.</p>
         </section>
         <section>
           <h2 className="text-white font-bold text-lg mb-3">4. Droit applicable</h2>

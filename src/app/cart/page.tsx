@@ -178,7 +178,7 @@ export default function CartPage() {
                   <Truck className="w-4 h-4 text-green-400 flex-shrink-0" />
                   <div>
                     <p className="text-white font-medium">Livraison rapide</p>
-                    <p>Dakar : 1-2 jours | Autres villes : 3-5 jours</p>
+                    <p>Dakar : 3h | Autres villes : 5h à moins de 2 jours</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 text-xs text-gray-400">
