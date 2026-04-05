@@ -164,95 +164,131 @@ export async function POST(req: NextRequest) {
     // CUSTOMER EMAIL — Order confirmation (only if email provided)
     // ═══════════════════════════════════════════
     if (email) {
+    const trackUrl = `https://kapitalstores.com/orders/track/${orderId}`
+    const itemsSummary = items.length <= 3
+      ? items.map(i => `${esc(i.name)} (x${i.quantity})`).join(', ')
+      : `${items.slice(0, 2).map(i => esc(i.name)).join(', ')} et ${items.length - 2} autre${items.length - 2 > 1 ? 's' : ''}`
+
     await resend.emails.send({
       from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: email,
-      subject: `Commande confirmee #${id8}`,
+      subject: `Merci ${name} ! Commande #${id8} confirmee`,
       html: emailLayout(`
-        <!-- Hero -->
+        <!-- Greeting -->
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
           <tr>
-            <td style="text-align:center;padding-bottom:24px">
-              <div style="width:80px;height:80px;margin:0 auto 16px;border-radius:50%;background:linear-gradient(135deg,#22c55e,#16a34a);text-align:center;line-height:80px">
-                <span style="font-size:40px;color:#000">&#10003;</span>
+            <td style="padding-bottom:24px">
+              <p style="margin:0;color:#9ca3af;font-size:14px">Bonjour ${name},</p>
+              <h1 style="margin:12px 0 0;color:#ffffff;font-size:24px;font-weight:900;line-height:1.3">
+                Votre commande a bien ete<br/>
+                <span style="color:#22c55e">recue et confirmee</span> &#127881;
+              </h1>
+            </td>
+          </tr>
+        </table>
+
+        <!-- Order card -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:24px">
+          <tr>
+            <td style="background-color:#0a0f1a;border:1px solid #1f2937;border-radius:16px;overflow:hidden">
+              <!-- Green top accent -->
+              <div style="height:4px;background:linear-gradient(90deg,#16a34a,#22c55e,#16a34a)"></div>
+              <div style="padding:20px">
+                <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                  <tr>
+                    <td style="vertical-align:top">
+                      <p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600">Commande</p>
+                      <p style="margin:6px 0 0;color:#22c55e;font-size:22px;font-weight:900;font-family:'Courier New',monospace;letter-spacing:2px">#${id8}</p>
+                    </td>
+                    <td style="vertical-align:top;text-align:right">
+                      <p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600">Total</p>
+                      <p style="margin:6px 0 0;color:#ffffff;font-size:22px;font-weight:900">${fmtXOF(total)}</p>
+                    </td>
+                  </tr>
+                </table>
+                <p style="margin:14px 0 0;color:#6b7280;font-size:12px">${itemsSummary}</p>
               </div>
-              <h1 style="margin:0;color:#ffffff;font-size:26px;font-weight:900;letter-spacing:-0.3px">Commande confirmee !</h1>
-              <p style="margin:8px 0 0;color:#9ca3af;font-size:15px">Merci pour votre achat, ${name}</p>
             </td>
           </tr>
         </table>
 
-        <!-- Order ID -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:20px">
-          <tr>
-            <td style="background-color:#0a0f1a;border:1px solid #1f2937;border-radius:14px;padding:16px;text-align:center">
-              <p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600">Numero de commande</p>
-              <p style="margin:8px 0 0;color:#22c55e;font-size:24px;font-weight:900;font-family:'Courier New',monospace;letter-spacing:3px">#${id8}</p>
-            </td>
-          </tr>
-        </table>
-
-        <!-- Items -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-          <tr><td style="padding-bottom:10px"><p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Vos articles</p></td></tr>
+        <!-- Items detail -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-bottom:4px">
+          <tr><td style="padding-bottom:10px"><p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Detail des articles</p></td></tr>
           ${itemRows}
-        </table>
-
-        <!-- Total -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:16px">
-          <tr>
-            <td style="background:linear-gradient(135deg,#0d2818,#0a1f14);border:2px solid #22c55e40;border-radius:14px;padding:18px;text-align:center">
-              <p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:2px;font-weight:600">Total</p>
-              <p style="margin:8px 0 0;color:#22c55e;font-size:30px;font-weight:900">${fmtXOF(total)}</p>
-            </td>
-          </tr>
         </table>
 
         ${safeAddress ? `
         ${emailDivider()}
-        <!-- Delivery info -->
         <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-          <tr>
-            <td style="background-color:#0a0f1a;border-left:4px solid #22c55e;border-radius:0 12px 12px 0;padding:14px 18px">
-              <p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Adresse de livraison</p>
-              <p style="margin:6px 0 0;color:#e5e7eb;font-size:14px;font-weight:600">${safeAddress}</p>
-            </td>
-          </tr>
-        </table>
-        ` : ''}
-
-        ${emailDivider()}
-
-        <!-- Steps -->
-        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
-          <tr><td style="padding-bottom:14px"><p style="margin:0;color:#ffffff;font-size:15px;font-weight:800">Et maintenant ?</p></td></tr>
           <tr>
             <td>
               <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
                 <tr>
-                  <td style="width:36px;vertical-align:top;padding-bottom:10px">
-                    <div style="width:26px;height:26px;border-radius:50%;background-color:#22c55e20;text-align:center;line-height:26px;color:#22c55e;font-size:12px;font-weight:800">1</div>
+                  <td style="width:40px;vertical-align:top">
+                    <div style="width:32px;height:32px;border-radius:10px;background-color:#22c55e15;text-align:center;line-height:32px">
+                      <span style="font-size:16px">&#128205;</span>
+                    </div>
                   </td>
-                  <td style="vertical-align:middle;padding-bottom:10px;color:#d1d5db;font-size:13px">Nous verifions et preparons votre commande</td>
+                  <td style="vertical-align:middle;padding-left:12px">
+                    <p style="margin:0;color:#6b7280;font-size:10px;text-transform:uppercase;letter-spacing:1.5px;font-weight:700">Livraison a</p>
+                    <p style="margin:4px 0 0;color:#e5e7eb;font-size:14px;font-weight:600">${safeAddress}</p>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+        </table>` : ''}
+
+        ${emailDivider()}
+
+        <!-- What's next — visual timeline -->
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+          <tr><td style="padding-bottom:16px"><p style="margin:0;color:#ffffff;font-size:15px;font-weight:800">Prochaines etapes</p></td></tr>
+          <tr>
+            <td>
+              <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%">
+                <tr>
+                  <td style="width:40px;vertical-align:top;padding-bottom:14px">
+                    <div style="width:32px;height:32px;border-radius:50%;background-color:#22c55e;text-align:center;line-height:32px;color:#000;font-size:14px;font-weight:800">&#10003;</div>
+                  </td>
+                  <td style="vertical-align:middle;padding-bottom:14px;padding-left:12px">
+                    <p style="margin:0;color:#ffffff;font-size:13px;font-weight:700">Commande recue</p>
+                    <p style="margin:2px 0 0;color:#6b7280;font-size:11px">Nous avons bien recu votre commande</p>
+                  </td>
                 </tr>
                 <tr>
-                  <td style="width:36px;vertical-align:top;padding-bottom:10px">
-                    <div style="width:26px;height:26px;border-radius:50%;background-color:#22c55e20;text-align:center;line-height:26px;color:#22c55e;font-size:12px;font-weight:800">2</div>
+                  <td style="width:40px;vertical-align:top;padding-bottom:14px">
+                    <div style="width:32px;height:32px;border-radius:50%;background-color:#1a2332;text-align:center;line-height:32px;color:#6b7280;font-size:14px;font-weight:800">2</div>
                   </td>
-                  <td style="vertical-align:middle;padding-bottom:10px;color:#d1d5db;font-size:13px">Vous recevez une notification de livraison</td>
+                  <td style="vertical-align:middle;padding-bottom:14px;padding-left:12px">
+                    <p style="margin:0;color:#d1d5db;font-size:13px;font-weight:600">Preparation</p>
+                    <p style="margin:2px 0 0;color:#6b7280;font-size:11px">Votre commande est en cours de preparation</p>
+                  </td>
                 </tr>
                 <tr>
-                  <td style="width:36px;vertical-align:top">
-                    <div style="width:26px;height:26px;border-radius:50%;background-color:#22c55e20;text-align:center;line-height:26px;color:#22c55e;font-size:12px;font-weight:800">3</div>
+                  <td style="width:40px;vertical-align:top">
+                    <div style="width:32px;height:32px;border-radius:50%;background-color:#1a2332;text-align:center;line-height:32px;color:#6b7280;font-size:14px;font-weight:800">3</div>
                   </td>
-                  <td style="vertical-align:middle;color:#d1d5db;font-size:13px">Livraison rapide a votre porte !</td>
+                  <td style="vertical-align:middle;padding-left:12px">
+                    <p style="margin:0;color:#d1d5db;font-size:13px;font-weight:600">Livraison</p>
+                    <p style="margin:2px 0 0;color:#6b7280;font-size:11px">Livraison rapide a votre porte !</p>
+                  </td>
                 </tr>
               </table>
             </td>
           </tr>
         </table>
 
-        ${emailButton('Suivre ma commande', 'https://kapitalstores.com/orders/track')}
+        ${emailButton('Suivre ma commande &#8594;', trackUrl)}
+
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin-top:16px">
+          <tr>
+            <td style="text-align:center">
+              <p style="margin:0;color:#374151;font-size:11px">Un probleme ? Repondez a cet email ou contactez-nous sur <a href="https://wa.me/221761800649" style="color:#22c55e;text-decoration:none">WhatsApp</a></p>
+            </td>
+          </tr>
+        </table>
       `),
     })
     }
