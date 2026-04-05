@@ -86,12 +86,12 @@ export function emailLayout(content: string) {
           <td style="padding:20px 0 0;text-align:center">
             <p style="margin:0 0 6px;color:#4b5563;font-size:12px;font-family:Arial,Helvetica,sans-serif">Kapital Stores &mdash;   Dakar, Senegal</p>
             <p style="margin:0 0 10px;font-size:12px;font-family:Arial,Helvetica,sans-serif">
-              <a href="https://kapital-stores.shop" style="color:#22c55e;text-decoration:none;font-weight:700">kapital-stores.shop</a>
+              <a href="https://kapitalstores.com" style="color:#22c55e;text-decoration:none;font-weight:700">kapitalstores.com</a>
             </p>
             <p style="margin:0;font-size:10px;font-family:Arial,Helvetica,sans-serif">
-              <a href="https://kapital-stores.shop" style="color:#4b5563;text-decoration:none">Boutique</a>
+              <a href="https://kapitalstores.com" style="color:#4b5563;text-decoration:none">Boutique</a>
               <span style="color:#374151">&nbsp;&middot;&nbsp;</span>
-              <a href="https://kapital-stores.shop/contact" style="color:#4b5563;text-decoration:none">Contact</a>
+              <a href="https://kapitalstores.com/contact" style="color:#4b5563;text-decoration:none">Contact</a>
             </p>
           </td>
         </tr>

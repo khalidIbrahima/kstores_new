@@ -23,7 +23,7 @@ export default function ReturnsPage() {
         </section>
         <section>
           <h2 className="text-white font-bold text-lg mb-3">Contact</h2>
-          <p>Pour initier un retour, contactez-nous à <a href="mailto:support@kapital-stores.shop" className="text-green-400 hover:text-green-300">support@kapital-stores.shop</a> ou au <a href="tel:+221761800649" className="text-green-400 hover:text-green-300">+221 76 180 06 49</a>.</p>
+          <p>Pour initier un retour, contactez-nous à <a href="mailto:support@kapitalstores.com" className="text-green-400 hover:text-green-300">support@kapitalstores.com</a> ou au <a href="tel:+221761800649" className="text-green-400 hover:text-green-300">+221 76 180 06 49</a>.</p>
         </section>
       </div>
     </div>

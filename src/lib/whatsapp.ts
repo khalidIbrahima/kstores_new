@@ -63,7 +63,7 @@ export async function sendOrderWhatsAppToAdmin(order: {
     `🛒 Articles: ${order.itemCount} produit${order.itemCount > 1 ? 's' : ''}`,
     `💰 Total: ${formatXOF(order.total)}`,
     ``,
-    `👉 https://kapital-stores.shop/admin/orders`,
+    `👉 https://kapitalstores.com/admin/orders`,
   ].join('\n')
 
   return sendWhatsAppMessage(ADMIN_WHATSAPP, message)
@@ -86,7 +86,7 @@ export async function sendOrderWhatsAppToCustomer(
     `Nous vous tiendrons informé(e) de l'avancement de votre commande.`,
     ``,
     `📦 Suivre ma commande:`,
-    `👉 https://kapital-stores.shop/orders`,
+    `👉 https://kapitalstores.com/orders`,
     ``,
     `Merci pour votre confiance ! 🙏`,
     `— Kapital Stores`,
@@ -141,7 +141,7 @@ export async function sendStatusWhatsAppToCustomer(
     ``,
     config.detail,
     ``,
-    `👉 https://kapital-stores.shop/orders`,
+    `👉 https://kapitalstores.com/orders`,
     ``,
     `— Kapital Stores`,
   ].join('\n')

@@ -22,7 +22,7 @@ export default function PrivacyPage() {
         </section>
         <section>
           <h2 className="text-white font-bold text-lg mb-3">Contact</h2>
-          <p>Pour toute question relative à vos données personnelles, contactez-nous à <a href="mailto:support@kapital-stores.shop" className="text-green-400 hover:text-green-300">support@kapital-stores.shop</a>.</p>
+          <p>Pour toute question relative à vos données personnelles, contactez-nous à <a href="mailto:support@kapitalstores.com" className="text-green-400 hover:text-green-300">support@kapitalstores.com</a>.</p>
         </section>
       </div>
     </div>

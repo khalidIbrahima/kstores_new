@@ -50,8 +50,8 @@ export default function Footer() {
               <li><Link href="/privacy" className="text-gray-500 hover:text-green-400">Politique de Confidentialité</Link></li>
               <li><Link href="/returns" className="text-gray-500 hover:text-green-400">Retours et Remboursements</Link></li>
               <li>
-                <a href="mailto:support@kapital-stores.shop" className="text-gray-500 hover:text-green-400">
-                  support@kapital-stores.shop
+                <a href="mailto:support@kapitalstores.com" className="text-gray-500 hover:text-green-400">
+                  support@kapitalstores.com
                 </a>
               </li>
               <li>

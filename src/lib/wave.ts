@@ -1,6 +1,6 @@
 const WAVE_API_KEY = process.env.WAVE_API_KEY || ''
 const WAVE_API_URL = 'https://api.wave.com/v1'
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://kapital-stores.shop'
+const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://kapitalstores.com'
 
 export interface WaveCheckoutResponse {
   id: string

@@ -7,7 +7,7 @@ export default function TermsPage() {
       <div className="bg-[#111827] border border-gray-800 rounded-xl p-6 sm:p-8 space-y-6 text-gray-400 text-sm leading-relaxed">
         <section>
           <h2 className="text-white font-bold text-lg mb-3">1. Objet</h2>
-          <p>Les présentes Conditions Générales d&apos;Utilisation (CGU) régissent l&apos;utilisation du site web Kapital Stores (kapital-stores.shop) et de tous les services associés fournis par Kapital Stores.</p>
+          <p>Les présentes Conditions Générales d&apos;Utilisation (CGU) régissent l&apos;utilisation du site web Kapital Stores (kapitalstores.com) et de tous les services associés fournis par Kapital Stores.</p>
         </section>
         <section>
           <h2 className="text-white font-bold text-lg mb-3">2. Prix et Paiement</h2>

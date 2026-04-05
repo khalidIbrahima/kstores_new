@@ -134,12 +134,12 @@ export default function ContactPage() {
                 <Mail className="w-5 h-5 text-green-400 mt-0.5" />
                 <div>
                   <p className="text-white font-medium text-sm">Email</p>
-                  <a href="mailto:support@kapital-stores.shop" className="text-gray-400 text-sm hover:text-green-400">
-                    support@kapital-stores.shop
+                  <a href="mailto:support@kapitalstores.com" className="text-gray-400 text-sm hover:text-green-400">
+                    support@kapitalstores.com
                   </a>
                   <br />
-                  <a href="mailto:sales@kapital-stores.shop" className="text-gray-400 text-sm hover:text-green-400">
-                    sales@kapital-stores.shop
+                  <a href="mailto:sales@kapitalstores.com" className="text-gray-400 text-sm hover:text-green-400">
+                    sales@kapitalstores.com
                   </a>
                 </div>
               </div>

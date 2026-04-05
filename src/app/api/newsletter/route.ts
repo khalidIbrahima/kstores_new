@@ -87,7 +87,7 @@ export async function POST(req: NextRequest) {
           </tr>
         </table>
 
-        ${emailButton('Decouvrir la boutique', 'https://kapital-stores.shop/products')}
+        ${emailButton('Decouvrir la boutique', 'https://kapitalstores.com/products')}
       `),
     })
 

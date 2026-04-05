@@ -105,7 +105,7 @@ export async function POST(req: NextRequest) {
           Notre equipe prend connaissance de votre message et vous repondra dans les plus brefs delais.
         </p>
 
-        ${emailButton('Visiter la boutique', 'https://kapital-stores.shop')}
+        ${emailButton('Visiter la boutique', 'https://kapitalstores.com')}
       `),
     })
 

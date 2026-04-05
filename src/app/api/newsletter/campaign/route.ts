@@ -24,7 +24,7 @@ export async function POST(req: NextRequest) {
             </td>
           </tr>
         </table>
-        ${emailButton('Visiter la boutique', 'https://kapital-stores.shop/products')}
+        ${emailButton('Visiter la boutique', 'https://kapitalstores.com/products')}
       `),
     })
 
