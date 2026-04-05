@@ -6,6 +6,7 @@ export interface OrderNotification {
   firstName: string
   total: number
   phone?: string
+  address?: string
   items: {
     name: string
     quantity: number
@@ -30,6 +31,8 @@ export async function notifyOrderCreated(order: OrderNotification): Promise<void
       body: JSON.stringify({
         email: order.email,
         firstName: order.firstName,
+        phone: order.phone,
+        address: order.address,
         orderId: order.id,
         total: order.total,
         items: order.items,

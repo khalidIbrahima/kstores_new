@@ -102,7 +102,7 @@ export async function POST(req: NextRequest) {
           </tr>
         </table>` : ''}
 
-        ${emailButton('Voir mes commandes', 'https://kapital-stores.shop/orders')}
+        ${emailButton('Suivre ma commande', 'https://kapital-stores.shop/orders/track')}
       `),
     })
 

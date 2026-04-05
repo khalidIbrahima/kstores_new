@@ -126,8 +126,9 @@ export default function CheckoutPage() {
         notifyOrderCreated({
           id: order.id,
           email: form.email,
-          firstName: form.name.split(' ')[0],
+          firstName: form.name,
           phone: form.phone,
+          address: form.address,
           total,
           items: items.map(item => ({
             name: item.product.name,

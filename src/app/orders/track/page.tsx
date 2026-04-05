@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import {
-  Search, Package, Clock, CheckCircle2, Truck, XCircle, Loader2, Mail, Phone,
+  Search, Package, Clock, CheckCircle2, Truck, XCircle, Loader2, Mail, Phone, Hash, ChevronRight,
 } from 'lucide-react'
 
 interface Order {
@@ -14,6 +14,7 @@ interface Order {
   status: string
   total: number
   shipping_address: {
+    name?: string
     firstName?: string
     lastName?: string
     email?: string
@@ -31,8 +32,10 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   cancelled: { label: 'Annulee', color: 'text-red-400 bg-red-400/10', icon: XCircle },
 }
 
+type Method = 'order' | 'phone' | 'email'
+
 export default function TrackOrderPage() {
-  const [method, setMethod] = useState<'email' | 'phone'>('phone')
+  const [method, setMethod] = useState<Method>('order')
   const [query, setQuery] = useState('')
   const [orders, setOrders] = useState<Order[]>([])
   const [loading, setLoading] = useState(false)
@@ -44,73 +47,89 @@ export default function TrackOrderPage() {
     setLoading(true)
     setSearched(true)
 
-    // Search in shipping_address JSON field
-    const { data } = await supabase
-      .from('orders')
-      .select('*')
-      .filter(
-        `shipping_address->${method === 'email' ? 'email' : 'phone'}`,
-        'eq',
-        query.trim()
-      )
-      .order('created_at', { ascending: false })
+    let result
+    if (method === 'order') {
+      // Search by order ID (partial match)
+      const q = query.trim().replace('#', '').toLowerCase()
+      result = await supabase
+        .from('orders')
+        .select('*')
+        .ilike('id', `${q}%`)
+        .order('created_at', { ascending: false })
+        .limit(10)
+    } else {
+      result = await supabase
+        .from('orders')
+        .select('*')
+        .filter(
+          `shipping_address->${method === 'email' ? 'email' : 'phone'}`,
+          'eq',
+          query.trim()
+        )
+        .order('created_at', { ascending: false })
+    }
 
-    setOrders((data || []) as Order[])
+    setOrders((result.data || []) as Order[])
     setLoading(false)
   }
+
+  const methods: { key: Method; label: string; icon: React.ElementType; placeholder: string }[] = [
+    { key: 'order', label: 'N° commande', icon: Hash, placeholder: 'Ex: 72E417E2' },
+    { key: 'phone', label: 'Telephone', icon: Phone, placeholder: '+221 XX XXX XX XX' },
+    { key: 'email', label: 'Email', icon: Mail, placeholder: 'votre@email.com' },
+  ]
+
+  const activeMethod = methods.find(m => m.key === method)!
 
   return (
     <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-8">
         <div className="w-16 h-16 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-          <Search className="w-8 h-8 text-green-400" />
+          <Package className="w-8 h-8 text-green-400" />
         </div>
-        <h1 className="text-3xl font-black italic text-white">
+        <h1 className="text-2xl sm:text-3xl font-black italic text-white">
           Suivre <span className="text-green-400">ma commande</span>
         </h1>
         <p className="text-gray-500 mt-2 text-sm">
-          Retrouvez vos commandes avec votre email ou telephone
+          Entrez votre numero de commande, email ou telephone
         </p>
       </div>
 
-      {/* Search form */}
-      <div className="bg-[#111827] border border-gray-800 rounded-xl p-6 mb-6">
-        {/* Method toggle */}
-        <div className="flex items-center gap-2 mb-4">
-          <button
-            onClick={() => { setMethod('phone'); setQuery(''); setSearched(false) }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              method === 'phone' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400 hover:text-white'
-            }`}
-          >
-            <Phone className="w-4 h-4" /> Telephone
-          </button>
-          <button
-            onClick={() => { setMethod('email'); setQuery(''); setSearched(false) }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
-              method === 'email' ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400 hover:text-white'
-            }`}
-          >
-            <Mail className="w-4 h-4" /> Email
-          </button>
+      {/* Search */}
+      <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6 mb-6">
+        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto">
+          {methods.map(m => (
+            <button
+              key={m.key}
+              onClick={() => { setMethod(m.key); setQuery(''); setSearched(false) }}
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+                method === m.key ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400 hover:text-white'
+              }`}
+            >
+              <m.icon className="w-3.5 h-3.5" /> {m.label}
+            </button>
+          ))}
         </div>
 
-        <form onSubmit={handleSearch} className="flex gap-3">
-          <input
-            type={method === 'email' ? 'email' : 'tel'}
-            value={query}
-            onChange={e => setQuery(e.target.value)}
-            placeholder={method === 'email' ? 'votre@email.com' : '+221 XX XXX XX XX'}
-            required
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white outline-none focus:border-green-500"
-          />
+        <form onSubmit={handleSearch} className="flex gap-2 sm:gap-3">
+          <div className="relative flex-1">
+            <activeMethod.icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
+            <input
+              type={method === 'email' ? 'email' : 'text'}
+              value={query}
+              onChange={e => setQuery(e.target.value)}
+              placeholder={activeMethod.placeholder}
+              required
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white outline-none focus:border-green-500 text-sm"
+            />
+          </div>
           <button
             type="submit"
             disabled={loading}
-            className="bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-3 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+            className="bg-green-500 hover:bg-green-600 text-black font-bold px-4 sm:px-6 py-3 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
           >
             {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Search className="w-4 h-4" />}
-            Rechercher
+            <span className="hidden sm:inline">Rechercher</span>
           </button>
         </form>
       </div>
@@ -121,8 +140,8 @@ export default function TrackOrderPage() {
           {orders.length === 0 ? (
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-8 text-center">
               <Package className="w-12 h-12 text-gray-600 mx-auto mb-3" />
-              <p className="text-gray-500">Aucune commande trouvee</p>
-              <p className="text-gray-600 text-xs mt-1">Verifiez votre {method === 'email' ? 'adresse email' : 'numero de telephone'}</p>
+              <p className="text-white font-bold mb-1">Aucune commande trouvee</p>
+              <p className="text-gray-500 text-sm">Verifiez votre {method === 'order' ? 'numero de commande' : method === 'email' ? 'adresse email' : 'numero de telephone'}</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -130,32 +149,39 @@ export default function TrackOrderPage() {
               {orders.map(order => {
                 const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending
                 const StatusIcon = config.icon
+                const customerName = order.shipping_address?.name
+                  || [order.shipping_address?.firstName, order.shipping_address?.lastName].filter(Boolean).join(' ')
+                  || ''
                 return (
-                  <div key={order.id} className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+                  <Link
+                    key={order.id}
+                    href={`/orders/track/${order.id}`}
+                    className="block bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5 hover:border-green-500/30 transition-all group"
+                  >
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <p className="text-white font-bold text-sm">
-                          Commande #{order.id.slice(0, 8)}
+                        <p className="text-white font-bold text-sm flex items-center gap-2">
+                          <span className="text-green-400 font-mono">#{order.id.slice(0, 8).toUpperCase()}</span>
                         </p>
-                        <p className="text-gray-500 text-xs">
+                        <p className="text-gray-500 text-xs mt-0.5">
                           {new Date(order.created_at).toLocaleDateString('fr-FR', {
                             day: 'numeric', month: 'long', year: 'numeric',
                           })}
                         </p>
                       </div>
-                      <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${config.color}`}>
-                        <StatusIcon className="w-3 h-3" />
-                        {config.label}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium ${config.color}`}>
+                          <StatusIcon className="w-3 h-3" />
+                          {config.label}
+                        </span>
+                        <ChevronRight className="w-4 h-4 text-gray-600 group-hover:text-green-400 transition-colors" />
+                      </div>
                     </div>
                     <div className="flex items-center justify-between pt-3 border-t border-gray-800">
-                      <div className="text-sm text-gray-400">
-                        {order.shipping_address?.firstName} {order.shipping_address?.lastName}
-                        {order.shipping_address?.city && <span className="text-gray-600"> — {order.shipping_address.city}</span>}
-                      </div>
+                      <span className="text-gray-400 text-sm">{customerName}</span>
                       <span className="text-green-400 font-bold">{formatPrice(order.total)}</span>
                     </div>
-                  </div>
+                  </Link>
                 )
               })}
             </div>
