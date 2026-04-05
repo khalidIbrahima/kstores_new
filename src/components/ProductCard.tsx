@@ -3,7 +3,8 @@
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { ShoppingCart, Heart } from 'lucide-react'
+import { ShoppingCart, Heart, Check } from 'lucide-react'
+import { useState } from 'react'
 import { Product } from '@/lib/types'
 import { formatPrice, getDiscountedPrice } from '@/lib/utils'
 import { useCart } from '@/context/CartContext'
@@ -19,6 +20,13 @@ export default function ProductCard({ product }: { product: Product }) {
     ? getDiscountedPrice(product.price, product.promotion_percentage)
     : product.price
   const liked = isFavorite(product.id)
+  const [added, setAdded] = useState(false)
+
+  const handleAddToCart = () => {
+    addToCart(product)
+    setAdded(true)
+    setTimeout(() => setAdded(false), 1200)
+  }
 
   const handleFavorite = async (e: React.MouseEvent) => {
     e.preventDefault()
@@ -75,10 +83,14 @@ export default function ProductCard({ product }: { product: Product }) {
             )}
           </div>
           <button
-            onClick={() => addToCart(product)}
-            className="bg-green-500 hover:bg-green-600 text-black p-2 rounded-lg transition-colors shrink-0"
+            onClick={handleAddToCart}
+            className={`p-2 rounded-lg transition-all shrink-0 ${
+              added
+                ? 'bg-green-600 text-white scale-110'
+                : 'bg-green-500 hover:bg-green-600 text-black'
+            }`}
           >
-            <ShoppingCart className="w-4 h-4" />
+            {added ? <Check className="w-4 h-4" /> : <ShoppingCart className="w-4 h-4" />}
           </button>
         </div>
       </div>
