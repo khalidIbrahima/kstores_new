@@ -7,8 +7,9 @@ import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import {
   ArrowLeft, Loader2, Package, Clock, CheckCircle2, Truck, XCircle,
-  MapPin, Phone, Mail, Calendar, Hash, ShoppingCart,
+  MapPin, Phone, Mail, Calendar, Hash, ShoppingCart, FileText,
 } from 'lucide-react'
+import { generateInvoiceHtml } from '@/lib/invoice'
 
 interface OrderItem {
   id: string
@@ -31,6 +32,7 @@ interface Order {
     address?: string
     city?: string
     country?: string
+    _meta?: { shipping_fee?: number }
   }
 }
 
@@ -196,6 +198,34 @@ export default function TrackOrderDetail({ params }: { params: Promise<{ id: str
           <span className="text-white font-bold">Total</span>
           <span className="text-green-400 font-bold text-xl">{formatPrice(order.total)}</span>
         </div>
+
+        {/* Invoice download */}
+        <button
+          onClick={() => {
+            const shippingFee = Number(order.shipping_address?._meta?.shipping_fee) || 0
+            const subtotal = items.reduce((s, i) => s + i.price * i.quantity, 0)
+            const html = generateInvoiceHtml({
+              id: order.id,
+              date: order.created_at,
+              firstName: addr.firstName || addr.name || '',
+              lastName: addr.lastName || '',
+              email: addr.email || '',
+              phone: addr.phone,
+              address: addr.address,
+              city: addr.city,
+              items: items.map(i => ({ name: i.products?.name || 'Produit', quantity: i.quantity, price: i.price })),
+              subtotal,
+              shipping: shippingFee,
+              total: order.total,
+            })
+            const win = window.open('', '_blank')
+            if (win) { win.document.write(html); win.document.close() }
+          }}
+          className="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 hover:border-gray-600 transition-colors"
+        >
+          <FileText className="w-4 h-4 text-green-400" />
+          Telecharger ma facture
+        </button>
       </div>
 
       {/* Customer & Address */}
