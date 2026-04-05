@@ -21,7 +21,7 @@ export async function POST(req: NextRequest) {
       orderId: string; total: number; items: OrderItem[]
     }
 
-    if (!email || !orderId) {
+    if (!orderId) {
       return NextResponse.json({ error: 'Donnees manquantes.' }, { status: 400 })
     }
 
@@ -161,8 +161,9 @@ export async function POST(req: NextRequest) {
     })
 
     // ═══════════════════════════════════════════
-    // CUSTOMER EMAIL — Order confirmation
+    // CUSTOMER EMAIL — Order confirmation (only if email provided)
     // ═══════════════════════════════════════════
+    if (email) {
     await resend.emails.send({
       from: 'Kapital Stores <onboarding@resend.dev>',
       to: email,
@@ -254,6 +255,7 @@ export async function POST(req: NextRequest) {
         ${emailButton('Suivre ma commande', 'https://kapitalstores.com/orders/track')}
       `),
     })
+    }
 
     return NextResponse.json({ success: true })
   } catch (error) {
