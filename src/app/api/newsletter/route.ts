@@ -32,7 +32,7 @@ export async function POST(req: NextRequest) {
 
     // Send welcome email
     await resend.emails.send({
-      from: 'Kapital Stores <onboarding@resend.dev>',
+      from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: email,
       subject: 'Bienvenue dans la famille Kapital Stores !',
       html: emailLayout(`

@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
     // ─── Admin email ───
     await resend.emails.send({
-      from: 'Kapital Stores <onboarding@resend.dev>',
+      from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: ADMIN_EMAIL,
       subject: `[Contact] ${subject}`,
       replyTo: email,
@@ -74,7 +74,7 @@ export async function POST(req: NextRequest) {
 
     // ─── Customer confirmation ───
     await resend.emails.send({
-      from: 'Kapital Stores <onboarding@resend.dev>',
+      from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: email,
       subject: 'Nous avons bien recu votre message',
       html: emailLayout(`

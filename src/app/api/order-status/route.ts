@@ -62,7 +62,7 @@ export async function POST(req: NextRequest) {
       </table>`
 
     await resend.emails.send({
-      from: 'Kapital Stores <onboarding@resend.dev>',
+      from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: email,
       subject: `Commande #${id8} — ${cfg.label}`,
       html: emailLayout(`

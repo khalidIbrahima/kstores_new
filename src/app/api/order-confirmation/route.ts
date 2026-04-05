@@ -67,7 +67,7 @@ export async function POST(req: NextRequest) {
     // ADMIN EMAIL — Full order details
     // ═══════════════════════════════════════════
     await resend.emails.send({
-      from: 'Kapital Stores <onboarding@resend.dev>',
+      from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: ADMIN_EMAIL,
       subject: `Nouvelle commande #${id8} — ${fmtXOF(total)} — ${name}`,
       html: emailLayout(`
@@ -165,7 +165,7 @@ export async function POST(req: NextRequest) {
     // ═══════════════════════════════════════════
     if (email) {
     await resend.emails.send({
-      from: 'Kapital Stores <onboarding@resend.dev>',
+      from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: email,
       subject: `Commande confirmee #${id8}`,
       html: emailLayout(`

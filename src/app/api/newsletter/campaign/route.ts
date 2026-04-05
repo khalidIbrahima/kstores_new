@@ -13,7 +13,7 @@ export async function POST(req: NextRequest) {
     }
 
     await resend.emails.send({
-      from: 'Kapital Stores <onboarding@resend.dev>',
+      from: 'Kapital Stores <noreply@kapitalstores.com>',
       to: email,
       subject,
       html: emailLayout(`
