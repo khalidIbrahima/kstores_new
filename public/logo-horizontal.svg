@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 280 64" fill="none">
+  <defs>
+    <linearGradient id="hg1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="hg2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#060a13"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Icon square -->
+  <rect x="2" y="2" width="60" height="60" rx="14" fill="url(#hg2)" stroke="url(#hg1)" stroke-width="2" opacity="0.9"/>
+
+  <!-- Mini circuit traces -->
+  <g stroke="#22c55e" stroke-width="0.5" opacity="0.1" stroke-linecap="round">
+    <line x1="10" y1="18" x2="54" y2="18"/>
+    <line x1="10" y1="46" x2="54" y2="46"/>
+    <line x1="22" y1="8" x2="22" y2="56"/>
+    <line x1="42" y1="8" x2="42" y2="56"/>
+  </g>
+
+  <!-- K mark -->
+  <g>
+    <rect x="16" y="14" width="6" height="36" rx="1.5" fill="url(#hg1)"/>
+    <path d="M22 30 L22 20 L44 14 L44 19 Z" fill="url(#hg1)"/>
+    <path d="M22 34 L22 44 L44 50 L44 45 Z" fill="url(#hg1)"/>
+    <path d="M34 18 L28 31 L34 30 L30 46 L40 28 L33 30 Z" fill="#ffffff" opacity="0.9"/>
+  </g>
+
+  <!-- Dot -->
+  <circle cx="48" cy="44" r="3.5" fill="url(#hg1)"/>
+  <circle cx="48" cy="44" r="1.5" fill="#ffffff" opacity="0.8"/>
+
+  <!-- Text: KAPITAL -->
+  <text x="74" y="34" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="26" font-weight="900" font-style="italic" fill="#ffffff" letter-spacing="-0.5">KAPITAL</text>
+
+  <!-- Text: STORES with green dot -->
+  <text x="202" y="34" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="26" font-weight="900" font-style="italic" fill="#22c55e" letter-spacing="-0.5">STORES</text>
+
+  <!-- Tagline -->
+  <text x="74" y="52" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" font-size="9" fill="#6b7280" letter-spacing="3" text-transform="uppercase">TECH &amp; ELECTRONICS</text>
+</svg>

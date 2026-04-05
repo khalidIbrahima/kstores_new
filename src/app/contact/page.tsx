@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Mail, Phone, MapPin, Send } from 'lucide-react'
 import { useAuth } from '@/context/AuthContext'
+import Turnstile from '@/components/Turnstile'
 
 export default function ContactPage() {
   const { isAuthenticated, displayName, displayEmail } = useAuth()
@@ -21,6 +22,10 @@ export default function ContactPage() {
   }, [isAuthenticated, displayName, displayEmail])
 
   const [error, setError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  const handleTurnstile = useCallback((token: string) => setTurnstileToken(token), [])
+  const handleTurnstileExpire = useCallback(() => setTurnstileToken(''), [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -30,7 +35,7 @@ export default function ContactPage() {
       const res = await fetch('/api/contact', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form),
+        body: JSON.stringify({ ...form, turnstileToken }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -102,6 +107,7 @@ export default function ContactPage() {
                 className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white outline-none focus:border-green-500 resize-none"
               />
             </div>
+            <Turnstile onVerify={handleTurnstile} onExpire={handleTurnstileExpire} />
             <button
               type="submit"
               disabled={sending}
@@ -151,7 +157,7 @@ export default function ContactPage() {
                 <MapPin className="w-5 h-5 text-green-400 mt-0.5" />
                 <div>
                   <p className="text-white font-medium text-sm">Adresse</p>
-                  <p className="text-gray-400 text-sm">Fass Delorme, Dakar</p>
+                  <p className="text-gray-400 text-sm">  Dakar</p>
                   <p className="text-gray-400 text-sm">Sénégal</p>
                 </div>
               </div>

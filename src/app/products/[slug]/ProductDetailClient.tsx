@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -13,6 +13,7 @@ import ProductCard from '@/components/ProductCard'
 import ProductReviews from '@/components/ProductReviews'
 import ProductVariantSelector from '@/components/ProductVariantSelector'
 import SocialShareButtons from '@/components/SocialShareButtons'
+import { trackProductView } from '@/lib/analytics'
 
 export default function ProductDetailClient({
   product,
@@ -34,6 +35,11 @@ export default function ProductDetailClient({
   const [descriptionExpanded, setDescriptionExpanded] = useState(false)
   const [reviewsExpanded, setReviewsExpanded] = useState(false)
   const liked = isFavorite(product.id)
+
+  // Track product view on mount
+  useEffect(() => {
+    trackProductView(product.id)
+  }, [product.id])
 
   const hasPromo = product.promotion_active && product.promotion_percentage
   const finalPrice = hasPromo

@@ -8,8 +8,11 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand */}
           <div>
-            <Link href="/" className="text-2xl font-black italic text-green-400">
-              Kapital Stores
+            <Link href="/" className="flex items-center gap-2.5">
+              <img src="/logo.svg" alt="" className="w-10 h-10" />
+              <span className="text-xl font-black italic tracking-tight">
+                <span className="text-white">KAPITAL</span><span className="text-green-400">STORES</span>
+              </span>
             </Link>
             <p className="mt-3 text-gray-500 text-sm">
               Boutique en ligne spécialisée dans les produits tech et électronique. Livraison rapide, prix bas, qualité garantie.
@@ -75,7 +78,7 @@ export default function Footer() {
                 </svg>
               </button>
             </div>
-            <p className="text-gray-600 text-xs mt-3">Fass Delorme, Dakar, Sénégal</p>
+            <p className="text-gray-600 text-xs mt-3">  Dakar, Sénégal</p>
           </div>
         </div>
 

@@ -9,13 +9,27 @@ import ScrollToTop from "@/components/ScrollToTop"
 import DynamicFavicon from "@/components/DynamicFavicon"
 import MaintenanceGuard from "@/components/MaintenanceGuard"
 import ErrorBoundary from "@/components/ErrorBoundary"
+import AnalyticsTracker from "@/components/AnalyticsTracker"
+import ServiceWorkerRegister from "@/components/ServiceWorkerRegister"
 
 export const metadata: Metadata = {
   title: "Kapital Stores - Boutique en ligne",
   description: "Boutique en ligne Kapital Stores - Produits tech, electronique et plus. Livraison rapide, prix bas, qualite garantie.",
   keywords: "boutique en ligne, produits tech, electronique, livraison rapide, Kapital Stores, gaming, Dakar, Sénégal",
+  manifest: "/manifest.json",
   icons: {
     icon: "/logo.svg",
+    apple: "/logo.svg",
+  },
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Kapital Stores",
+  },
+  other: {
+    "mobile-web-app-capable": "yes",
+    "theme-color": "#22c55e",
+    "apple-mobile-web-app-capable": "yes",
   },
   openGraph: {
     title: "Kapital Stores - Boutique en ligne",
@@ -48,6 +62,8 @@ export default function RootLayout({
                 </ErrorBoundary>
                 <ScrollToTop />
                 <DynamicFavicon />
+                <AnalyticsTracker />
+                <ServiceWorkerRegister />
               </PostHogProvider>
             </ToastProvider>
           </CartProvider>

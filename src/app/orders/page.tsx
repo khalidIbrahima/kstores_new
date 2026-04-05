@@ -103,12 +103,20 @@ export default function OrdersPage() {
         <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
         <h1 className="text-2xl font-bold text-white mb-2">Mes commandes</h1>
         <p className="text-gray-500 mb-6">Connectez-vous pour voir vos commandes</p>
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
         <Link
           href="/login"
           className="inline-flex items-center gap-2 bg-green-500 hover:bg-green-600 text-black font-bold px-8 py-3 rounded-lg"
         >
           Se connecter
         </Link>
+        <Link
+          href="/orders/track"
+          className="inline-flex items-center gap-2 border border-gray-700 hover:border-gray-500 text-gray-300 px-8 py-3 rounded-lg transition-colors"
+        >
+          Suivre une commande
+        </Link>
+        </div>
       </div>
     )
   }

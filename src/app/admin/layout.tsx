@@ -34,6 +34,7 @@ const sidebarLinks = [
   { label: 'Paiements', href: '/admin/payments', icon: CreditCard },
   { label: 'Catégories', href: '/admin/categories', icon: FolderOpen },
   { label: 'Clients', href: '/admin/customers', icon: Users },
+  { label: 'Clients invites', href: '/admin/guest-customers', icon: Users },
   { label: 'Fournisseurs', href: '/admin/suppliers', icon: Factory },
   { label: 'Commandes fournisseurs', href: '/admin/supplier-orders', icon: ClipboardList },
   { label: 'Livraison', href: '/admin/shipping', icon: Truck },
@@ -76,8 +77,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         >
           <Menu className="h-5 w-5" />
         </button>
-        <Link href="/admin" className="truncate text-lg font-black italic text-green-400">
-          Kapital Admin
+        <Link href="/admin" className="flex items-center gap-2">
+          <img src="/logo.svg" alt="" className="w-8 h-8" />
+          <span className="text-base font-black italic"><span className="text-white">KAPITAL</span><span className="text-green-400">STORES</span></span>
         </Link>
         <button
           onClick={() => { signOut(); router.push('/') }}
@@ -97,10 +99,15 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
 
       <aside className={`fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-gray-800 bg-[#111827] transition-transform duration-200 lg:w-64 lg:translate-x-0 ${mobileNavOpen ? 'translate-x-0' : '-translate-x-full'} lg:z-40`}>
         <div className="p-6 border-b border-gray-800">
-          <Link href="/admin" className="text-xl font-black italic text-green-400" onClick={() => setMobileNavOpen(false)}>
-            Kapital Admin
+          <Link href="/admin" className="flex items-center gap-2.5" onClick={() => setMobileNavOpen(false)}>
+            <img src="/logo.svg" alt="" className="w-9 h-9" />
+            <div>
+              <span className="text-base font-black italic tracking-tight">
+                <span className="text-white">KAPITAL</span><span className="text-green-400">STORES</span>
+              </span>
+              <p className="text-gray-500 text-[10px] mt-0.5">Administration</p>
+            </div>
           </Link>
-          <p className="text-gray-500 text-xs mt-1">Panneau d&apos;administration</p>
         </div>
 
         <nav className="flex-1 p-4 space-y-1 overflow-y-auto">

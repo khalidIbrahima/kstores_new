@@ -93,7 +93,7 @@ export function generateInvoiceHtml(order: InvoiceOrder): string {
         <h1 style="font-size: 28px; font-weight: 900; font-style: italic; color: #111827; margin: 0;">
           KAPITAL<span style="color: #22c55e;">.</span>STORES
         </h1>
-        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">Fass Delorme, Dakar, Senegal</p>
+        <p style="font-size: 12px; color: #6b7280; margin-top: 4px;">  Dakar, Senegal</p>
         <p style="font-size: 12px; color: #6b7280;">kapital-stores.shop</p>
       </div>
       <div style="text-align: right;">

@@ -1,13 +1,17 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Send } from 'lucide-react'
+import Turnstile from '@/components/Turnstile'
 
 export default function NewsletterSection() {
   const [email, setEmail] = useState('')
   const [submitted, setSubmitted] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  const handleTurnstile = useCallback((token: string) => setTurnstileToken(token), [])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,7 +22,7 @@ export default function NewsletterSection() {
       const res = await fetch('/api/newsletter', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email }),
+        body: JSON.stringify({ email, turnstileToken }),
       })
       if (!res.ok) {
         const data = await res.json()
@@ -43,23 +47,28 @@ export default function NewsletterSection() {
           Abonnez-vous à notre newsletter pour recevoir des mises à jour, des offres exclusives et plus encore !
         </p>
 
-        <form onSubmit={handleSubmit} className="mt-8 flex max-w-md mx-auto">
-          <input
-            type="email"
-            value={email}
-            onChange={e => setEmail(e.target.value)}
-            placeholder="Entrez votre email"
-            required
-            className="flex-1 bg-gray-800 border border-gray-700 rounded-l-lg px-4 py-3 text-white outline-none focus:border-green-500 text-sm"
-          />
-          <button
-            type="submit"
-            disabled={loading}
-            className="bg-green-500 hover:bg-green-600 text-black font-bold px-6 rounded-r-lg transition-colors flex items-center gap-2 disabled:opacity-50"
-          >
-            <Send className="w-4 h-4" />
-            <span className="hidden sm:inline">S&apos;abonner</span>
-          </button>
+        <form onSubmit={handleSubmit} className="mt-8 max-w-md mx-auto">
+          <div className="flex">
+            <input
+              type="email"
+              value={email}
+              onChange={e => setEmail(e.target.value)}
+              placeholder="Entrez votre email"
+              required
+              className="flex-1 bg-gray-800 border border-gray-700 rounded-l-lg px-4 py-3 text-white outline-none focus:border-green-500 text-sm"
+            />
+            <button
+              type="submit"
+              disabled={loading}
+              className="bg-green-500 hover:bg-green-600 text-black font-bold px-6 rounded-r-lg transition-colors flex items-center gap-2 disabled:opacity-50"
+            >
+              <Send className="w-4 h-4" />
+              <span className="hidden sm:inline">S&apos;abonner</span>
+            </button>
+          </div>
+          <div className="flex justify-center">
+            <Turnstile onVerify={handleTurnstile} />
+          </div>
         </form>
 
         {submitted && (

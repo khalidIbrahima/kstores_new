@@ -28,6 +28,8 @@ import {
   CalendarDays,
   DollarSign,
   Trash2,
+  Navigation,
+  ExternalLink,
 } from 'lucide-react'
 
 interface OrderItem {
@@ -38,6 +40,7 @@ interface OrderItem {
 }
 
 interface ShippingAddress {
+  name?: string
   firstName?: string
   lastName?: string
   email?: string
@@ -53,12 +56,18 @@ interface ShippingAddress {
 
 type ShippingAddressFieldKey = Exclude<keyof ShippingAddress, '_meta'>
 
+interface GeoLocation {
+  latitude?: number
+  longitude?: number
+}
+
 interface Order {
   id: string
   created_at: string
   status: string
   total: number
   shipping_address: ShippingAddress
+  userGeolocation?: GeoLocation | null
 }
 
 interface ProductResult {
@@ -467,6 +476,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const [saving, setSaving] = useState(false)
   const [savingDiscount, setSavingDiscount] = useState(false)
   const [newStatus, setNewStatus] = useState('')
+  const [notifyCustomer, setNotifyCustomer] = useState(true)
   const [discountInput, setDiscountInput] = useState('0')
   const [discountError, setDiscountError] = useState('')
   const [showEditCustomer, setShowEditCustomer] = useState(false)
@@ -531,16 +541,18 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     setSaving(true)
     await supabase.from('orders').update({ status: newStatus }).eq('id', id)
 
-    // Send notifications (email + WhatsApp) via the notification service
-    const addr = order.shipping_address
-    if (addr?.email && newStatus !== 'pending') {
-      notifyStatusUpdate({
-        id: order.id,
-        email: addr.email,
-        firstName: addr.firstName || '',
-        phone: addr.phone,
-        status: newStatus,
-      }).catch(err => console.error('Status notification error:', err))
+    // Send notifications only if admin opted in
+    if (notifyCustomer) {
+      const addr = order.shipping_address
+      if (addr?.email && newStatus !== 'pending') {
+        notifyStatusUpdate({
+          id: order.id,
+          email: addr.email,
+          firstName: addr.firstName || addr.name || '',
+          phone: addr.phone,
+          status: newStatus,
+        }).catch(err => console.error('Status notification error:', err))
+      }
     }
 
     setOrder(prev => (prev ? { ...prev, status: newStatus } : null))
@@ -898,14 +910,27 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
               ))}
             </div>
             {newStatus !== order.status && (
-              <button
-                onClick={handleUpdateStatus}
-                disabled={saving}
-                className="mt-4 bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors disabled:opacity-50"
-              >
-                <Save className="w-4 h-4" />
-                {saving ? 'Enregistrement...' : 'Enregistrer le statut'}
-              </button>
+              <div className="mt-4 flex items-center gap-4">
+                <button
+                  onClick={handleUpdateStatus}
+                  disabled={saving}
+                  className="bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  {saving ? 'Enregistrement...' : 'Enregistrer le statut'}
+                </button>
+                <label className="flex items-center gap-2 cursor-pointer select-none">
+                  <input
+                    type="checkbox"
+                    checked={notifyCustomer}
+                    onChange={e => setNotifyCustomer(e.target.checked)}
+                    className="w-4 h-4 rounded border-gray-600 bg-gray-800 text-green-500 focus:ring-green-500 focus:ring-offset-0 cursor-pointer"
+                  />
+                  <span className={`text-xs ${notifyCustomer ? 'text-green-400' : 'text-gray-500'}`}>
+                    Notifier le client
+                  </span>
+                </label>
+              </div>
             )}
           </div>
 
@@ -959,6 +984,66 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
               </div>
             </div>
           </div>
+
+          {/* Location Map */}
+          {order.userGeolocation?.latitude && order.userGeolocation?.longitude && (() => {
+            const lat = order.userGeolocation!.latitude!
+            const lng = order.userGeolocation!.longitude!
+            const gmapsUrl = `https://www.google.com/maps?q=${lat},${lng}`
+            const gmapsNavUrl = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`
+            const osmUrl = `https://www.openstreetmap.org/export/embed.html?bbox=${lng - 0.004},${lat - 0.003},${lng + 0.004},${lat + 0.003}&layer=mapnik&marker=${lat},${lng}`
+            const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=${encodeURIComponent(gmapsNavUrl)}&bgcolor=111827&color=22c55e`
+            return (
+              <div className="bg-[#111827] border border-gray-800 rounded-xl overflow-hidden">
+                {/* Map embed */}
+                <div className="h-[180px] relative">
+                  <iframe
+                    src={osmUrl}
+                    className="w-full h-full border-0"
+                    title="Localisation"
+                    loading="lazy"
+                  />
+                </div>
+                <div className="p-4">
+                  <div className="flex items-start justify-between gap-3 mb-3">
+                    <div>
+                      <p className="text-white font-bold text-sm flex items-center gap-1.5">
+                        <Navigation className="w-3.5 h-3.5 text-green-400" /> Localisation
+                      </p>
+                      <p className="text-gray-500 text-xs font-mono mt-1">{lat.toFixed(6)}, {lng.toFixed(6)}</p>
+                    </div>
+                    {/* QR Code — scan from mobile to open navigation */}
+                    <div className="flex flex-col items-center flex-shrink-0">
+                      <a href={gmapsNavUrl} target="_blank" rel="noopener noreferrer" title="Scanner pour naviguer">
+                        <img src={qrUrl} alt="QR Google Maps" width={80} height={80} className="rounded-lg border-2 border-green-500/30" />
+                      </a>
+                      <p className="text-gray-600 text-[9px] mt-1 text-center">Scanner pour naviguer</p>
+                    </div>
+                  </div>
+                  {/* Action buttons */}
+                  <div className="flex gap-2">
+                    <a
+                      href={gmapsUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-xs font-medium hover:bg-gray-700 transition-colors"
+                    >
+                      <MapPin className="w-3.5 h-3.5 text-green-400" /> Voir sur Maps
+                      <ExternalLink className="w-3 h-3 text-gray-500" />
+                    </a>
+                    <a
+                      href={gmapsNavUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-lg bg-green-500 text-black text-xs font-bold hover:bg-green-600 transition-colors"
+                    >
+                      <Navigation className="w-3.5 h-3.5" /> Naviguer
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Invoice Download */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">

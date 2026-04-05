@@ -27,7 +27,7 @@ const slides = [
   {
     title: 'Livraison rapide à',
     highlight: 'Dakar & tout le Sénégal',
-    desc: 'Livraison gratuite à Dakar pour les commandes de plus de 50 000 F CFA. Recevez vos commandes sous 1-2 jours.',
+    desc: 'Livraison gratuite à Dakar pour les commandes de plus de 50 000 F CFA. Recevez vos commandes en moins de 3h à Dakar et entre 6h à 1 jour en région.',
     cta: 'Acheter maintenant',
     ctaLink: '/products',
     cta2: 'Nous contacter',

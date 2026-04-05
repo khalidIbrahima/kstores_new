@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useAuth } from '@/context/AuthContext'
 import { Mail, Lock, User, Eye, EyeOff } from 'lucide-react'
+import Turnstile from '@/components/Turnstile'
 
 export default function LoginPage() {
   const { isAuthenticated, isAdmin, signInWithGoogle, signInWithEmail, signUpWithEmail, loading } = useAuth()
@@ -17,6 +18,10 @@ export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [success, setSuccess] = useState<string | null>(null)
+  const [turnstileToken, setTurnstileToken] = useState('')
+
+  const handleTurnstile = useCallback((token: string) => setTurnstileToken(token), [])
+  const handleTurnstileExpire = useCallback(() => setTurnstileToken(''), [])
 
   useEffect(() => {
     if (loading || !isAuthenticated) return
@@ -164,6 +169,8 @@ export default function LoginPage() {
               {success}
             </div>
           )}
+
+          <Turnstile onVerify={handleTurnstile} onExpire={handleTurnstileExpire} />
 
           <button
             type="submit"
