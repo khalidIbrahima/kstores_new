@@ -114,7 +114,7 @@ export default function AdminSuppliers() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-3xl font-black text-white">Produits fournisseurs</h1>
+        <h1 className="text-lg sm:text-3xl font-black text-white">Produits fournisseurs</h1>
         <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 text-green-400 animate-spin" /></div>
       </div>
     )
@@ -123,7 +123,7 @@ export default function AdminSuppliers() {
   if (!tableExists) {
     return (
       <div className="space-y-4">
-        <h1 className="text-3xl font-black text-white">Produits fournisseurs</h1>
+        <h1 className="text-lg sm:text-3xl font-black text-white">Produits fournisseurs</h1>
         <div className="bg-[#111827] border border-gray-800 rounded-xl p-12 text-center">
           <Package className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-white font-bold text-lg mb-2">Table non configuree</h2>
@@ -149,7 +149,7 @@ export default function AdminSuppliers() {
       {/* Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={handleCancel}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-20 p-6" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-10 sm:mt-20 p-4 sm:p-6" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white font-bold text-lg">{editingItem ? 'Modifier' : 'Nouveau'} produit fournisseur</h2>
               <button onClick={handleCancel} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800"><X className="w-5 h-5" /></button>
@@ -260,7 +260,7 @@ export default function AdminSuppliers() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[760px]">
+            <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
                 <th className="px-4 py-3 text-xs text-gray-500 font-medium">Produit</th>

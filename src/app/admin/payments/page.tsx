@@ -62,7 +62,7 @@ export default function AdminPayments() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-black text-white">Paiements</h1>
+        <h1 className="text-lg sm:text-3xl font-black text-white">Paiements</h1>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-green-400 animate-spin" />
         </div>
@@ -132,7 +132,7 @@ export default function AdminPayments() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px]">
+            <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
                 <th className="px-4 py-3 text-xs text-gray-500 font-medium">Date</th>

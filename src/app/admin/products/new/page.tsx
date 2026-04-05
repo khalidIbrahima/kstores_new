@@ -71,7 +71,7 @@ export default function NewProduct() {
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
-          <h1 className="text-3xl font-black text-white">Nouveau produit</h1>
+          <h1 className="text-xl sm:text-3xl font-black text-white">Nouveau produit</h1>
           <p className="text-gray-500 text-sm mt-1">Ajouter un produit a votre catalogue</p>
         </div>
       </div>

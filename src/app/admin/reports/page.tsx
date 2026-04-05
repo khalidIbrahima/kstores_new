@@ -165,7 +165,7 @@ export default function AdminReports() {
 
       {/* --- Ventes --- */}
       {activeTab === 'sales' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           {/* Left: Stat Cards */}
           <div className="flex flex-col gap-4">
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
@@ -175,7 +175,7 @@ export default function AdminReports() {
                   <TrendingUp className="w-5 h-5 text-green-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{formatPrice(data.totalRevenue)}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{formatPrice(data.totalRevenue)}</p>
             </div>
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-3">
@@ -184,7 +184,7 @@ export default function AdminReports() {
                   <ShoppingCart className="w-5 h-5 text-blue-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{data.ordersCount}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{data.ordersCount}</p>
             </div>
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-3">
@@ -193,7 +193,7 @@ export default function AdminReports() {
                   <BarChart3 className="w-5 h-5 text-yellow-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{formatPrice(data.avgOrderValue)}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{formatPrice(data.avgOrderValue)}</p>
             </div>
           </div>
 
@@ -229,7 +229,7 @@ export default function AdminReports() {
 
       {/* --- Clients --- */}
       {activeTab === 'customers' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           {/* Left: Stat Cards */}
           <div className="flex flex-col gap-4">
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
@@ -239,7 +239,7 @@ export default function AdminReports() {
                   <Users className="w-5 h-5 text-purple-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{data.totalCustomers}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{data.totalCustomers}</p>
             </div>
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-3">
@@ -248,7 +248,7 @@ export default function AdminReports() {
                   <TrendingUp className="w-5 h-5 text-blue-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{data.newThisMonth}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{data.newThisMonth}</p>
             </div>
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-3">
@@ -257,7 +257,7 @@ export default function AdminReports() {
                   <Users className="w-5 h-5 text-green-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{data.returningCustomers}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{data.returningCustomers}</p>
             </div>
           </div>
 
@@ -297,7 +297,7 @@ export default function AdminReports() {
               <div className="pt-4 border-t border-gray-800">
                 <div className="flex items-center justify-between">
                   <span className="text-gray-400 text-sm">Taux de retention</span>
-                  <span className="text-2xl font-black text-green-400">
+                  <span className="text-lg sm:text-2xl font-black text-green-400">
                     {data.totalCustomers > 0
                       ? Math.round((data.returningCustomers / data.totalCustomers) * 100)
                       : 0}%
@@ -311,7 +311,7 @@ export default function AdminReports() {
 
       {/* --- Inventaire --- */}
       {activeTab === 'inventory' && (
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           {/* Left: Stat Cards */}
           <div className="flex flex-col gap-4">
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
@@ -321,7 +321,7 @@ export default function AdminReports() {
                   <Package className="w-5 h-5 text-blue-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{data.totalProducts}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{data.totalProducts}</p>
             </div>
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
               <div className="flex items-center justify-between mb-3">
@@ -330,7 +330,7 @@ export default function AdminReports() {
                   <Package className="w-5 h-5 text-green-400" />
                 </div>
               </div>
-              <p className="text-2xl font-black text-white">{data.activeProducts}</p>
+              <p className="text-lg sm:text-2xl font-black text-white">{data.activeProducts}</p>
             </div>
           </div>
 
@@ -345,7 +345,7 @@ export default function AdminReports() {
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Rupture de stock</p>
-                    <p className="text-2xl font-black text-white">{data.outOfStock}</p>
+                    <p className="text-lg sm:text-2xl font-black text-white">{data.outOfStock}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-4 bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-4">
@@ -354,7 +354,7 @@ export default function AdminReports() {
                   </div>
                   <div>
                     <p className="text-gray-400 text-sm">Stock faible</p>
-                    <p className="text-2xl font-black text-white">{data.lowStock}</p>
+                    <p className="text-lg sm:text-2xl font-black text-white">{data.lowStock}</p>
                   </div>
                 </div>
               </div>
@@ -390,7 +390,7 @@ export default function AdminReports() {
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-6 mt-3 text-xs">
+              <div className="flex items-center gap-3 sm:gap-6 mt-3 text-xs">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                   <span className="text-gray-400">En stock</span>

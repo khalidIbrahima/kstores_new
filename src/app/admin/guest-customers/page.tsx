@@ -106,7 +106,7 @@ export default function AdminGuestCustomers() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-black text-white">Clients invites</h1>
+        <h1 className="text-lg sm:text-2xl font-black text-white">Clients invites</h1>
         <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 text-green-400 animate-spin" /></div>
       </div>
     )
@@ -117,7 +117,7 @@ export default function AdminGuestCustomers() {
       {/* Header */}
       <div>
         <div className="flex items-center gap-3 flex-wrap">
-          <h1 className="text-2xl font-black text-white">Clients invites</h1>
+          <h1 className="text-lg sm:text-2xl font-black text-white">Clients invites</h1>
           <div className="flex items-center gap-2 flex-wrap">
             <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-400/10 text-blue-400">{totalGuests} invites</span>
             <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-400/10 text-green-400">{formatPrice(totalRevenue)}</span>
@@ -129,7 +129,7 @@ export default function AdminGuestCustomers() {
       </div>
 
       {/* Contact stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-green-400/10 flex items-center justify-center">
             <Phone className="w-4 h-4 text-green-400" />
@@ -185,7 +185,7 @@ export default function AdminGuestCustomers() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[700px]">
+            <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-800 text-left">
                   <th className="px-4 py-3 text-xs text-gray-500 font-medium">Client</th>

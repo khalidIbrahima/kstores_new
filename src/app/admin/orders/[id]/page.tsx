@@ -361,7 +361,7 @@ function AddItemModal({
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div>
               <label className="text-gray-400 text-xs font-medium mb-1 block">Quantite</label>
               <input
@@ -753,7 +753,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3 flex-wrap">
-            <h1 className="text-3xl font-black text-white">Commande</h1>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Commande</h1>
             <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/15 text-green-400">
               <DollarSign className="w-3 h-3" />
               {formatPrice(order.total)}
@@ -782,11 +782,11 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       </div>
 
       {/* ── 2-Column Grid ─────────────────────────────────────────────── */}
-      <div className="grid lg:grid-cols-3 gap-6">
+      <div className="grid lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
         {/* LEFT: Items + Status + Timeline */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Order Items */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white font-bold">Articles ({items.length})</h2>
               <button
@@ -854,7 +854,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
             </div>
           </div>
 
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-4">Remise admin</h2>
             <div className="space-y-3">
               <div>
@@ -891,7 +891,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           </div>
 
           {/* Update Status */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-4">Mettre a jour le statut</h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2">
               {STATUSES.map(s => (
@@ -935,16 +935,16 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           </div>
 
           {/* Timeline */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-4">Progression</h2>
             <OrderTimeline status={order.status} />
           </div>
         </div>
 
         {/* RIGHT: Customer + Shipping + Invoice */}
-        <div className="space-y-6">
+        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Customer Info */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
               <h2 className="text-white font-bold">Client</h2>
               <button
@@ -973,7 +973,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           </div>
 
           {/* Shipping Address */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-4">Adresse de livraison</h2>
             <div className="flex items-start gap-2 text-gray-400 text-sm">
               <MapPin className="w-4 h-4 text-gray-500 mt-0.5 flex-shrink-0" />
@@ -1046,7 +1046,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           })()}
 
           {/* Invoice Download */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-4">Facture</h2>
             <button
               onClick={handleDownloadInvoice}
@@ -1058,7 +1058,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           </div>
 
           {/* Order Info */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-3">Informations</h2>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between text-gray-400">

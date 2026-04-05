@@ -314,7 +314,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div className="flex-1">
-          <h1 className="text-2xl font-black text-white">{order.title || 'Sans titre'}</h1>
+          <h1 className="text-lg sm:text-2xl font-black text-white">{order.title || 'Sans titre'}</h1>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {order.order_number && (
               <span className="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 font-mono flex items-center gap-1">
@@ -332,7 +332,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Financial Summary */}
-      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
         <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
           <p className="text-gray-500 text-xs">Produits (USD)</p>
           <p className="text-green-400 font-bold text-lg">{fmtUsd(totalAmountUsd)}</p>
@@ -570,7 +570,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       {/* Add/Edit Item Modal */}
       {showItemForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={closeItemForm}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-16 p-5" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-8 sm:mt-16 p-5" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-white font-bold">{editingItemId ? 'Modifier' : 'Ajouter'} un article</h3>
               <button onClick={closeItemForm} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
@@ -582,7 +582,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                   placeholder="Nom du produit..."
                   className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
               </div>
-              <div className="grid grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Prix USD *</label>
                   <input type="number" step="0.01" min="0" value={itemForm.unit_price_usd} onChange={e => setItemForm(prev => ({ ...prev, unit_price_usd: e.target.value }))}
@@ -599,7 +599,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Poids unit. (kg)</label>
                   <input type="number" step="0.01" min="0" value={itemForm.unit_weight} onChange={e => setItemForm(prev => ({ ...prev, unit_weight: e.target.value }))}
@@ -641,7 +641,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       {/* Add/Edit Delivery Modal */}
       {showDeliveryForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={closeDeliveryForm}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-12 p-5" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-8 sm:mt-12 p-5" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-white font-bold flex items-center gap-2">
                 <Truck className="w-4 h-4 text-purple-400" />
@@ -650,7 +650,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
               <button onClick={closeDeliveryForm} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
             <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Agence de livraison</label>
                   <select value={deliveryForm.shipping_agency_id} onChange={e => setDeliveryForm(prev => ({ ...prev, shipping_agency_id: e.target.value }))}
@@ -669,7 +669,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                   </select>
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Poids (kg)</label>
                   <input type="number" step="0.01" min="0" value={deliveryForm.weight_kg}
@@ -683,7 +683,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Frais livraison (F CFA)</label>
                   <input type="number" step="0.01" min="0" value={deliveryForm.shipping_fees_xof}
@@ -697,7 +697,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Date envoi</label>
                   <input type="date" value={deliveryForm.send_date}
@@ -711,7 +711,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                     className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">N° suivi</label>
                   <input type="text" value={deliveryForm.tracking_number}

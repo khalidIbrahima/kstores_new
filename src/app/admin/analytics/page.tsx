@@ -54,7 +54,7 @@ export default function AdminAnalytics() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-black text-white">Statistiques</h1>
+        <h1 className="text-lg sm:text-2xl font-black text-white">Statistiques</h1>
         <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 text-green-400 animate-spin" /></div>
       </div>
     )
@@ -63,7 +63,7 @@ export default function AdminAnalytics() {
   if (!tablesExist) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-black text-white">Statistiques</h1>
+        <h1 className="text-lg sm:text-2xl font-black text-white">Statistiques</h1>
         <div className="bg-[#111827] border border-gray-800 rounded-xl p-12 text-center">
           <BarChart3 className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-white font-bold text-lg mb-2">Tables non configurees</h2>
@@ -83,7 +83,7 @@ export default function AdminAnalytics() {
       {/* Header + period filter */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-white">Statistiques</h1>
+          <h1 className="text-lg sm:text-2xl font-black text-white">Statistiques</h1>
           <p className="text-gray-500 text-xs mt-0.5">Suivi du trafic et des vues</p>
         </div>
         <div className="flex items-center gap-1 bg-[#0d1117] border border-gray-800 rounded-lg p-1">

@@ -191,7 +191,7 @@ export default function AdminProducts() {
       {/* Header */}
       <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <div>
-          <h1 className="text-2xl font-black text-white sm:text-3xl">Produits</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Produits</h1>
           <p className="text-gray-500 text-sm mt-1">{totalProducts} produit{totalProducts > 1 ? 's' : ''} au total</p>
         </div>
         <div className="flex flex-col gap-2 sm:flex-row">

@@ -142,7 +142,7 @@ export default function AdminNewsletter() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-black text-white">Newsletter</h1>
+        <h1 className="text-lg sm:text-2xl font-black text-white">Newsletter</h1>
         <div className="flex items-center justify-center py-20"><Loader2 className="w-8 h-8 text-green-400 animate-spin" /></div>
       </div>
     )
@@ -151,7 +151,7 @@ export default function AdminNewsletter() {
   if (!tableExists) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-black text-white">Newsletter</h1>
+        <h1 className="text-lg sm:text-2xl font-black text-white">Newsletter</h1>
         <div className="bg-[#111827] border border-gray-800 rounded-xl p-12 text-center">
           <Mail className="w-16 h-16 text-gray-600 mx-auto mb-4" />
           <h2 className="text-white font-bold text-lg mb-2">Table non configuree</h2>
@@ -192,7 +192,7 @@ CREATE POLICY "allow_all_delete"
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-white">Newsletter</h1>
+          <h1 className="text-lg sm:text-2xl font-black text-white">Newsletter</h1>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-green-400/10 text-green-400">{active} actifs</span>
             <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-gray-700 text-gray-300">{unsubscribed} desinscrits</span>
@@ -296,7 +296,7 @@ CREATE POLICY "allow_all_delete"
       {/* Add subscriber modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowAddForm(false)}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-md mx-4 mt-20 p-5" onClick={e => e.stopPropagation()}>
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-md mx-4 mt-10 sm:mt-20 p-4 sm:p-5" onClick={e => e.stopPropagation()}>
             <div className="flex items-center justify-between mb-4">
               <h3 className="text-white font-bold">Ajouter un abonne</h3>
               <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>

@@ -84,7 +84,7 @@ export default function AdminSupport() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-black text-white">Support</h1>
+        <h1 className="text-lg sm:text-2xl font-black text-white">Support</h1>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-green-400 animate-spin" />
         </div>
@@ -98,7 +98,7 @@ export default function AdminSupport() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-2xl font-black text-white">Support</h1>
+            <h1 className="text-lg sm:text-2xl font-black text-white">Support</h1>
             <p className="text-gray-500 text-xs mt-0.5">Gestion du support client</p>
           </div>
           {/* Inline stat badges */}

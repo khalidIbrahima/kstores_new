@@ -156,7 +156,7 @@ export default function AdminInventory() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[680px]">
+            <table className="w-full min-w-[560px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
                 <th className="px-4 py-3 text-xs text-gray-500 font-medium">Produit</th>

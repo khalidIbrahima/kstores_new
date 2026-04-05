@@ -163,7 +163,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {/* ═══ 2-COLUMN LAYOUT ═══ */}
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
 
         {/* ─── LEFT COLUMN: Info + Pricing ─── */}
         <div className="space-y-4">
@@ -203,7 +203,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
               <DollarSign className="w-4 h-4 text-green-400" />
               <h2 className="text-white font-bold text-sm">Prix & Stock</h2>
             </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Prix (FCFA) *</label>
                 <input type="number" value={form.price} onChange={e => update('price', e.target.value)}
@@ -257,7 +257,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
                     </div>
                   )}
                 </div>
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div>
                     <label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Debut</label>
                     <input type="datetime-local" value={form.promotion_start_date} onChange={e => update('promotion_start_date', e.target.value)}
@@ -284,7 +284,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
               <h2 className="text-white font-bold text-sm">Images</h2>
             </div>
             <ImageInput label="Image principale" value={form.image_url} onChange={v => update('image_url', v)} required />
-            <div className="grid grid-cols-2 gap-2 mt-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
               <ImageInput label="Image 2" value={form.image_url1} onChange={v => update('image_url1', v)} compact />
               <ImageInput label="Image 3" value={form.image_url2} onChange={v => update('image_url2', v)} compact />
               <ImageInput label="Image 4" value={form.image_url3} onChange={v => update('image_url3', v)} compact />
@@ -312,7 +312,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
       </div>
 
       {/* ═══ STICKY ACTIONS BAR ═══ */}
-      <div className="sticky bottom-0 z-10 bg-[#0a0f1a]/95 backdrop-blur-sm border-t border-gray-800 -mx-8 px-8 py-3 flex gap-3">
+      <div className="sticky bottom-0 z-10 bg-[#0a0f1a]/95 backdrop-blur-sm border-t border-gray-800 -mx-4 px-4 sm:-mx-8 sm:px-8 py-3 flex gap-3">
         <button type="button" onClick={onCancel}
           className="flex-1 border border-gray-700 hover:border-gray-500 text-gray-300 py-2.5 rounded-lg text-center text-sm transition-colors">
           Annuler

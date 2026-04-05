@@ -185,8 +185,8 @@ export default function AdminDashboard() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-black text-white">Dashboard</h1>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        <h1 className="text-lg sm:text-2xl font-black text-white">Dashboard</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
           {[1, 2, 3, 4].map(i => (
             <div key={i} className="bg-[#111827] border border-gray-800 rounded-xl p-4 animate-pulse">
               <div className="h-3 bg-gray-700 rounded w-16 mb-2" />
@@ -203,7 +203,7 @@ export default function AdminDashboard() {
       {/* Header + Period Filter */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-black text-white">Dashboard</h1>
+          <h1 className="text-lg sm:text-2xl font-black text-white">Dashboard</h1>
           <p className="text-gray-500 text-xs mt-0.5">Vue d&apos;ensemble de votre boutique</p>
         </div>
         <div className="flex items-center gap-1 bg-[#0d1117] border border-gray-800 rounded-lg p-1">
@@ -223,7 +223,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* ═══ KPI CARDS ═══ */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
         {[
           { label: 'Revenus', value: formatPrice(revenue), icon: TrendingUp, accent: '#22c55e', bg: 'bg-green-400/10', growth: revenueGrowth, href: '/admin/orders' },
           { label: 'Commandes', value: orderCount, icon: ShoppingCart, accent: '#60a5fa', bg: 'bg-blue-400/10', growth: orderGrowth, href: '/admin/orders' },
@@ -300,7 +300,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1">
+          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
             {donut.segments.map(s => (
               <div key={s.label} className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
@@ -324,7 +324,7 @@ export default function AdminDashboard() {
           </div>
 
           {/* Stock summary */}
-          <div className="grid grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
             <div className="text-center p-2 rounded-lg bg-blue-400/5 border border-blue-500/10">
               <p className="text-blue-400 font-black text-lg">{stockData.totalProducts}</p>
               <p className="text-gray-500 text-[9px]">Total</p>

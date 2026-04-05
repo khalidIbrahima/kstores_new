@@ -165,7 +165,7 @@ export default function AdminShipping() {
           onClick={handleCancel}
         >
           <div
-            className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-20 p-6"
+            className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-10 sm:mt-20 p-6"
             onClick={e => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-6">

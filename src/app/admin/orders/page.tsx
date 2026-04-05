@@ -75,7 +75,7 @@ export default function AdminOrders() {
     <div className="space-y-4">
       {/* Header with inline stats */}
       <div className="flex flex-wrap items-center gap-3">
-        <h1 className="text-2xl font-black text-white sm:text-3xl">Commandes</h1>
+        <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Commandes</h1>
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-700 text-gray-200">
           <Package className="w-3 h-3" />
           {orders.length}

@@ -93,7 +93,7 @@ export default function AdminCustomers() {
           </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[720px]">
+            <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
                 <th className="px-4 py-3 text-xs text-gray-500 font-medium">Utilisateur</th>

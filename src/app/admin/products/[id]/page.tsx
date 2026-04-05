@@ -274,7 +274,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
         </Link>
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-3">
-            <h1 className="text-2xl font-black text-white truncate">{product.name}</h1>
+            <h1 className="text-lg sm:text-2xl font-black text-white truncate">{product.name}</h1>
             <button
               onClick={toggleActive}
               className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
@@ -380,7 +380,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
           {/* Right — Info */}
           <div className="lg:col-span-2 space-y-4">
             {/* Price + Stock Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
                 <p className="text-gray-500 text-xs mb-1">Prix</p>
                 <p className="text-green-400 font-bold text-lg">{formatPrice(finalPrice)}</p>
@@ -422,7 +422,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
             {/* Details Grid */}
             <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
               <h3 className="text-white font-bold text-sm mb-3">Details</h3>
-              <div className="grid grid-cols-2 gap-y-3 gap-x-6 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Categorie</span>
                   <span className="text-white">{product.categories?.name || '—'}</span>
