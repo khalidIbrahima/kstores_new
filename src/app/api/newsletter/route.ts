@@ -18,6 +18,19 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Email requis.' }, { status: 400 })
     }
 
+    // Save subscriber to database (upsert to handle duplicates)
+    const { createClient } = await import('@supabase/supabase-js')
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+    const { error: dbError } = await supabase.from('newsletter_subscribers').upsert(
+      { email, status: 'active', source: 'website', subscribed_at: new Date().toISOString() },
+      { onConflict: 'email' }
+    )
+    if (dbError) console.error('Newsletter DB error:', dbError)
+
+    // Send welcome email
     await resend.emails.send({
       from: 'Kapital Stores <onboarding@resend.dev>',
       to: email,
