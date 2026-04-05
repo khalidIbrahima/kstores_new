@@ -140,10 +140,11 @@ export function generateInvoiceHtml(order: InvoiceOrder): string {
           <span style="font-size: 14px; color: #6b7280;">Remise</span>
           <span style="font-size: 14px; color: #dc2626; font-weight: 500;">- ${formatXOF(order.discount)}</span>
         </div>` : ''}
+        ${order.shipping > 0 ? `
         <div style="display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #e5e7eb;">
           <span style="font-size: 14px; color: #6b7280;">Livraison</span>
-          <span style="font-size: 14px; color: #111827; font-weight: 500;">${order.shipping === 0 ? 'Gratuit' : formatXOF(order.shipping)}</span>
-        </div>
+          <span style="font-size: 14px; color: #111827; font-weight: 500;">${formatXOF(order.shipping)}</span>
+        </div>` : ''}
         <div style="display: flex; justify-content: space-between; padding: 16px 0; margin-top: 8px; border-top: 2px solid #111827;">
           <span style="font-size: 18px; font-weight: 800; color: #111827;">Total</span>
           <span style="font-size: 18px; font-weight: 800; color: #22c55e;">${formatXOF(order.total)}</span>

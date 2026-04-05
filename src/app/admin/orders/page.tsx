@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
-import { Search, Clock, CheckCircle2, Truck, XCircle, ChevronRight, Package, DollarSign } from 'lucide-react'
+import { Search, Clock, CheckCircle2, Truck, XCircle, ChevronRight, Package, DollarSign, Plus } from 'lucide-react'
 import Pagination from '@/components/Pagination'
 
 const ITEMS_PER_PAGE = 15
@@ -74,7 +74,8 @@ export default function AdminOrders() {
   return (
     <div className="space-y-4">
       {/* Header with inline stats */}
-      <div className="flex flex-wrap items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center gap-3">
         <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Commandes</h1>
         <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-700 text-gray-200">
           <Package className="w-3 h-3" />
@@ -88,6 +89,11 @@ export default function AdminOrders() {
           <Clock className="w-3 h-3" />
           {pendingCount} en attente
         </span>
+        </div>
+        <Link href="/admin/orders/new"
+          className="flex items-center gap-1.5 px-4 py-2 bg-green-500 hover:bg-green-600 text-black font-bold text-sm rounded-lg transition-colors">
+          <Plus className="w-4 h-4" /> Creer
+        </Link>
       </div>
 
       {/* Status tab bar */}

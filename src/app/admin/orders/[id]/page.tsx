@@ -51,6 +51,7 @@ interface ShippingAddress {
   postalCode?: string
   _meta?: {
     admin_discount_amount?: number
+    shipping_fee?: number
   }
 }
 
@@ -93,6 +94,11 @@ const getItemsSubtotal = (items: OrderItem[]) =>
 const getOrderDiscount = (order: Order | null) => {
   if (!order) return 0
   return Math.max(0, Number(order.shipping_address?._meta?.admin_discount_amount) || 0)
+}
+
+const getOrderShippingFee = (order: Order | null) => {
+  if (!order) return 0
+  return Math.max(0, Number(order.shipping_address?._meta?.shipping_fee) || 0)
 }
 
 const getBaseAdjustment = (order: Order | null, items: OrderItem[]) => {
@@ -479,6 +485,8 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const [notifyCustomer, setNotifyCustomer] = useState(true)
   const [discountInput, setDiscountInput] = useState('0')
   const [discountError, setDiscountError] = useState('')
+  const [shippingFeeInput, setShippingFeeInput] = useState('0')
+  const [savingShipping, setSavingShipping] = useState(false)
   const [showEditCustomer, setShowEditCustomer] = useState(false)
   const [showAddItem, setShowAddItem] = useState(false)
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null)
@@ -494,6 +502,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       setOrder(nextOrder)
       setNewStatus(nextOrder.status)
       setDiscountInput(String(getOrderDiscount(nextOrder)))
+      setShippingFeeInput(String(getOrderShippingFee(nextOrder)))
     }
     if (itemsRes.data) setItems(itemsRes.data as OrderItem[])
     setLoading(false)
@@ -616,6 +625,32 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     setSavingDiscount(false)
   }
 
+  const handleSaveShippingFee = async () => {
+    if (!order) return
+    const fee = Math.max(0, Number(shippingFeeInput) || 0)
+    setSavingShipping(true)
+
+    const oldFee = getOrderShippingFee(order)
+    const nextShippingAddress: ShippingAddress = {
+      ...order.shipping_address,
+      _meta: { ...order.shipping_address?._meta, shipping_fee: fee },
+    }
+    // Adjust total: remove old fee, add new fee
+    const nextTotal = Math.max(0, order.total - oldFee + fee)
+
+    const { error } = await supabase
+      .from('orders')
+      .update({ total: nextTotal, shipping_address: nextShippingAddress })
+      .eq('id', id)
+
+    if (!error) {
+      setOrder(prev => (prev ? { ...prev, total: nextTotal, shipping_address: nextShippingAddress } : null))
+      setShippingFeeInput(String(fee))
+      toast('Frais de livraison mis a jour.', 'success')
+    }
+    setSavingShipping(false)
+  }
+
   const handleAddItem = async (item: OrderItem) => {
     const updated = [...items, item]
     setItems(updated)
@@ -692,7 +727,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     const invoiceHtml = generateInvoiceHtml({
       id: order.id,
       date: order.created_at,
-      firstName: addr?.firstName || '',
+      firstName: addr?.firstName || addr?.name || '',
       lastName: addr?.lastName || '',
       email: addr?.email || '',
       phone: addr?.phone,
@@ -705,7 +740,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       })),
       subtotal: itemsSubtotal,
       discount: savedDiscount,
-      shipping: 0,
+      shipping: getOrderShippingFee(order),
       total: order.total,
     })
     const win = window.open('', '_blank')
@@ -847,6 +882,12 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
                   <span className="text-red-400">- {formatPrice(savedDiscount)}</span>
                 </div>
               )}
+              {getOrderShippingFee(order) > 0 && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-400">Livraison</span>
+                  <span className="text-blue-400">+ {formatPrice(getOrderShippingFee(order))}</span>
+                </div>
+              )}
               <div className="flex justify-between">
                 <span className="text-white font-bold">Total</span>
                 <span className="text-green-400 font-bold text-xl">{formatPrice(order.total)}</span>
@@ -885,6 +926,39 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
                 >
                   <Save className="w-4 h-4" />
                   {savingDiscount ? 'Enregistrement...' : 'Enregistrer la remise'}
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Shipping Fee */}
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
+            <h2 className="text-white font-bold mb-4 flex items-center gap-2">
+              <Truck className="w-4 h-4 text-blue-400" /> Frais de livraison
+            </h2>
+            <div className="space-y-3">
+              <div>
+                <label className="text-gray-400 text-xs font-medium mb-1 block">Montant (F CFA)</label>
+                <input
+                  type="number"
+                  min={0}
+                  step={100}
+                  value={shippingFeeInput}
+                  onChange={e => setShippingFeeInput(e.target.value)}
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 transition-colors"
+                />
+              </div>
+              <p className="text-gray-500 text-xs">
+                Definissez le prix reel de la livraison. Le total sera ajuste automatiquement.
+              </p>
+              {Number(shippingFeeInput) !== getOrderShippingFee(order) && (
+                <button
+                  onClick={handleSaveShippingFee}
+                  disabled={savingShipping}
+                  className="bg-blue-500 hover:bg-blue-600 text-white font-bold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  {savingShipping ? 'Enregistrement...' : 'Appliquer les frais'}
                 </button>
               )}
             </div>

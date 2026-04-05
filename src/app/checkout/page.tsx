@@ -23,6 +23,7 @@ export default function CheckoutPage() {
   const { settings } = useStoreSettings()
   const { isAuthenticated, displayName, displayEmail, profile } = useAuth()
   const [loading, setLoading] = useState(false)
+  const [placedOrderId, setPlacedOrderId] = useState<string | null>(null)
   const [location, setLocation] = useState<GeoLocation | null>(null)
   const [locatingGPS, setLocatingGPS] = useState(false)
   const [locationError, setLocationError] = useState('')
@@ -44,10 +45,7 @@ export default function CheckoutPage() {
     }))
   }, [isAuthenticated, displayName, displayEmail])
 
-  const freeShippingThreshold = settings?.shipping_options?.free_shipping_threshold ?? 35000
-  const standardShippingCost = settings?.shipping_options?.standard_shipping_cost ?? 1500
-  const shipping = subtotal >= freeShippingThreshold ? 0 : standardShippingCost
-  const total = subtotal + shipping
+  const total = subtotal
 
   const updateForm = (field: string, value: string) => {
     setForm(prev => ({ ...prev, [field]: value }))
@@ -77,14 +75,10 @@ export default function CheckoutPage() {
     )
   }, [])
 
-  const canSubmit = form.name.trim() && form.phone.trim() && form.email.trim() && form.address.trim() && location
+  const canSubmit = form.name.trim() && form.phone.trim() && form.address.trim()
 
   const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!location) {
-      setLocationError('Veuillez partager votre localisation pour la livraison')
-      return
-    }
     if (!canSubmit) return
     setLoading(true)
     try {
@@ -100,10 +94,7 @@ export default function CheckoutPage() {
             phone: form.phone,
             address: form.address,
           },
-          userGeolocation: {
-            latitude: location.lat,
-            longitude: location.lng,
-          },
+          ...(location ? { userGeolocation: { latitude: location.lat, longitude: location.lng } } : {}),
         })
         .select()
         .single()
@@ -159,12 +150,42 @@ export default function CheckoutPage() {
       }
 
       clearCart()
-      router.push('/orders')
+      setPlacedOrderId(order?.id || null)
     } catch (err) {
       console.error('Order error:', err)
       alert('Erreur lors de la commande. Veuillez reessayer.')
     }
     setLoading(false)
+  }
+
+  // ─── Order placed success screen ───
+  if (placedOrderId) {
+    const shortId = placedOrderId.slice(0, 8).toUpperCase()
+    return (
+      <div className="max-w-lg mx-auto px-4 py-16 sm:py-24 text-center">
+        <div className="w-20 h-20 bg-green-500/20 rounded-full flex items-center justify-center mx-auto mb-6">
+          <Package className="w-10 h-10 text-green-400" />
+        </div>
+        <h1 className="text-2xl sm:text-3xl font-black text-white mb-3">Commande recue !</h1>
+        <p className="text-gray-400 mb-2">
+          Merci pour votre commande. Nous vous contacterons tres vite pour confirmer les details de livraison.
+        </p>
+        <div className="inline-flex items-center gap-2 bg-[#111827] border border-gray-800 rounded-lg px-4 py-2 mb-8">
+          <span className="text-gray-500 text-sm">N° commande:</span>
+          <span className="text-green-400 font-mono font-bold">#{shortId}</span>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <Link href={`/orders/track/${placedOrderId}`}
+            className="bg-green-500 hover:bg-green-600 text-black font-bold px-6 py-3 rounded-lg transition-colors text-sm">
+            Suivre ma commande
+          </Link>
+          <Link href="/products"
+            className="border border-gray-700 hover:border-gray-500 text-gray-300 px-6 py-3 rounded-lg transition-colors text-sm">
+            Continuer les achats
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   if (items.length === 0) {
@@ -249,14 +270,13 @@ export default function CheckoutPage() {
                     </div>
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-400 mb-1">Email *</label>
+                    <label className="block text-xs text-gray-400 mb-1">Email <span className="text-gray-600">(optionnel)</span></label>
                     <div className="relative">
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                       <input
                         type="email"
                         value={form.email}
                         onChange={e => updateForm('email', e.target.value)}
-                        required
                         placeholder="votre@email.com"
                         className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-4 py-3 text-white text-sm outline-none focus:border-green-500"
                       />
@@ -405,9 +425,7 @@ export default function CheckoutPage() {
                 </div>
                 <div className="flex justify-between text-gray-400">
                   <span>Livraison</span>
-                  <span className={shipping === 0 ? 'text-green-400' : ''}>
-                    {shipping === 0 ? 'Gratuite' : formatPrice(shipping)}
-                  </span>
+                  <span className="text-yellow-400 text-xs">A determiner</span>
                 </div>
                 <div className="border-t border-gray-700 pt-2 flex justify-between">
                   <span className="text-white font-bold">Total</span>

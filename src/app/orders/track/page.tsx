@@ -47,29 +47,33 @@ export default function TrackOrderPage() {
     setLoading(true)
     setSearched(true)
 
-    let result
+    let data: Order[] = []
+
     if (method === 'order') {
-      // Search by order ID (partial match)
+      // Search by order ID — try exact match first, then partial via text cast
       const q = query.trim().replace('#', '').toLowerCase()
-      result = await supabase
-        .from('orders')
-        .select('*')
-        .ilike('id', `${q}%`)
+      // Try exact UUID match
+      const { data: exact } = await supabase.from('orders').select('*').eq('id', q).limit(1)
+      if (exact && exact.length > 0) {
+        data = exact as Order[]
+      } else {
+        // Partial match: fetch recent orders and filter client-side
+        const { data: recent } = await supabase.from('orders').select('*').order('created_at', { ascending: false }).limit(200)
+        data = ((recent || []) as Order[]).filter(o => o.id.toLowerCase().startsWith(q))
+      }
+    } else if (method === 'phone') {
+      const { data: res } = await supabase.from('orders').select('*')
+        .filter('shipping_address->>phone', 'eq', query.trim())
         .order('created_at', { ascending: false })
-        .limit(10)
+      data = (res || []) as Order[]
     } else {
-      result = await supabase
-        .from('orders')
-        .select('*')
-        .filter(
-          `shipping_address->${method === 'email' ? 'email' : 'phone'}`,
-          'eq',
-          query.trim()
-        )
+      const { data: res } = await supabase.from('orders').select('*')
+        .filter('shipping_address->>email', 'eq', query.trim())
         .order('created_at', { ascending: false })
+      data = (res || []) as Order[]
     }
 
-    setOrders((result.data || []) as Order[])
+    setOrders(data)
     setLoading(false)
   }
 
