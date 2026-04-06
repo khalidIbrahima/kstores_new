@@ -101,12 +101,12 @@ export default function TrackOrderPage() {
 
       {/* Search */}
       <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6 mb-6">
-        <div className="flex items-center gap-1.5 mb-4 overflow-x-auto">
+        <div className="flex items-center gap-1.5 mb-4 flex-wrap">
           {methods.map(m => (
             <button
               key={m.key}
               onClick={() => { setMethod(m.key); setQuery(''); setSearched(false) }}
-              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors whitespace-nowrap ${
+              className={`flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-medium transition-colors ${
                 method === m.key ? 'bg-green-500 text-black' : 'bg-gray-800 text-gray-400 hover:text-white'
               }`}
             >

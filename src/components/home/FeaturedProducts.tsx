@@ -25,7 +25,7 @@ export default function FeaturedProducts({ products }: { products: Product[] }) 
     <section className="py-16 sm:py-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-black italic text-white">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black italic text-white">
             Articles en <span className="text-green-400">vedette</span>
           </h2>
           <p className="text-gray-500 mt-2">Découvrez nos nouveautés et nos articles les plus populaires</p>

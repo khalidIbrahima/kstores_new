@@ -53,7 +53,7 @@ export default function ContactPage() {
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
       <div className="text-center mb-12">
-        <h1 className="text-3xl sm:text-4xl font-black italic text-white">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-black italic text-white">
           Contactez-<span className="text-green-400">nous</span>
         </h1>
         <p className="text-gray-500 mt-2 max-w-lg mx-auto">

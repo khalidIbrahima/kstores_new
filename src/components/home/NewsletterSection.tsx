@@ -40,7 +40,7 @@ export default function NewsletterSection() {
   return (
     <section className="py-16 bg-gradient-to-r from-green-900/10 via-[#060a13] to-green-900/10">
       <div className="max-w-2xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-        <h2 className="text-3xl sm:text-4xl font-black italic text-white">
+        <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black italic text-white">
           Restez <span className="text-green-400">informé</span>
         </h2>
         <p className="text-gray-500 mt-3">

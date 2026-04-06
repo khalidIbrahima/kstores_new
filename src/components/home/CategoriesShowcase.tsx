@@ -7,7 +7,7 @@ export default function CategoriesShowcase({ categories }: { categories: Categor
     <section className="py-16 bg-[#0a0f1a]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-10">
-          <h2 className="text-3xl sm:text-4xl font-black italic text-white">
+          <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black italic text-white">
             Nos <span className="text-green-400">Catégories</span>
           </h2>
           <p className="text-gray-500 mt-2">Explorez notre sélection par catégorie</p>

@@ -325,7 +325,7 @@ export default function CheckoutPage() {
               {location ? (
                 <div className="space-y-3">
                   {/* Map preview */}
-                  <div className="h-[250px] rounded-lg overflow-hidden border border-gray-700 bg-gray-900 relative">
+                  <div className="h-[180px] sm:h-[250px] rounded-lg overflow-hidden border border-gray-700 bg-gray-900 relative">
                     <iframe
                       src={`https://www.openstreetmap.org/export/embed.html?bbox=${location.lng - 0.005},${location.lat - 0.003},${location.lng + 0.005},${location.lat + 0.003}&layer=mapnik&marker=${location.lat},${location.lng}`}
                       className="w-full h-full border-0"
@@ -347,7 +347,7 @@ export default function CheckoutPage() {
                 </div>
               ) : (
                 <div className="space-y-3">
-                  <div className="h-[200px] rounded-lg border-2 border-dashed border-gray-700 flex flex-col items-center justify-center bg-gray-900/50">
+                  <div className="h-[160px] sm:h-[200px] rounded-lg border-2 border-dashed border-gray-700 flex flex-col items-center justify-center bg-gray-900/50">
                     <MapPin className="w-10 h-10 text-gray-600 mb-3" />
                     <p className="text-gray-500 text-sm mb-1">Partagez votre position</p>
                     <p className="text-gray-600 text-xs mb-4">Pour une livraison precise a votre porte</p>
