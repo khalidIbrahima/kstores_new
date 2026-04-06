@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
       const { error } = await supabase
         .from('orders')
         .update({
-          status: 'confirmed',
+          status: 'processing',
           payment_status: 'paid',
           payment_method: 'wave',
           wave_checkout_id: data.id,
@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
       }
 
       console.log(`Wave webhook: Order ${orderId} marked as paid`)
-      return NextResponse.json({ success: true, status: 'confirmed' })
+      return NextResponse.json({ success: true, status: 'processing' })
     }
 
     if (type === 'checkout.session.expired' || data.checkout_status === 'expired') {

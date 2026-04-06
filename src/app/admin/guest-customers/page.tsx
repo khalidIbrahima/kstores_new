@@ -74,7 +74,7 @@ export default function AdminGuestCustomers() {
 
       // Compute status
       for (const guest of map.values()) {
-        const hasCompleted = guest.orders.some(o => ['delivered', 'shipped', 'confirmed'].includes(o.status))
+        const hasCompleted = guest.orders.some(o => ['delivered', 'shipped', 'processing'].includes(o.status))
         const hasPending = guest.orders.some(o => o.status === 'pending')
         const hasCancelled = guest.orders.some(o => o.status === 'cancelled')
         if (hasCompleted && (hasPending || hasCancelled)) guest.status = 'mixed'

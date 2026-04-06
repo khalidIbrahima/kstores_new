@@ -104,7 +104,7 @@ export async function sendStatusWhatsAppToCustomer(
   const shortId = orderId.slice(0, 8).toUpperCase()
 
   const statusMessages: Record<string, { emoji: string; label: string; detail: string }> = {
-    confirmed: {
+    processing: {
       emoji: '✅',
       label: 'Confirmée',
       detail: 'Votre commande est en cours de préparation par notre équipe.',

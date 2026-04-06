@@ -25,7 +25,7 @@ interface Order {
 
 const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ElementType; pill: string }> = {
   pending: { label: 'En attente', color: 'text-yellow-400 bg-yellow-400/10', icon: Clock, pill: 'bg-yellow-500 text-black' },
-  confirmed: { label: 'Confirmée', color: 'text-blue-400 bg-blue-400/10', icon: CheckCircle2, pill: 'bg-blue-500 text-white' },
+  processing: { label: 'Confirmée', color: 'text-blue-400 bg-blue-400/10', icon: CheckCircle2, pill: 'bg-blue-500 text-white' },
   shipped: { label: 'Expédiée', color: 'text-purple-400 bg-purple-400/10', icon: Truck, pill: 'bg-purple-500 text-white' },
   delivered: { label: 'Livrée', color: 'text-green-400 bg-green-400/10', icon: CheckCircle2, pill: 'bg-green-500 text-black' },
   cancelled: { label: 'Annulée', color: 'text-red-400 bg-red-400/10', icon: XCircle, pill: 'bg-red-500 text-white' },

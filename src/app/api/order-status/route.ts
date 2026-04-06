@@ -5,7 +5,7 @@ import { emailLayout, emailButton, emailDivider, emailBadge } from '@/lib/email-
 const resend = new Resend(process.env.RESEND_API_KEY)
 
 const STATUS: Record<string, { label: string; icon: string; msg: string; color: string; bg: string }> = {
-  confirmed: {
+  processing: {
     label: 'Confirmee', icon: '&#9989;', color: '#3b82f6', bg: '#3b82f620',
     msg: 'Votre commande a ete confirmee et est en cours de preparation.',
   },
@@ -38,14 +38,14 @@ export async function POST(req: NextRequest) {
     const isCancelled = status === 'cancelled'
 
     // Progress tracker
-    const steps = ['pending', 'confirmed', 'shipped', 'delivered']
+    const steps = ['pending', 'processing', 'shipped', 'delivered']
     const idx = steps.indexOf(status)
     const progressHtml = isCancelled ? '' : `
       <table role="presentation" cellpadding="0" cellspacing="0" border="0" width="100%" style="margin:24px 0">
         <tr>
           ${steps.map((s, i) => {
             const done = i <= idx
-            const labels: Record<string, string> = { pending: 'Recue', confirmed: 'Confirmee', shipped: 'Expediee', delivered: 'Livree' }
+            const labels: Record<string, string> = { pending: 'Recue', processing: 'Confirmee', shipped: 'Expediee', delivered: 'Livree' }
             return `<td style="text-align:center;width:25%;padding:0 2px">
               <div style="width:32px;height:32px;margin:0 auto 6px;border-radius:50%;background-color:${done ? '#22c55e' : '#1a2332'};text-align:center;line-height:32px;font-size:14px;font-weight:800;color:${done ? '#000' : '#6b7280'}">${done ? '&#10003;' : i + 1}</div>
               <p style="margin:0;color:${done ? '#e5e7eb' : '#6b7280'};font-size:10px;font-weight:${done ? '700' : '400'}">${labels[s]}</p>

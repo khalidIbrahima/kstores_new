@@ -80,13 +80,13 @@ interface ProductResult {
 
 const STATUSES = [
   { value: 'pending', label: 'Recue', color: 'text-yellow-400', icon: Clock },
-  { value: 'confirmed', label: 'Confirmee', color: 'text-blue-400', icon: CheckCircle2 },
+  { value: 'processing', label: 'Confirmee', color: 'text-blue-400', icon: CheckCircle2 },
   { value: 'shipped', label: 'Expediee', color: 'text-purple-400', icon: Truck },
   { value: 'delivered', label: 'Livree', color: 'text-green-400', icon: CheckCircle2 },
   { value: 'cancelled', label: 'Annulee', color: 'text-red-400', icon: XCircle },
 ]
 
-const TIMELINE_STATUSES = ['pending', 'confirmed', 'shipped', 'delivered']
+const TIMELINE_STATUSES = ['pending', 'processing', 'shipped', 'delivered']
 
 const getItemsSubtotal = (items: OrderItem[]) =>
   items.reduce((sum, item) => sum + item.price * item.quantity, 0)

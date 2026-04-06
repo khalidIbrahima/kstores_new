@@ -33,7 +33,7 @@ interface Product {
 
 const STATUS_CFG: Record<string, { label: string; color: string; chartColor: string; icon: React.ElementType }> = {
   pending: { label: 'En attente', color: 'text-yellow-400 bg-yellow-400/10', chartColor: '#facc15', icon: Clock },
-  confirmed: { label: 'Confirmee', color: 'text-blue-400 bg-blue-400/10', chartColor: '#60a5fa', icon: CheckCircle2 },
+  processing: { label: 'Confirmee', color: 'text-blue-400 bg-blue-400/10', chartColor: '#60a5fa', icon: CheckCircle2 },
   shipped: { label: 'Expediee', color: 'text-purple-400 bg-purple-400/10', chartColor: '#a78bfa', icon: Truck },
   delivered: { label: 'Livree', color: 'text-green-400 bg-green-400/10', chartColor: '#22c55e', icon: CheckCircle2 },
   cancelled: { label: 'Annulee', color: 'text-red-400 bg-red-400/10', chartColor: '#ef4444', icon: XCircle },

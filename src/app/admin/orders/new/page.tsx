@@ -86,7 +86,7 @@ export default function AdminCreateOrder() {
     const { data: order, error } = await supabase
       .from('orders')
       .insert({
-        status: 'confirmed',
+        status: 'processing',
         total,
         user_id: null,
         shipping_address: {
