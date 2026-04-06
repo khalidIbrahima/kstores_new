@@ -268,59 +268,64 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center gap-3">
-        <Link href="/admin/products" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800">
-          <ArrowLeft className="w-5 h-5" />
-        </Link>
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-3">
-            <h1 className="text-lg sm:text-2xl font-black text-white truncate">{product.name}</h1>
-            <button
-              onClick={toggleActive}
-              className={`shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium transition-colors ${
-                product.isActive !== false
-                  ? 'bg-green-400/10 text-green-400 hover:bg-green-400/20'
-                  : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
-              }`}
-            >
-              {product.isActive !== false ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
-              {product.isActive !== false ? 'Actif' : 'Masque'}
-            </button>
-          </div>
-          <div className="flex items-center gap-2 mt-1 flex-wrap">
-            <button onClick={copyId} className="text-gray-600 hover:text-gray-400 text-xs flex items-center gap-1 font-mono">
-              {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
-              {id.slice(0, 8)}
-            </button>
-            {product.categories && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-blue-400/10 text-blue-400">{product.categories.name}</span>
-            )}
-            {hasPromo && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-orange-400/10 text-orange-400 flex items-center gap-1">
-                <Tag className="w-2.5 h-2.5" />-{product.promotion_percentage}%
-              </span>
-            )}
+      <div className="space-y-3">
+        {/* Top row: back + title */}
+        <div className="flex items-start gap-3">
+          <Link href="/admin/products" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 shrink-0 mt-0.5">
+            <ArrowLeft className="w-5 h-5" />
+          </Link>
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap">
+              <h1 className="text-lg sm:text-2xl font-black text-white truncate max-w-[250px] sm:max-w-none">{product.name}</h1>
+              <button
+                onClick={toggleActive}
+                className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                  product.isActive !== false
+                    ? 'bg-green-400/10 text-green-400 hover:bg-green-400/20'
+                    : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                }`}
+              >
+                {product.isActive !== false ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                {product.isActive !== false ? 'Actif' : 'Masque'}
+              </button>
+            </div>
+            <div className="flex items-center gap-2 mt-1 flex-wrap">
+              <button onClick={copyId} className="text-gray-600 hover:text-gray-400 text-xs flex items-center gap-1 font-mono">
+                {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
+                {id.slice(0, 8)}
+              </button>
+              {product.categories && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-blue-400/10 text-blue-400">{product.categories.name}</span>
+              )}
+              {hasPromo && (
+                <span className="text-xs px-2 py-0.5 rounded-full bg-orange-400/10 text-orange-400 flex items-center gap-1">
+                  <Tag className="w-2.5 h-2.5" />-{product.promotion_percentage}%
+                </span>
+              )}
+            </div>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0">
+
+        {/* Action buttons — wrap on mobile */}
+        <div className="flex items-center gap-2 flex-wrap">
           <Link
             href={`/products/${slug}`}
             target="_blank"
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" /> Boutique
           </Link>
           <button
             onClick={handleClone}
             disabled={cloning}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-purple-400 border border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-purple-400 border border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-colors disabled:opacity-50"
           >
             <Copy className="w-3.5 h-3.5" /> {cloning ? '...' : 'Cloner'}
           </button>
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-colors disabled:opacity-50"
           >
             <Trash2 className="w-3.5 h-3.5" /> {deleting ? '...' : 'Supprimer'}
           </button>
