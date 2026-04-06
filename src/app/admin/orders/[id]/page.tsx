@@ -3,6 +3,7 @@
 import { useState, useEffect, use, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import { generateInvoiceHtml } from '@/lib/invoice'
@@ -475,6 +476,7 @@ function OrderTimeline({ status }: { status: string }) {
 // ─── Main Page ──────────────────────────────────────────────────────────────
 export default function OrderDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
+  const router = useRouter()
   const toast = useToast()
   const [order, setOrder] = useState<Order | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
@@ -814,6 +816,17 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           </div>
           <p className="text-gray-500 text-xs font-mono mt-1">{order.id}</p>
         </div>
+        <button
+          onClick={async () => {
+            if (!confirm('Supprimer definitivement cette commande et tous ses articles ?')) return
+            await supabase.from('order_items').delete().eq('order_id', id)
+            await supabase.from('orders').delete().eq('id', id)
+            router.push('/admin/orders')
+          }}
+          className="shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors"
+        >
+          <Trash2 className="w-3.5 h-3.5" /> Supprimer
+        </button>
       </div>
 
       {/* ── 2-Column Grid ─────────────────────────────────────────────── */}
