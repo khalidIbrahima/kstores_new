@@ -66,11 +66,11 @@ export default function ProductDetailClient({
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div className="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8 py-4 sm:py-6">
       {/* Breadcrumb */}
-      <nav className="flex items-center gap-2 text-sm text-gray-500 mb-6">
-        <Link href="/" className="hover:text-white">Accueil</Link>
-        <ChevronRight className="w-3 h-3" />
+      <nav className="flex items-center gap-2 text-xs sm:text-sm text-gray-500 mb-4 sm:mb-6 overflow-x-auto">
+        <Link href="/" className="hover:text-white shrink-0">Accueil</Link>
+        <ChevronRight className="w-3 h-3 shrink-0" />
         {product.categories && (
           <>
             <Link href={`/products?category=${product.categories.slug}`} className="hover:text-white">
@@ -96,9 +96,9 @@ export default function ProductDetailClient({
               priority
             />
             {hasPromo && (
-              <div className="absolute top-4 left-4 flex gap-2">
-                <span className="bg-green-500 text-black text-xs font-bold px-3 py-1 rounded-md">NOUVEAU</span>
-                <span className="bg-red-500 text-white text-xs font-bold px-3 py-1 rounded-md">
+              <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex gap-1.5 sm:gap-2">
+                <span className="bg-green-500 text-black text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md">NOUVEAU</span>
+                <span className="bg-red-500 text-white text-[10px] sm:text-xs font-bold px-2 sm:px-3 py-0.5 sm:py-1 rounded-md">
                   -{product.promotion_percentage}%
                 </span>
               </div>
@@ -107,16 +107,16 @@ export default function ProductDetailClient({
 
           {/* Thumbnails */}
           {images.length > 1 && (
-            <div className="flex gap-3 mt-3">
+            <div className="flex gap-2 sm:gap-3 mt-2 sm:mt-3 overflow-x-auto">
               {images.map((img, i) => (
                 <button
                   key={i}
                   onClick={() => setSelectedImage(i)}
-                  className={`relative w-20 h-20 rounded-lg overflow-hidden border-2 transition-all ${
+                  className={`relative w-14 h-14 sm:w-20 sm:h-20 rounded-lg overflow-hidden border-2 transition-all shrink-0 ${
                     selectedImage === i ? 'border-green-500' : 'border-gray-700 hover:border-gray-500'
                   }`}
                 >
-                  <Image src={img} alt="" fill className="object-cover" sizes="80px" />
+                  <Image src={img} alt="" fill className="object-cover" sizes="(max-width: 640px) 56px, 80px" />
                 </button>
               ))}
             </div>
@@ -125,7 +125,7 @@ export default function ProductDetailClient({
 
         {/* Product Info */}
         <div className="flex flex-col gap-4">
-          <h1 className="text-2xl sm:text-3xl font-black italic text-white">{product.name}</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black italic text-white">{product.name}</h1>
 
           {/* Rating */}
           {reviews.length > 0 && (
@@ -173,13 +173,13 @@ export default function ProductDetailClient({
 
           {/* Price Box */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
-            <div className="flex items-center gap-3">
-              <span className="text-3xl font-black text-green-400">{formatPrice(finalPrice)}</span>
+            <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
+              <span className="text-2xl sm:text-3xl font-black text-green-400">{formatPrice(finalPrice)}</span>
               {hasPromo && (
                 <>
-                  <span className="text-gray-500 text-lg line-through">{formatPrice(product.price)}</span>
-                  <span className="bg-red-500/20 text-red-400 text-sm font-bold px-3 py-1 rounded-md">
-                    Économie: {formatPrice(savings)}
+                  <span className="text-gray-500 text-sm sm:text-lg line-through">{formatPrice(product.price)}</span>
+                  <span className="bg-red-500/20 text-red-400 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-md">
+                    -{product.promotion_percentage}%
                   </span>
                 </>
               )}
@@ -273,8 +273,8 @@ export default function ProductDetailClient({
             onClick={() => setDescriptionExpanded(!descriptionExpanded)}
             className="flex items-center gap-2 w-full text-left mb-3"
           >
-            <h2 className="text-2xl font-black italic text-white">
-              Description <span className="text-green-400">complète</span>
+            <h2 className="text-lg sm:text-2xl font-black italic text-white">
+              Description <span className="text-green-400">complete</span>
             </h2>
             {descriptionExpanded ? (
               <ChevronUp className="w-5 h-5 text-gray-400" />
@@ -283,7 +283,7 @@ export default function ProductDetailClient({
             )}
           </button>
           {descriptionExpanded && (
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
               <div className="text-gray-400 text-sm leading-relaxed whitespace-pre-line">
                 {product.description}
               </div>
@@ -298,7 +298,7 @@ export default function ProductDetailClient({
           onClick={() => setReviewsExpanded(!reviewsExpanded)}
           className="flex items-center gap-2 w-full text-left mb-3"
         >
-          <h2 className="text-2xl font-black italic text-white">
+          <h2 className="text-lg sm:text-2xl font-black italic text-white">
             Avis <span className="text-green-400">clients</span>
             {reviews.length > 0 && (
               <span className="text-base font-normal text-gray-400 ml-2">({reviews.length})</span>
@@ -329,10 +329,10 @@ export default function ProductDetailClient({
       {/* Similar Products — compact, max 4 items, single row */}
       {similarProducts.length > 0 && (
         <section className="mb-10">
-          <h2 className="text-2xl font-black italic text-white mb-4">
+          <h2 className="text-lg sm:text-2xl font-black italic text-white mb-4">
             Produits <span className="text-green-400">Similaires</span>
           </h2>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
             {similarProducts.slice(0, 4).map(p => (
               <ProductCard key={p.id} product={p} />
             ))}
