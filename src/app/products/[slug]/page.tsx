@@ -55,6 +55,10 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${product.name} - ${price} | Kapital Stores`
   const description = product.description?.slice(0, 160) || `Achetez ${product.name} sur Kapital Stores. Livraison rapide a Dakar.`
 
+  // Proxy image through Next.js for consistent format and caching
+  const baseUrl = process.env.NEXT_PUBLIC_PRODUCTION_URL || 'https://kapitalstores.com'
+  const ogImage = `${baseUrl}/_next/image?url=${encodeURIComponent(product.image_url)}&w=1200&q=80`
+
   return {
     title,
     description,
@@ -64,12 +68,14 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       type: 'website',
       siteName: 'Kapital Stores',
       locale: 'fr_FR',
+      url: `${baseUrl}/products/${slug}`,
       images: [
         {
-          url: product.image_url,
-          width: 800,
-          height: 800,
+          url: ogImage,
+          width: 1200,
+          height: 630,
           alt: product.name,
+          type: 'image/jpeg',
         },
       ],
     },
@@ -77,7 +83,7 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       card: 'summary_large_image',
       title,
       description,
-      images: [product.image_url],
+      images: [ogImage],
     },
   }
 }
