@@ -31,14 +31,17 @@ export const metadata: Metadata = {
     "theme-color": "#22c55e",
     "apple-mobile-web-app-capable": "yes",
   },
+  metadataBase: new URL('https://kapitalstores.com'),
   openGraph: {
     title: "Kapital Stores - Boutique en ligne",
     description: "Boutique en ligne Kapital Stores - Produits tech, electronique et plus. Livraison rapide, prix bas, qualite garantie.",
     locale: "fr_FR",
     type: "website",
     siteName: "Kapital Stores",
+    url: "https://kapitalstores.com",
   },
   twitter: {
+    card: "summary_large_image",
     site: "@kapital_stores",
   },
 }

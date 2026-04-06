@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase'
 import { Product, Review } from '@/lib/types'
 import ProductDetailClient from './ProductDetailClient'
 import { notFound } from 'next/navigation'
+import type { Metadata } from 'next'
 
 export const revalidate = 60
 
@@ -43,6 +44,42 @@ async function getSimilarProducts(categoryId: string, excludeId: string) {
     .neq('id', excludeId)
     .limit(4)
   return (data || []) as Product[]
+}
+
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
+  const { slug } = await params
+  const product = await getProduct(slug)
+  if (!product) return { title: 'Produit introuvable' }
+
+  const price = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', maximumFractionDigits: 0 }).format(product.price)
+  const title = `${product.name} - ${price} | Kapital Stores`
+  const description = product.description?.slice(0, 160) || `Achetez ${product.name} sur Kapital Stores. Livraison rapide a Dakar.`
+
+  return {
+    title,
+    description,
+    openGraph: {
+      title,
+      description,
+      type: 'website',
+      siteName: 'Kapital Stores',
+      locale: 'fr_FR',
+      images: [
+        {
+          url: product.image_url,
+          width: 800,
+          height: 800,
+          alt: product.name,
+        },
+      ],
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [product.image_url],
+    },
+  }
 }
 
 export default async function ProductDetailPage({
