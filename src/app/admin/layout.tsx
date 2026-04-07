@@ -24,6 +24,7 @@ import {
   HeadphonesIcon,
   Menu,
   Mail,
+  Bot,
 } from 'lucide-react'
 
 const sidebarLinks = [
@@ -41,6 +42,7 @@ const sidebarLinks = [
   { label: 'Livraison', href: '/admin/shipping', icon: Truck },
   { label: 'Rapports', href: '/admin/reports', icon: FileText },
   { label: 'Utilisateurs', href: '/admin/users', icon: Users },
+  { label: 'Assistant IA', href: '/admin/ai', icon: Bot },
   { label: 'Newsletter', href: '/admin/newsletter', icon: Mail },
   { label: 'Support', href: '/admin/support', icon: HeadphonesIcon },
   { label: 'Paramètres', href: '/admin/settings', icon: Settings },
