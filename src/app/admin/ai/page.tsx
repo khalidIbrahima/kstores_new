@@ -96,7 +96,7 @@ export default function AdminAI() {
       stock: product.stock || 50,
       inventory: product.stock || 50,
       image_url: product.image_url || '',
-      isActive: true,
+      isActive: false,
       promotion_active: product.promotion_active || false,
       promotion_percentage: product.promotion_percentage || null,
       colors: product.colors && product.colors.length > 0 ? product.colors : null,
