@@ -19,7 +19,9 @@ export default function ProductVariantSelector({
   onColorChange,
   onPropertyChange,
 }: ProductVariantSelectorProps) {
-  const hasColors = colors && colors.length > 0
+  // Filter colors to only valid strings
+  const safeColors = (colors || []).filter((c): c is string => typeof c === 'string' && c.length > 0)
+  const hasColors = safeColors.length > 0
   const hasProperties = properties && Object.keys(properties).length > 0
 
   if (!hasColors && !hasProperties) return null
@@ -36,7 +38,7 @@ export default function ProductVariantSelector({
             )}
           </label>
           <div className="flex flex-wrap gap-2.5">
-            {colors.map((color) => {
+            {safeColors.map((color) => {
               const isSelected = selectedColor === color
               return (
                 <button
@@ -130,7 +132,7 @@ export default function ProductVariantSelector({
 
 /** Determines if a CSS color string is light (to pick contrasting check icon). */
 function isLightColor(color: string): boolean {
-  // Handle hex colors
+  if (typeof color !== 'string') return false
   const hex = color.replace('#', '')
   if (/^[0-9a-fA-F]{3,8}$/.test(hex)) {
     const fullHex = hex.length === 3
