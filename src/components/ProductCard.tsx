@@ -38,7 +38,7 @@ export default function ProductCard({ product }: { product: Product }) {
   return (
     <div className="group bg-[#111827] border border-gray-800 rounded-xl overflow-hidden hover:border-green-500/30 transition-all duration-300">
       <div className="relative aspect-square overflow-hidden bg-gray-900">
-        <Link href={`/products/${product.slug || product.id}`}>
+        <Link href={`/products/${product.slug || product.id}`} className="absolute inset-0">
           <Image
             src={product.image_url}
             alt={product.name}

@@ -17,9 +17,12 @@ function getTimeLeft() {
 }
 
 export default function PromoCountdown({ products }: { products: Product[] }) {
-  const [time, setTime] = useState(getTimeLeft())
+  const [time, setTime] = useState({ days: 0, hours: 0, minutes: 0, seconds: 0 })
+  const [mounted, setMounted] = useState(false)
 
   useEffect(() => {
+    setMounted(true)
+    setTime(getTimeLeft())
     const timer = setInterval(() => setTime(getTimeLeft()), 1000)
     return () => clearInterval(timer)
   }, [])
@@ -43,7 +46,7 @@ export default function PromoCountdown({ products }: { products: Product[] }) {
             ].map(item => (
               <div key={item.label} className="text-center">
                 <div className="text-2xl sm:text-3xl lg:text-4xl font-black text-green-400 tabular-nums">
-                  {String(item.val).padStart(2, '0')}
+                  {mounted ? String(item.val).padStart(2, '0') : '--'}
                 </div>
                 <div className="text-gray-500 text-xs mt-1">{item.label}</div>
               </div>
