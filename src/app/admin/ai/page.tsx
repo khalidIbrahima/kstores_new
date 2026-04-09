@@ -175,9 +175,9 @@ export default function AdminAI() {
 
         {messages.map((msg, i) => {
           const isUser = msg.role === 'user'
-          const productData = !isUser ? extractProductJson(msg.content) : null
-          // Clean display text (remove JSON block)
-          const displayText = msg.content.replace(/```json[\s\S]*?```/g, '').trim()
+          const raw = String(msg.content || '')
+          const productData = !isUser ? extractProductJson(raw) : null
+          const displayText = raw.replace(/```json[\s\S]*?```/g, '').trim()
 
           return (
             <div key={i} className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
@@ -187,18 +187,20 @@ export default function AdminAI() {
                 </div>
               )}
               <div className={`max-w-[85%] sm:max-w-[75%] space-y-3`}>
-                {/* Text bubble */}
                 {displayText && (
                   <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     isUser
                       ? 'bg-green-500 text-black rounded-br-md'
                       : 'bg-[#111827] border border-gray-800 text-gray-200 rounded-bl-md'
                   }`}>
-                    <div className="whitespace-pre-wrap" dangerouslySetInnerHTML={{
-                      __html: displayText
-                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
-                        .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-green-400 underline">$1</a>')
-                    }} />
+                    <p className="whitespace-pre-wrap"
+                      dangerouslySetInnerHTML={{
+                        __html: displayText
+                          .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+                          .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                          .replace(/\[([^\]]+)\]\(([^)]+)\)/g, '<a href="$2" class="text-green-400 underline">$1</a>')
+                      }}
+                    />
                   </div>
                 )}
 
