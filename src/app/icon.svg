@@ -1,0 +1,72 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <defs>
+    <linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#111827"/>
+      <stop offset="100%" stop-color="#060a13"/>
+    </linearGradient>
+    <linearGradient id="g3" x1="50%" y1="0%" x2="50%" y2="100%">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#15803d" stop-opacity="0.9"/>
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="6" stdDeviation="12" flood-color="#22c55e" flood-opacity="0.35"/>
+    </filter>
+  </defs>
+
+  <!-- Background rounded square -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="url(#g2)" filter="url(#shadow)"/>
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="url(#g1)" stroke-width="3" opacity="0.4"/>
+
+  <!-- Circuit board traces — subtle tech pattern -->
+  <g stroke="#22c55e" stroke-width="1" opacity="0.08" stroke-linecap="round">
+    <!-- Horizontal traces -->
+    <line x1="60" y1="140" x2="452" y2="140"/>
+    <line x1="60" y1="200" x2="452" y2="200"/>
+    <line x1="60" y1="312" x2="452" y2="312"/>
+    <line x1="60" y1="372" x2="452" y2="372"/>
+    <!-- Vertical traces -->
+    <line x1="120" y1="60" x2="120" y2="452"/>
+    <line x1="256" y1="60" x2="256" y2="452"/>
+    <line x1="392" y1="60" x2="392" y2="452"/>
+  </g>
+
+  <!-- Circuit nodes at intersections -->
+  <g fill="#22c55e" opacity="0.12">
+    <circle cx="120" cy="140" r="5"/><circle cx="120" cy="200" r="3"/>
+    <circle cx="120" cy="312" r="3"/><circle cx="120" cy="372" r="5"/>
+    <circle cx="256" cy="140" r="3"/><circle cx="256" cy="372" r="3"/>
+    <circle cx="392" cy="140" r="5"/><circle cx="392" cy="200" r="3"/>
+    <circle cx="392" cy="312" r="3"/><circle cx="392" cy="372" r="5"/>
+  </g>
+
+  <!-- Main "K" letterform — bold geometric, modern tech feel -->
+  <g filter="url(#glow)">
+    <!-- Vertical bar of K -->
+    <rect x="138" y="128" width="42" height="256" rx="8" fill="url(#g1)"/>
+
+    <!-- Upper diagonal arm -->
+    <path d="M180 248 L180 188 L340 128 L340 172 Z" fill="url(#g3)"/>
+
+    <!-- Lower diagonal arm -->
+    <path d="M180 264 L180 324 L340 384 L340 340 Z" fill="url(#g3)"/>
+
+    <!-- Lightning bolt accent — tech/energy symbol -->
+    <path d="M280 168 L248 252 L280 244 L252 344 L312 240 L276 248 Z" fill="#ffffff" opacity="0.92"/>
+  </g>
+
+  <!-- "S" accent dot — the dot in K.S -->
+  <circle cx="368" cy="356" r="18" fill="url(#g1)" filter="url(#glow)"/>
+  <circle cx="368" cy="356" r="9" fill="#ffffff" opacity="0.85"/>
+
+  <!-- Outer glow rings -->
+  <circle cx="256" cy="256" r="200" fill="none" stroke="#22c55e" stroke-width="1" opacity="0.06"/>
+  <circle cx="256" cy="256" r="220" fill="none" stroke="#22c55e" stroke-width="0.5" opacity="0.03"/>
+</svg>
