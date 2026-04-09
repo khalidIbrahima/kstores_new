@@ -64,10 +64,10 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
           category_id: p.category_id || '',
           stock: String(p.stock ?? p.inventory ?? 0),
           isActive: p.isActive !== false,
-          promotion_active: p.promotion_active || false,
+          promotion_active: p.promotion_active === true,
           promotion_percentage: p.promotion_percentage ? String(p.promotion_percentage) : '',
-          promotion_start_date: p.promotion_start_date || '',
-          promotion_end_date: p.promotion_end_date || '',
+          promotion_start_date: p.promotion_start_date ? p.promotion_start_date.slice(0, 16) : '',
+          promotion_end_date: p.promotion_end_date ? p.promotion_end_date.slice(0, 16) : '',
           colors: Array.isArray(p.colors) ? (p.colors as string[]) : [],
           variants: (variantsRes.data || []).map((v: Record<string, unknown>) => ({
             id: v.id as string,
@@ -128,6 +128,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
     // Save variants
     await saveVariants(id, form.variants)
 
+    router.refresh()
     router.push('/admin/products')
   }
 
