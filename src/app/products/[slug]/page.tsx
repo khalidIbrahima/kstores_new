@@ -57,7 +57,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 
   // Proxy image through Next.js for consistent format and caching
   const baseUrl = process.env.NEXT_PUBLIC_PRODUCTION_URL || 'https://kapitalstores.com'
-  const ogImage = `${baseUrl}/_next/image?url=${encodeURIComponent(product.image_url)}&w=1200&q=80`
+  const ogImage = product.image_url
+    ? `${baseUrl}/_next/image?url=${encodeURIComponent(product.image_url)}&w=1200&q=80`
+    : `${baseUrl}/opengraph-image`
 
   return {
     title,

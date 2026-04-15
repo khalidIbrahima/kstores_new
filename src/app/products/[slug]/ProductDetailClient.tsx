@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -51,6 +51,13 @@ export default function ProductDetailClient({
     product.image_url4,
   ].filter(Boolean) as string[]
 
+  const [mainImgSrc, setMainImgSrc] = useState(images[0] || '/placeholder.svg')
+  const handleMainImgError = useCallback(() => setMainImgSrc('/placeholder.svg'), [])
+
+  useEffect(() => {
+    setMainImgSrc(images[selectedImage] || '/placeholder.svg')
+  }, [selectedImage, images])
+
   const avgRating = reviews.length > 0
     ? reviews.reduce((sum, r) => sum + (r.rate || 0), 0) / reviews.length
     : 0
@@ -84,12 +91,13 @@ export default function ProductDetailClient({
         <div>
           <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-900 border border-gray-800">
             <Image
-              src={images[selectedImage]}
+              src={mainImgSrc}
               alt={product.name}
               fill
               className="object-cover"
               sizes="(max-width: 1024px) 100vw, 50vw"
               priority
+              onError={handleMainImgError}
             />
             {hasPromo && (
               <div className="absolute top-2 left-2 sm:top-4 sm:left-4 flex gap-1.5 sm:gap-2">

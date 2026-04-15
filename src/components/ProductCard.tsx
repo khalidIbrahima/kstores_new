@@ -4,8 +4,10 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ShoppingCart, Heart, Check } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useCallback } from 'react'
 import { Product } from '@/lib/types'
+
+const PLACEHOLDER = '/placeholder.svg'
 import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/context/CartContext'
 import { useFavorites } from '@/hooks/useFavorites'
@@ -18,6 +20,8 @@ export default function ProductCard({ product }: { product: Product }) {
   const hasPromo = product.promotion_active && product.promotion_percentage && product.old_price && product.old_price > product.price
   const liked = isFavorite(product.id)
   const [added, setAdded] = useState(false)
+  const [imgSrc, setImgSrc] = useState(product.image_url || PLACEHOLDER)
+  const handleImgError = useCallback(() => setImgSrc(PLACEHOLDER), [])
 
   const handleAddToCart = () => {
     addToCart(product)
@@ -37,11 +41,12 @@ export default function ProductCard({ product }: { product: Product }) {
       <div className="relative aspect-square overflow-hidden bg-gray-900">
         <Link href={`/products/${product.slug || product.id}`} className="absolute inset-0">
           <Image
-            src={product.image_url}
+            src={imgSrc}
             alt={product.name}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             sizes="(max-width: 768px) 50vw, 25vw"
+            onError={handleImgError}
           />
         </Link>
         {hasPromo && (
