@@ -7,7 +7,7 @@ import { useRouter } from 'next/navigation'
 import { MapPin, Lock, Package, User, Phone, Mail, Home, Loader2, Navigation } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
 import { useAuth } from '@/context/AuthContext'
-import { formatPrice, getDiscountedPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { notifyOrderCreated } from '@/lib/notifications'
@@ -106,9 +106,7 @@ export default function CheckoutPage() {
           order_id: order.id,
           product_id: item.product.id,
           quantity: item.quantity,
-          price: item.product.promotion_active && item.product.promotion_percentage
-            ? getDiscountedPrice(item.product.price, item.product.promotion_percentage)
-            : item.product.price,
+          price: item.product.price,
         }))
 
         await supabase.from('order_items').insert(orderItems)
@@ -124,9 +122,7 @@ export default function CheckoutPage() {
           items: items.map(item => ({
             name: item.product.name,
             quantity: item.quantity,
-            price: item.product.promotion_active && item.product.promotion_percentage
-              ? getDiscountedPrice(item.product.price, item.product.promotion_percentage)
-              : item.product.price,
+            price: item.product.price,
           })),
         })
 
@@ -391,13 +387,7 @@ export default function CheckoutPage() {
               <h2 className="text-white font-bold mb-4">Recapitulatif</h2>
 
               <div className="space-y-3 mb-4 max-h-[300px] overflow-y-auto pr-1">
-                {items.map(item => {
-                  const hasPromo = item.product.promotion_active && item.product.promotion_percentage
-                  const price = hasPromo
-                    ? getDiscountedPrice(item.product.price, item.product.promotion_percentage)
-                    : item.product.price
-
-                  return (
+                {items.map(item => (
                     <div key={item.product.id} className="flex items-center gap-3">
                       <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0">
                         <Image
@@ -412,10 +402,9 @@ export default function CheckoutPage() {
                         <p className="text-white text-sm font-medium truncate">{item.product.name}</p>
                         <p className="text-gray-500 text-xs">Qte: {item.quantity}</p>
                       </div>
-                      <span className="text-green-400 font-bold text-sm">{formatPrice(price * item.quantity)}</span>
+                      <span className="text-green-400 font-bold text-sm">{formatPrice(item.product.price * item.quantity)}</span>
                     </div>
-                  )
-                })}
+                ))}
               </div>
 
               <div className="border-t border-gray-700 pt-4 space-y-2 text-sm">

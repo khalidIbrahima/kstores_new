@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { ShoppingCart, Heart, Check } from 'lucide-react'
 import { useState } from 'react'
 import { Product } from '@/lib/types'
-import { formatPrice, getDiscountedPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/context/CartContext'
 import { useFavorites } from '@/hooks/useFavorites'
 import PromotionBadge from '@/components/PromotionBadge'
@@ -15,10 +15,7 @@ export default function ProductCard({ product }: { product: Product }) {
   const { addToCart } = useCart()
   const { isFavorite, toggleFavorite, isAuthenticated } = useFavorites()
   const router = useRouter()
-  const hasPromo = product.promotion_active && product.promotion_percentage
-  const finalPrice = hasPromo
-    ? getDiscountedPrice(product.price, product.promotion_percentage)
-    : product.price
+  const hasPromo = product.promotion_active && product.promotion_percentage && product.old_price && product.old_price > product.price
   const liked = isFavorite(product.id)
   const [added, setAdded] = useState(false)
 
@@ -75,10 +72,10 @@ export default function ProductCard({ product }: { product: Product }) {
 
         <div className="flex items-end justify-between mt-3 gap-2">
           <div className="min-w-0">
-            <span className="text-green-400 font-bold text-base block truncate">{formatPrice(finalPrice)}</span>
+            <span className="text-green-400 font-bold text-base block truncate">{formatPrice(product.price)}</span>
             {hasPromo && (
               <span className="text-gray-500 text-xs line-through block truncate">
-                {formatPrice(product.price)}
+                {formatPrice(product.old_price)}
               </span>
             )}
           </div>

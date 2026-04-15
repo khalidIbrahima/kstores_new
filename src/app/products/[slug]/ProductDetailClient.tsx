@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { ShoppingCart, Heart, Star, ChevronRight, ChevronDown, ChevronUp, Minus, Plus, Zap, Truck, Shield } from 'lucide-react'
 import { Product, Review } from '@/lib/types'
-import { formatPrice, getDiscountedPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import { useCart } from '@/context/CartContext'
 import { useFavorites } from '@/hooks/useFavorites'
 import ProductCard from '@/components/ProductCard'
@@ -41,11 +41,7 @@ export default function ProductDetailClient({
     trackProductView(product.id)
   }, [product.id])
 
-  const hasPromo = product.promotion_active && product.promotion_percentage
-  const finalPrice = hasPromo
-    ? getDiscountedPrice(product.price, product.promotion_percentage)
-    : product.price
-  const savings = hasPromo ? product.price - finalPrice : 0
+  const hasPromo = product.promotion_active && product.promotion_percentage && product.old_price && product.old_price > product.price
 
   const images = [
     product.image_url,
@@ -174,10 +170,10 @@ export default function ProductDetailClient({
           {/* Price Box */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
             <div className="flex flex-wrap items-baseline gap-2 sm:gap-3">
-              <span className="text-2xl sm:text-3xl font-black text-green-400">{formatPrice(finalPrice)}</span>
+              <span className="text-2xl sm:text-3xl font-black text-green-400">{formatPrice(product.price)}</span>
               {hasPromo && (
                 <>
-                  <span className="text-gray-500 text-sm sm:text-lg line-through">{formatPrice(product.price)}</span>
+                  <span className="text-gray-500 text-sm sm:text-lg line-through">{formatPrice(product.old_price)}</span>
                   <span className="bg-red-500/20 text-red-400 text-xs sm:text-sm font-bold px-2 sm:px-3 py-1 rounded-md">
                     -{product.promotion_percentage}%
                   </span>

@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
-import { formatPrice, getDiscountedPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import {
   ArrowLeft, Save, Plus, Trash2, Search, User, Phone, Mail, Home, Package, Loader2, Truck,
 } from 'lucide-react'
@@ -54,10 +54,7 @@ export default function AdminCreateOrder() {
     if (exists) {
       setCartItems(prev => prev.map(i => i.product.id === product.id ? { ...i, quantity: i.quantity + 1 } : i))
     } else {
-      const price = product.promotion_active && product.promotion_percentage
-        ? getDiscountedPrice(product.price, product.promotion_percentage)
-        : product.price
-      setCartItems(prev => [...prev, { product, quantity: 1, unitPrice: price }])
+      setCartItems(prev => [...prev, { product, quantity: 1, unitPrice: product.price }])
     }
     setSearchQuery('')
     setSearchResults([])
@@ -202,21 +199,17 @@ export default function AdminCreateOrder() {
                 {/* Search results dropdown */}
                 {searchResults.length > 0 && (
                   <div className="absolute left-0 right-0 top-full mt-1 bg-[#1a2332] border border-gray-700 rounded-lg shadow-xl z-30 max-h-[250px] overflow-y-auto">
-                    {searchResults.map(p => {
-                      const price = p.promotion_active && p.promotion_percentage
-                        ? getDiscountedPrice(p.price, p.promotion_percentage) : p.price
-                      return (
+                    {searchResults.map(p => (
                         <button key={p.id} type="button" onClick={() => addProduct(p)}
                           className="w-full flex items-center gap-3 p-3 hover:bg-gray-800/50 transition-colors text-left">
                           <img src={p.image_url} alt="" className="w-10 h-10 rounded-lg object-cover bg-gray-900 flex-shrink-0" />
                           <div className="flex-1 min-w-0">
                             <p className="text-white text-sm truncate">{p.name}</p>
-                            <p className="text-green-400 text-xs font-bold">{formatPrice(price)}</p>
+                            <p className="text-green-400 text-xs font-bold">{formatPrice(p.price)}</p>
                           </div>
                           <Plus className="w-4 h-4 text-gray-500 flex-shrink-0" />
                         </button>
-                      )
-                    })}
+                    ))}
                   </div>
                 )}
               </div>

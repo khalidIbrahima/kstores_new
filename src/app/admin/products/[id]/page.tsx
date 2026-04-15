@@ -6,7 +6,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { Product } from '@/lib/types'
-import { formatPrice, getDiscountedPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import {
   ArrowLeft, Loader2, ExternalLink, Copy, Check, Trash2,
   Eye, EyeOff, Tag, Package, BarChart3, Star, Calendar,
@@ -115,7 +115,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
         inventory: Number(form.stock) || 0,
         isActive: form.isActive,
         promotion_active: form.promotion_active,
-        promotion_percentage: form.promotion_active ? (Number(form.promotion_percentage) || 0) : 0,
+        promotion_percentage: form.promotion_active && form.promotion_percentage ? parseInt(String(form.promotion_percentage)) : null,
         promotion_start_date: form.promotion_active && form.promotion_start_date ? form.promotion_start_date : null,
         promotion_end_date: form.promotion_active && form.promotion_end_date ? form.promotion_end_date : null,
         colors: form.colors.length > 0 ? form.colors : null,
@@ -262,8 +262,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
 
   const images = [product.image_url, product.image_url1, product.image_url2, product.image_url3, product.image_url4].filter(Boolean) as string[]
   const stock = product.stock ?? product.inventory ?? 0
-  const hasPromo = product.promotion_active && product.promotion_percentage
-  const finalPrice = hasPromo ? getDiscountedPrice(product.price, product.promotion_percentage) : product.price
+  const hasPromo = product.promotion_active && product.promotion_percentage && product.old_price && product.old_price > product.price
   const slug = product.slug || product.id
 
   return (
@@ -389,8 +388,8 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
               <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
                 <p className="text-gray-500 text-xs mb-1">Prix</p>
-                <p className="text-green-400 font-bold text-lg">{formatPrice(finalPrice)}</p>
-                {hasPromo && <p className="text-gray-600 text-xs line-through">{formatPrice(product.price)}</p>}
+                <p className="text-green-400 font-bold text-lg">{formatPrice(product.price)}</p>
+                {hasPromo && <p className="text-gray-600 text-xs line-through">{formatPrice(product.old_price)}</p>}
               </div>
               <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
                 <p className="text-gray-500 text-xs mb-1">Stock</p>

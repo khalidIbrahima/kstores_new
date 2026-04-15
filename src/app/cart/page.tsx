@@ -4,7 +4,7 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { Minus, Plus, Trash2, Lock, Truck, Shield, ArrowLeft, ShoppingCart } from 'lucide-react'
 import { useCart } from '@/context/CartContext'
-import { formatPrice, getDiscountedPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 
 const PAYMENT_LABELS: Record<string, string> = {
@@ -58,10 +58,7 @@ export default function CartPage() {
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map(item => {
-            const hasPromo = item.product.promotion_active && item.product.promotion_percentage
-            const unitPrice = hasPromo
-              ? getDiscountedPrice(item.product.price, item.product.promotion_percentage)
-              : item.product.price
+            const unitPrice = item.product.price
 
             return (
               <div

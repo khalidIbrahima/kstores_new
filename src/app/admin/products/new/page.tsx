@@ -27,7 +27,7 @@ export default function NewProduct() {
       inventory: Number(form.stock) || 0,
       isActive: form.isActive,
       promotion_active: form.promotion_active,
-      promotion_percentage: form.promotion_active ? (Number(form.promotion_percentage) || 0) : 0,
+      promotion_percentage: form.promotion_active && form.promotion_percentage ? parseInt(String(form.promotion_percentage)) : null,
       promotion_start_date: form.promotion_active && form.promotion_start_date ? form.promotion_start_date : null,
       promotion_end_date: form.promotion_active && form.promotion_end_date ? form.promotion_end_date : null,
       colors: form.colors.length > 0 ? form.colors : null,

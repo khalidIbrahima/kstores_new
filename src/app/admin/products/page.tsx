@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
-import { formatPrice, getDiscountedPrice } from '@/lib/utils'
+import { formatPrice } from '@/lib/utils'
 import { Product, Category } from '@/lib/types'
 import {
   Plus, Search, Trash2, Edit3, Eye, EyeOff, Tag, ChevronDown,
@@ -370,8 +370,8 @@ export default function AdminProducts() {
                       <td className="px-4 py-3">
                         {hasPromo ? (
                           <div>
-                            <p className="text-green-400 text-sm font-bold">{formatPrice(getDiscountedPrice(product.price, product.promotion_percentage))}</p>
-                            <p className="text-gray-600 text-xs line-through">{formatPrice(product.price)}</p>
+                            <p className="text-green-400 text-sm font-bold">{formatPrice(product.price)}</p>
+                            <p className="text-gray-600 text-xs line-through">{formatPrice(product.old_price)}</p>
                           </div>
                         ) : (
                           <p className="text-white text-sm font-medium">{formatPrice(product.price)}</p>
