@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { Product } from '@/lib/types'
 import { formatPrice } from '@/lib/utils'
 import {
@@ -99,9 +100,9 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
     name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
   const handleSubmit = async (form: ProductFormData) => {
-    const { error } = await supabase
-      .from('products')
-      .update({
+    const res = await adminFetch(`/api/admin/products/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({
         name: form.name,
         description: form.description || null,
         price: Number(form.price),
@@ -120,12 +121,14 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
         promotion_end_date: form.promotion_active && form.promotion_end_date ? form.promotion_end_date : null,
         colors: form.colors.length > 0 ? form.colors : null,
         slug: generateSlug(form.name),
-      })
-      .eq('id', id)
+      }),
+    })
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert('Erreur: ' + (err.error || `${res.status}`))
+      throw new Error(err.error || `${res.status}`)
+    }
 
-    if (error) { alert('Erreur: ' + error.message); throw error }
-
-    // Save variants
     await saveVariants(id, form.variants)
 
     router.refresh()
@@ -133,36 +136,33 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
   }
 
   const saveVariants = async (productId: string, variants: Variant[]) => {
-    // Get existing variants
+    // Read current state via supabase (read-only)
     const { data: existing } = await supabase.from('product_variants').select('id').eq('product_id', productId)
     const existingIds = new Set((existing || []).map(v => v.id))
 
-    // Track which IDs we keep
     const keptVariantIds = new Set<string>()
-    const variantIdMap: Record<string, string> = {}
 
     for (const variant of variants) {
       const isTemp = variant.id.startsWith('temp-')
 
       let variantId: string
       if (isTemp) {
-        // Insert new variant
-        const { data } = await supabase.from('product_variants').insert({
-          product_id: productId, name: variant.name, display_order: variant.display_order,
-        }).select('id').single()
-        if (!data) continue
-        variantId = data.id
-        variantIdMap[variant.id] = variantId
+        const res = await adminFetch('/api/admin/product-variants', {
+          method: 'POST',
+          body: JSON.stringify({ product_id: productId, name: variant.name, display_order: variant.display_order }),
+        })
+        const json = await res.json().catch(() => ({})) as { variant?: { id: string } }
+        if (!res.ok || !json.variant) continue
+        variantId = json.variant.id
       } else {
-        // Update existing variant
-        await supabase.from('product_variants').update({
-          name: variant.name, display_order: variant.display_order,
-        }).eq('id', variant.id)
+        await adminFetch(`/api/admin/product-variants/${variant.id}`, {
+          method: 'PATCH',
+          body: JSON.stringify({ name: variant.name, display_order: variant.display_order }),
+        })
         variantId = variant.id
       }
       keptVariantIds.add(variantId)
 
-      // Process options
       const { data: existingOpts } = await supabase.from('product_variant_options').select('id').eq('variant_id', variantId)
       const keptOptionIds = new Set<string>()
 
@@ -171,66 +171,83 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
         const stockVal = option.stock != null ? Math.max(0, Math.floor(Number(option.stock))) : null
 
         if (isOptTemp) {
-          const { data } = await supabase.from('product_variant_options').insert({
-            variant_id: variantId, name: option.name, image_url: option.image_url || null,
-            display_order: option.display_order, stock: stockVal,
-          }).select('id').single()
-          if (data) keptOptionIds.add(data.id)
+          const res = await adminFetch('/api/admin/product-variant-options', {
+            method: 'POST',
+            body: JSON.stringify({
+              option: {
+                variant_id: variantId, name: option.name, image_url: option.image_url || null,
+                display_order: option.display_order, stock: stockVal,
+              },
+            }),
+          })
+          const json = await res.json().catch(() => ({})) as { option?: { id: string } }
+          if (res.ok && json.option) keptOptionIds.add(json.option.id)
         } else {
-          await supabase.from('product_variant_options').update({
-            name: option.name, image_url: option.image_url || null,
-            display_order: option.display_order, stock: stockVal,
-          }).eq('id', option.id)
+          await adminFetch(`/api/admin/product-variant-options/${option.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({
+              name: option.name, image_url: option.image_url || null,
+              display_order: option.display_order, stock: stockVal,
+            }),
+          })
           keptOptionIds.add(option.id)
         }
       }
 
-      // Delete removed options
       const removedOpts = (existingOpts || []).filter(o => !keptOptionIds.has(o.id)).map(o => o.id)
       if (removedOpts.length > 0) {
-        await supabase.from('product_variant_options').delete().in('id', removedOpts)
+        await adminFetch('/api/admin/product-variant-options/bulk-delete', {
+          method: 'POST',
+          body: JSON.stringify({ ids: removedOpts }),
+        })
       }
     }
 
-    // Delete removed variants
     const removedVariants = [...existingIds].filter(vid => !keptVariantIds.has(vid))
     if (removedVariants.length > 0) {
-      await supabase.from('product_variant_options').delete().in('variant_id', removedVariants)
-      await supabase.from('product_variants').delete().in('id', removedVariants)
+      await adminFetch('/api/admin/product-variant-options/bulk-delete', {
+        method: 'POST',
+        body: JSON.stringify({ variant_ids: removedVariants }),
+      })
+      for (const vid of removedVariants) {
+        await adminFetch(`/api/admin/product-variants/${vid}`, { method: 'DELETE' })
+      }
     }
   }
 
   const handleClone = async () => {
     if (!initialData) return
     setCloning(true)
-    const cloneName = `${initialData.name} (Clone)`
-    const { data, error } = await supabase.from('products').insert({
-      name: cloneName, description: initialData.description || null,
-      price: Number(initialData.price), image_url: initialData.image_url,
-      image_url1: initialData.image_url1 || null, image_url2: initialData.image_url2 || null,
-      image_url3: initialData.image_url3 || null, image_url4: initialData.image_url4 || null,
-      category_id: initialData.category_id || null,
-      stock: Number(initialData.stock) || 0, inventory: Number(initialData.stock) || 0,
-      isActive: false, promotion_active: false,
-      colors: initialData.colors.length > 0 ? initialData.colors : null,
-      slug: generateSlug(cloneName),
-    }).select().single()
+    const res = await adminFetch(`/api/admin/products/${id}/clone`, { method: 'POST' })
+    const json = await res.json().catch(() => ({})) as { product?: Product; error?: string }
     setCloning(false)
-    if (error) { alert('Erreur: ' + error.message); return }
-    if (data) router.push(`/admin/products/${data.id}`)
+    if (!res.ok || !json.product) {
+      alert('Erreur: ' + (json.error || `${res.status}`))
+      return
+    }
+    router.push(`/admin/products/${json.product.id}`)
   }
 
   const handleDelete = async () => {
     if (!confirm('Supprimer definitivement ce produit ?')) return
     setDeleting(true)
-    await supabase.from('products').delete().eq('id', id)
-    router.push('/admin/products')
+    const res = await adminFetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      router.push('/admin/products')
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert('Erreur: ' + (err.error || `${res.status}`))
+      setDeleting(false)
+    }
   }
 
   const toggleActive = async () => {
     if (!product) return
     const newActive = !product.isActive
-    await supabase.from('products').update({ isActive: newActive }).eq('id', id)
+    await adminFetch(`/api/admin/products/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive: newActive }),
+    })
     setProduct(prev => prev ? { ...prev, isActive: newActive } : null)
     if (initialData) setInitialData({ ...initialData, isActive: newActive })
   }

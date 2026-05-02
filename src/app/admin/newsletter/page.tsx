@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import {
   Mail, Search, Loader2, Trash2, Send, Users, UserMinus, UserPlus,
   Download, Plus, X, Save, CheckCircle2,
@@ -53,18 +54,20 @@ export default function AdminNewsletter() {
   const handleAdd = async () => {
     if (!newEmail.trim()) return
     setSaving(true)
-    const { data, error } = await supabase
-      .from('newsletter_subscribers')
-      .upsert({ email: newEmail.trim().toLowerCase(), status: 'active', source: 'admin' }, { onConflict: 'email' })
-      .select()
-      .single()
-
-    if (!error && data) {
+    const res = await adminFetch('/api/admin/newsletter-subscribers', {
+      method: 'POST',
+      body: JSON.stringify({ email: newEmail.trim().toLowerCase() }),
+    })
+    const json = await res.json().catch(() => ({})) as { subscriber?: Subscriber; error?: string }
+    if (res.ok && json.subscriber) {
+      const sub = json.subscriber
       setSubscribers(prev => {
-        const exists = prev.find(s => s.email === data.email)
-        if (exists) return prev.map(s => s.email === data.email ? data as Subscriber : s)
-        return [data as Subscriber, ...prev]
+        const exists = prev.find(s => s.email === sub.email)
+        if (exists) return prev.map(s => s.email === sub.email ? sub : s)
+        return [sub, ...prev]
       })
+    } else if (!res.ok) {
+      alert(json.error || `Erreur ${res.status}`)
     }
     setNewEmail(''); setShowAddForm(false); setSaving(false)
   }
@@ -72,18 +75,29 @@ export default function AdminNewsletter() {
   const handleToggleStatus = async (sub: Subscriber) => {
     const newStatus = sub.status === 'active' ? 'unsubscribed' : 'active'
     const update: Record<string, unknown> = { status: newStatus }
-    if (newStatus === 'unsubscribed') update.unsubscribed_at = new Date().toISOString()
-    else update.unsubscribed_at = null
-
-    await supabase.from('newsletter_subscribers').update(update).eq('id', sub.id)
-    setSubscribers(prev => prev.map(s => s.id === sub.id ? { ...s, ...update } as Subscriber : s))
+    update.unsubscribed_at = newStatus === 'unsubscribed' ? new Date().toISOString() : null
+    const res = await adminFetch(`/api/admin/newsletter-subscribers/${sub.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify(update),
+    })
+    if (res.ok) {
+      setSubscribers(prev => prev.map(s => s.id === sub.id ? { ...s, ...update } as Subscriber : s))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
   }
 
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer definitivement cet abonne ?')) return
     setDeleting(id)
-    await supabase.from('newsletter_subscribers').delete().eq('id', id)
-    setSubscribers(prev => prev.filter(s => s.id !== id))
+    const res = await adminFetch(`/api/admin/newsletter-subscribers/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setSubscribers(prev => prev.filter(s => s.id !== id))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeleting(null)
   }
 

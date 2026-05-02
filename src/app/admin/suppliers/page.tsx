@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import {
   Package, Plus, Trash2, Edit3, Save, X, Loader2, ExternalLink, Search, Image as ImageIcon,
 } from 'lucide-react'
@@ -74,14 +75,22 @@ export default function AdminSuppliers() {
       images: formImages.length > 0 ? formImages : null,
     }
 
-    if (editingItem) {
-      await supabase.from('supplier_product').update(payload).eq('id', editingItem.id)
-      setItems(prev => prev.map(i => i.id === editingItem.id ? { ...i, ...payload } as SupplierProduct : i))
+    const res = editingItem
+      ? await adminFetch(`/api/admin/supplier-products/${editingItem.id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      : await adminFetch('/api/admin/supplier-products', { method: 'POST', body: JSON.stringify(payload) })
+    const json = await res.json().catch(() => ({})) as { item?: SupplierProduct; error?: string }
+    if (res.ok && json.item) {
+      const item = json.item
+      if (editingItem) {
+        setItems(prev => prev.map(i => i.id === editingItem.id ? item : i))
+      } else {
+        setItems(prev => [item, ...prev])
+      }
+      setForm(emptyForm); setFormImages([]); setEditingItem(null); setShowForm(false)
     } else {
-      const { data } = await supabase.from('supplier_product').insert(payload).select().single()
-      if (data) setItems(prev => [data as SupplierProduct, ...prev])
+      alert(json.error || `Erreur ${res.status}`)
     }
-    setForm(emptyForm); setFormImages([]); setEditingItem(null); setShowForm(false); setSaving(false)
+    setSaving(false)
   }
 
   const handleEdit = (item: SupplierProduct) => {
@@ -97,8 +106,13 @@ export default function AdminSuppliers() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer ce produit fournisseur ?')) return
     setDeleting(id)
-    await supabase.from('supplier_product').delete().eq('id', id)
-    setItems(prev => prev.filter(i => i.id !== id))
+    const res = await adminFetch(`/api/admin/supplier-products/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setItems(prev => prev.filter(i => i.id !== id))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeleting(null)
   }
 

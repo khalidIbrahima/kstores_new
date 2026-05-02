@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { Category } from '@/lib/types'
 import { Plus, Trash2, Save, X, FolderOpen } from 'lucide-react'
 
@@ -45,27 +46,31 @@ export default function AdminCategories() {
     if (!form.name.trim()) return
     setSaving(true)
     const slug = form.slug || generateSlug(form.name)
+    const payload = { name: form.name, slug, cover_image_url: form.cover_image_url || null }
 
-    if (editing) {
-      await supabase
-        .from('categories')
-        .update({ name: form.name, slug, cover_image_url: form.cover_image_url || null })
-        .eq('id', editing.id)
-    } else {
-      await supabase
-        .from('categories')
-        .insert({ name: form.name, slug, cover_image_url: form.cover_image_url || null })
-    }
+    const res = editing
+      ? await adminFetch(`/api/admin/categories/${editing.id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      : await adminFetch('/api/admin/categories', { method: 'POST', body: JSON.stringify(payload) })
 
     setSaving(false)
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+      return
+    }
     closeModal()
     fetchCategories()
   }
 
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette catégorie ? Les produits ne seront pas supprimés.')) return
-    await supabase.from('categories').delete().eq('id', id)
-    setCategories(prev => prev.filter(c => c.id !== id))
+    const res = await adminFetch(`/api/admin/categories/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setCategories(prev => prev.filter(c => c.id !== id))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
   }
 
   return (

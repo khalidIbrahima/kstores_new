@@ -91,9 +91,14 @@ export default function AdminProducts() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer ce produit ?')) return
     setDeleting(id)
-    await supabase.from('products').delete().eq('id', id)
-    setProducts(prev => prev.filter(p => p.id !== id))
-    setSelected(prev => { const n = new Set(prev); n.delete(id); return n })
+    const res = await adminFetch(`/api/admin/products/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setProducts(prev => prev.filter(p => p.id !== id))
+      setSelected(prev => { const n = new Set(prev); n.delete(id); return n })
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeleting(null)
   }
 
@@ -102,45 +107,58 @@ export default function AdminProducts() {
     if (!confirm(`Supprimer ${selected.size} produit(s) ?`)) return
     setBulkDeleting(true)
     const ids = Array.from(selected)
-    await supabase.from('products').delete().in('id', ids)
-    setProducts(prev => prev.filter(p => !selected.has(p.id)))
-    setSelected(new Set())
+    const res = await adminFetch('/api/admin/products/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ op: 'delete', ids }),
+    })
+    if (res.ok) {
+      setProducts(prev => prev.filter(p => !selected.has(p.id)))
+      setSelected(new Set())
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setBulkDeleting(false)
   }
 
   const handleBulkToggle = async (active: boolean) => {
     if (selected.size === 0) return
     const ids = Array.from(selected)
-    await supabase.from('products').update({ isActive: active }).in('id', ids)
-    setProducts(prev => prev.map(p => selected.has(p.id) ? { ...p, isActive: active } : p))
-    setSelected(new Set())
+    const res = await adminFetch('/api/admin/products/bulk', {
+      method: 'POST',
+      body: JSON.stringify({ op: 'update', ids, patch: { isActive: active } }),
+    })
+    if (res.ok) {
+      setProducts(prev => prev.map(p => selected.has(p.id) ? { ...p, isActive: active } : p))
+      setSelected(new Set())
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
   }
 
   const toggleActive = async (product: Product) => {
     const newActive = !product.isActive
-    await supabase.from('products').update({ isActive: newActive }).eq('id', product.id)
-    setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isActive: newActive } : p))
+    const res = await adminFetch(`/api/admin/products/${product.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ isActive: newActive }),
+    })
+    if (res.ok) {
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, isActive: newActive } : p))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
   }
 
   const handleClone = async (product: Product) => {
-    const { data } = await supabase.from('products').insert({
-      name: `${product.name} (Clone)`,
-      description: product.description,
-      price: product.price,
-      image_url: product.image_url,
-      image_url1: product.image_url1,
-      image_url2: product.image_url2,
-      image_url3: product.image_url3,
-      image_url4: product.image_url4,
-      category_id: product.category_id,
-      stock: product.stock ?? product.inventory ?? 0,
-      inventory: product.stock ?? product.inventory ?? 0,
-      isActive: false,
-      promotion_active: false,
-      colors: product.colors,
-      slug: `${product.slug || product.id}-clone-${Date.now()}`,
-    }).select('*, categories(name, slug)').single()
-    if (data) setProducts(prev => [data as Product, ...prev])
+    const res = await adminFetch(`/api/admin/products/${product.id}/clone`, { method: 'POST' })
+    const json = await res.json().catch(() => ({})) as { product?: Product; error?: string }
+    if (res.ok && json.product) {
+      setProducts(prev => [json.product as Product, ...prev])
+    } else {
+      alert(json.error || `Erreur ${res.status}`)
+    }
     setOpenMenu(null)
   }
 

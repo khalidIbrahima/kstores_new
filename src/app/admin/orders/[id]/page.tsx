@@ -523,8 +523,11 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     const nextDiscount = clampDiscount(currentDiscount, subtotal, baseAdjustment)
     const newTotal = Math.max(0, subtotal + baseAdjustment - nextDiscount)
 
-    const { error } = await supabase.from('orders').update({ total: newTotal }).eq('id', id)
-    if (error) {
+    const res = await adminFetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ total: newTotal }),
+    })
+    if (!res.ok) {
       toast("Le total n'a pas pu etre recalculé.", 'error')
       return false
     }
@@ -551,7 +554,10 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const handleUpdateStatus = async () => {
     if (!order || newStatus === order.status) return
     setSaving(true)
-    await supabase.from('orders').update({ status: newStatus }).eq('id', id)
+    await adminFetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ status: newStatus }),
+    })
 
     // Send notifications only if admin opted in
     if (notifyCustomer) {
@@ -574,7 +580,10 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const handleSaveCustomer = async (newAddr: ShippingAddress) => {
     if (!order) return
     const merged = { ...order.shipping_address, ...newAddr }
-    await supabase.from('orders').update({ shipping_address: merged }).eq('id', id)
+    await adminFetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ shipping_address: merged }),
+    })
     setOrder(prev => (prev ? { ...prev, shipping_address: merged } : null))
     setShowEditCustomer(false)
   }

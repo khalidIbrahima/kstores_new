@@ -3,6 +3,7 @@
 import { useState, useEffect, use } from 'react'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { formatPrice } from '@/lib/utils'
 import {
   ArrowLeft, Loader2, Plus, Trash2, Package, DollarSign, Hash, Calendar,
@@ -177,14 +178,19 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       notes: itemForm.notes || null,
     }
 
-    if (editingItemId) {
-      const { data, error } = await supabase.from('supplier_order_items').update(payload).eq('id', editingItemId).select().single()
-      if (error) { console.error('Update item error:', error); alert('Erreur: ' + error.message) }
-      else if (data) setItems(prev => prev.map(i => i.id === editingItemId ? data as SupplierOrderItem : i))
+    const res = editingItemId
+      ? await adminFetch(`/api/admin/supplier-order-items/${editingItemId}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      : await adminFetch('/api/admin/supplier-order-items', { method: 'POST', body: JSON.stringify({ ...payload, supplier_order_id: id }) })
+    const json = await res.json().catch(() => ({})) as { item?: SupplierOrderItem; error?: string }
+    if (res.ok && json.item) {
+      const item = json.item
+      if (editingItemId) {
+        setItems(prev => prev.map(i => i.id === editingItemId ? item : i))
+      } else {
+        setItems(prev => [...prev, item])
+      }
     } else {
-      const { data, error } = await supabase.from('supplier_order_items').insert({ ...payload, supplier_order_id: id }).select().single()
-      if (error) { console.error('Insert item error:', error); alert('Erreur: ' + error.message) }
-      else if (data) setItems(prev => [...prev, data as SupplierOrderItem])
+      alert('Erreur: ' + (json.error || `${res.status}`))
     }
     setItemForm(emptyItemForm)
     setEditingItemId(null)
@@ -239,14 +245,19 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       notes: deliveryForm.notes || null,
     }
 
-    if (editingDeliveryId) {
-      const { data } = await supabase.from('deliveries').update(payload).eq('id', editingDeliveryId)
-        .select('*, shipping_agencies(id, name, phone, air_price_per_kg, sea_price_per_cbm, express_cost_per_kg)').single()
-      if (data) setDeliveries(prev => prev.map(d => d.id === editingDeliveryId ? data as Delivery : d))
+    const res = editingDeliveryId
+      ? await adminFetch(`/api/admin/deliveries/${editingDeliveryId}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      : await adminFetch('/api/admin/deliveries', { method: 'POST', body: JSON.stringify({ ...payload, supplier_order_id: id }) })
+    const json = await res.json().catch(() => ({})) as { delivery?: Delivery; error?: string }
+    if (res.ok && json.delivery) {
+      const delivery = json.delivery
+      if (editingDeliveryId) {
+        setDeliveries(prev => prev.map(d => d.id === editingDeliveryId ? delivery : d))
+      } else {
+        setDeliveries(prev => [delivery, ...prev])
+      }
     } else {
-      const { data } = await supabase.from('deliveries').insert({ ...payload, supplier_order_id: id })
-        .select('*, shipping_agencies(id, name, phone, air_price_per_kg, sea_price_per_cbm, express_cost_per_kg)').single()
-      if (data) setDeliveries(prev => [data as Delivery, ...prev])
+      alert('Erreur: ' + (json.error || `${res.status}`))
     }
     setDeliveryForm(emptyDeliveryForm)
     setEditingDeliveryId(null)
@@ -261,8 +272,13 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
   const handleDeleteDelivery = async (did: string) => {
     if (!confirm('Supprimer cette livraison ?')) return
     setDeletingDelivery(did)
-    await supabase.from('deliveries').delete().eq('id', did)
-    setDeliveries(prev => prev.filter(d => d.id !== did))
+    const res = await adminFetch(`/api/admin/deliveries/${did}`, { method: 'DELETE' })
+    if (res.ok) {
+      setDeliveries(prev => prev.filter(d => d.id !== did))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeletingDelivery(null)
   }
 
@@ -271,14 +287,22 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
   const handleDeleteItem = async (itemId: string) => {
     if (!confirm('Supprimer cet article ?')) return
     setDeletingItem(itemId)
-    await supabase.from('supplier_order_items').delete().eq('id', itemId)
-    setItems(prev => prev.filter(i => i.id !== itemId))
+    const res = await adminFetch(`/api/admin/supplier-order-items/${itemId}`, { method: 'DELETE' })
+    if (res.ok) {
+      setItems(prev => prev.filter(i => i.id !== itemId))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeletingItem(null)
   }
 
   const handleSaveNotes = async () => {
     if (!order) return
-    await supabase.from('supplier_orders').update({ notes }).eq('id', id)
+    await adminFetch(`/api/admin/supplier-orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ notes }),
+    })
   }
 
   if (loading) {

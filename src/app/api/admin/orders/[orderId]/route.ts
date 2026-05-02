@@ -13,6 +13,43 @@ function getSupabaseAdmin() {
   return createClient(supabaseUrl, serviceRoleKey)
 }
 
+const ORDER_PATCH_FIELDS = ['status', 'total', 'shipping_address'] as const
+
+export async function PATCH(
+  req: NextRequest,
+  context: { params: Promise<{ orderId: string }> }
+) {
+  const auth = await requireAdmin(req)
+  if (!auth.ok) return adminGuardResponse(auth)
+
+  try {
+    const { orderId } = await context.params
+    if (!orderId) {
+      return NextResponse.json({ error: 'Missing order id' }, { status: 400 })
+    }
+    const body = (await req.json()) as Record<string, unknown>
+    const payload: Record<string, unknown> = {}
+    for (const key of ORDER_PATCH_FIELDS) {
+      if (key in body) payload[key] = body[key]
+    }
+    if (Object.keys(payload).length === 0) {
+      return NextResponse.json({ error: 'No patchable fields' }, { status: 400 })
+    }
+    const supabase = getSupabaseAdmin()
+    const { data, error } = await supabase
+      .from('orders').update(payload).eq('id', orderId).select().single()
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 })
+    }
+    return NextResponse.json({ success: true, order: data })
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 export async function DELETE(
   req: NextRequest,
   context: { params: Promise<{ orderId: string }> }

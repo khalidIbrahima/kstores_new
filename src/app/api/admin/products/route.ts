@@ -11,14 +11,21 @@ function getSupabaseAdmin() {
 
 interface NewProduct {
   name: string
-  description?: string
+  description?: string | null
   price: number
   stock?: number
   inventory?: number
   image_url?: string
+  image_url1?: string | null
+  image_url2?: string | null
+  image_url3?: string | null
+  image_url4?: string | null
+  category_id?: string | null
   isActive?: boolean
   promotion_active?: boolean
   promotion_percentage?: number | null
+  promotion_start_date?: string | null
+  promotion_end_date?: string | null
   colors?: string[] | null
   slug: string
 }
@@ -50,9 +57,16 @@ export async function POST(req: NextRequest) {
         stock: product.stock ?? 50,
         inventory: product.inventory ?? product.stock ?? 50,
         image_url: product.image_url ?? '',
+        image_url1: product.image_url1 ?? null,
+        image_url2: product.image_url2 ?? null,
+        image_url3: product.image_url3 ?? null,
+        image_url4: product.image_url4 ?? null,
+        category_id: product.category_id ?? null,
         isActive: product.isActive ?? false,
         promotion_active: product.promotion_active ?? false,
         promotion_percentage: product.promotion_percentage ?? null,
+        promotion_start_date: product.promotion_start_date ?? null,
+        promotion_end_date: product.promotion_end_date ?? null,
         colors: product.colors && product.colors.length > 0 ? product.colors : null,
         slug: product.slug,
       })

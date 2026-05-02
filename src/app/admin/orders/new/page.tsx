@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { formatPrice } from '@/lib/utils'
 import {
   ArrowLeft, Save, Plus, Trash2, Search, User, Phone, Mail, Home, Package, Loader2, Truck,
@@ -80,9 +81,9 @@ export default function AdminCreateOrder() {
     if (!canSubmit) return
     setSaving(true)
 
-    const { data: order, error } = await supabase
-      .from('orders')
-      .insert({
+    const orderRes = await adminFetch('/api/admin/orders', {
+      method: 'POST',
+      body: JSON.stringify({
         status: 'processing',
         total,
         user_id: null,
@@ -93,15 +94,15 @@ export default function AdminCreateOrder() {
           address: form.address || null,
           _meta: shipping > 0 ? { shipping_fee: shipping } : undefined,
         },
-      })
-      .select()
-      .single()
-
-    if (error || !order) {
-      alert('Erreur: ' + (error?.message || 'Impossible de creer la commande'))
+      }),
+    })
+    const orderJson = await orderRes.json().catch(() => ({})) as { order?: { id: string }; error?: string }
+    if (!orderRes.ok || !orderJson.order) {
+      alert('Erreur: ' + (orderJson.error || 'Impossible de creer la commande'))
       setSaving(false)
       return
     }
+    const order = orderJson.order
 
     const orderItems = cartItems.map(i => ({
       order_id: order.id,
@@ -110,7 +111,10 @@ export default function AdminCreateOrder() {
       price: i.unitPrice,
     }))
 
-    await supabase.from('order_items').insert(orderItems)
+    await adminFetch('/api/admin/order-items', {
+      method: 'POST',
+      body: JSON.stringify({ items: orderItems }),
+    })
 
     router.push(`/admin/orders/${order.id}`)
   }

@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { Search, Users, Shield } from 'lucide-react'
 import Pagination from '@/components/Pagination'
 
@@ -37,8 +38,16 @@ export default function AdminCustomers() {
 
   const toggleAdmin = async (profile: Profile) => {
     const newAdmin = !profile.is_admin
-    await supabase.from('profiles').update({ is_admin: newAdmin }).eq('id', profile.id)
-    setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, is_admin: newAdmin } : p))
+    const res = await adminFetch(`/api/admin/profiles/${profile.id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ is_admin: newAdmin }),
+    })
+    if (res.ok) {
+      setProfiles(prev => prev.map(p => p.id === profile.id ? { ...p, is_admin: newAdmin } : p))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
   }
 
   const filtered = profiles.filter(p =>

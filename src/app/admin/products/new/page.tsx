@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import ProductForm, { ProductFormData } from '@/components/admin/ProductForm'
@@ -13,49 +13,55 @@ export default function NewProduct() {
     name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 
   const handleSubmit = async (form: ProductFormData) => {
-    const { data, error } = await supabase.from('products').insert({
-      name: form.name,
-      description: form.description || null,
-      price: Number(form.price),
-      image_url: form.image_url,
-      image_url1: form.image_url1 || null,
-      image_url2: form.image_url2 || null,
-      image_url3: form.image_url3 || null,
-      image_url4: form.image_url4 || null,
-      category_id: form.category_id || null,
-      stock: Number(form.stock) || 0,
-      inventory: Number(form.stock) || 0,
-      isActive: form.isActive,
-      promotion_active: form.promotion_active,
-      promotion_percentage: form.promotion_active && form.promotion_percentage ? parseInt(String(form.promotion_percentage)) : null,
-      promotion_start_date: form.promotion_active && form.promotion_start_date ? form.promotion_start_date : null,
-      promotion_end_date: form.promotion_active && form.promotion_end_date ? form.promotion_end_date : null,
-      colors: form.colors.length > 0 ? form.colors : null,
-      slug: generateSlug(form.name),
-    }).select('id').single()
-
-    if (error) {
-      alert('Erreur: ' + error.message)
-      throw error
+    const res = await adminFetch('/api/admin/products', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: form.name,
+        description: form.description || null,
+        price: Number(form.price),
+        image_url: form.image_url,
+        image_url1: form.image_url1 || null,
+        image_url2: form.image_url2 || null,
+        image_url3: form.image_url3 || null,
+        image_url4: form.image_url4 || null,
+        category_id: form.category_id || null,
+        stock: Number(form.stock) || 0,
+        inventory: Number(form.stock) || 0,
+        isActive: form.isActive,
+        promotion_active: form.promotion_active,
+        promotion_percentage: form.promotion_active && form.promotion_percentage ? parseInt(String(form.promotion_percentage)) : null,
+        promotion_start_date: form.promotion_active && form.promotion_start_date ? form.promotion_start_date : null,
+        promotion_end_date: form.promotion_active && form.promotion_end_date ? form.promotion_end_date : null,
+        colors: form.colors.length > 0 ? form.colors : null,
+        slug: generateSlug(form.name),
+      }),
+    })
+    const json = await res.json().catch(() => ({})) as { id?: string; error?: string }
+    if (!res.ok || !json.id) {
+      alert('Erreur: ' + (json.error || `${res.status}`))
+      throw new Error(json.error || `${res.status}`)
     }
 
-    // Save variants if any
-    if (data && form.variants.length > 0) {
+    if (form.variants.length > 0) {
       for (const variant of form.variants) {
-        const { data: vData } = await supabase.from('product_variants').insert({
-          product_id: data.id, name: variant.name, display_order: variant.display_order,
-        }).select('id').single()
-
-        if (vData) {
+        const vRes = await adminFetch('/api/admin/product-variants', {
+          method: 'POST',
+          body: JSON.stringify({ product_id: json.id, name: variant.name, display_order: variant.display_order }),
+        })
+        const vJson = await vRes.json().catch(() => ({})) as { variant?: { id: string } }
+        if (vRes.ok && vJson.variant) {
           const options = variant.options.filter(o => o.name.trim()).map(o => ({
-            variant_id: vData.id,
+            variant_id: vJson.variant!.id,
             name: o.name,
             image_url: o.image_url || null,
             display_order: o.display_order,
             stock: o.stock != null ? Math.max(0, Math.floor(Number(o.stock))) : null,
           }))
           if (options.length > 0) {
-            await supabase.from('product_variant_options').insert(options)
+            await adminFetch('/api/admin/product-variant-options', {
+              method: 'POST',
+              body: JSON.stringify({ options }),
+            })
           }
         }
       }

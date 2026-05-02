@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import {
   Truck,
   Plus,
@@ -68,23 +69,23 @@ export default function AdminShipping() {
       address: form.address || null,
     }
 
-    if (editingItem) {
-      await supabase.from('shipping_agencies').update(payload).eq('id', editingItem.id)
-      setAgencies(prev =>
-        prev.map(a => a.id === editingItem.id ? { ...a, ...payload } : a)
-      )
+    const res = editingItem
+      ? await adminFetch(`/api/admin/shipping-agencies/${editingItem.id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      : await adminFetch('/api/admin/shipping-agencies', { method: 'POST', body: JSON.stringify(payload) })
+    const json = await res.json().catch(() => ({})) as { agency?: ShippingAgency; error?: string }
+    if (res.ok && json.agency) {
+      const agency = json.agency
+      if (editingItem) {
+        setAgencies(prev => prev.map(a => a.id === editingItem.id ? agency : a))
+      } else {
+        setAgencies(prev => [agency, ...prev])
+      }
+      setForm(emptyForm)
+      setEditingItem(null)
+      setShowForm(false)
     } else {
-      const { data } = await supabase
-        .from('shipping_agencies')
-        .insert(payload)
-        .select()
-        .single()
-      if (data) setAgencies(prev => [data as ShippingAgency, ...prev])
+      alert(json.error || `Erreur ${res.status}`)
     }
-
-    setForm(emptyForm)
-    setEditingItem(null)
-    setShowForm(false)
     setSaving(false)
   }
 
@@ -102,8 +103,13 @@ export default function AdminShipping() {
   const handleDelete = async (id: string) => {
     if (!confirm('Supprimer cette agence de livraison ?')) return
     setDeleting(id)
-    await supabase.from('shipping_agencies').delete().eq('id', id)
-    setAgencies(prev => prev.filter(a => a.id !== id))
+    const res = await adminFetch(`/api/admin/shipping-agencies/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setAgencies(prev => prev.filter(a => a.id !== id))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeleting(null)
   }
 

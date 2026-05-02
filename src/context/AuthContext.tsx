@@ -40,6 +40,23 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID!
 
+function isGoogleCredentialValid(): boolean {
+  try {
+    const cred = typeof window !== 'undefined' ? localStorage.getItem('ks-google-credential') : null
+    if (!cred) return false
+    const payload = JSON.parse(atob(cred.split('.')[1])) as { exp?: number }
+    return typeof payload.exp === 'number' && payload.exp * 1000 > Date.now()
+  } catch {
+    return false
+  }
+}
+
+function purgeGoogleSession(): void {
+  if (typeof window === 'undefined') return
+  localStorage.removeItem('ks-google-credential')
+  localStorage.removeItem('ks-google-user')
+}
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [googleUser, setGoogleUser] = useState<GoogleUser | null>(null)
   const [supabaseUser, setSupabaseUser] = useState<SupabaseUser | null>(null)
@@ -129,17 +146,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const init = async () => {
       const promises: Promise<void>[] = []
 
-      // 1. Check saved Google session
+      // 1. Check saved Google session — purge if credential is expired (Google ID tokens last ~1h)
       const savedGoogle = localStorage.getItem('ks-google-user')
       if (savedGoogle) {
-        try {
-          const gUser = JSON.parse(savedGoogle) as GoogleUser
-          setGoogleUser(gUser)
-          pendingProfileLoads.current++
-          promises.push(
-            upsertGoogleProfile(gUser).finally(() => { pendingProfileLoads.current-- })
-          )
-        } catch { /* corrupted localStorage, ignore */ }
+        if (!isGoogleCredentialValid()) {
+          purgeGoogleSession()
+        } else {
+          try {
+            const gUser = JSON.parse(savedGoogle) as GoogleUser
+            setGoogleUser(gUser)
+            pendingProfileLoads.current++
+            promises.push(
+              upsertGoogleProfile(gUser).finally(() => { pendingProfileLoads.current-- })
+            )
+          } catch { /* corrupted localStorage, ignore */ }
+        }
       }
 
       // 2. Check Supabase session

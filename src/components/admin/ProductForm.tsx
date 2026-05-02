@@ -7,6 +7,7 @@ import {
   CalendarDays, DollarSign, Package, Info
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { Category } from '@/lib/types'
 import { formatPrice, getDiscountedPrice } from '@/lib/utils'
 import ProductVariantsManager, { Variant } from '@/components/admin/ProductVariantsManager'
@@ -56,13 +57,17 @@ function ImageInput({ label, value, onChange, required, compact }: {
   const handleUpload = async (file: File) => {
     if (!file.type.startsWith('image/')) return
     setUploading(true)
-    const ext = file.name.split('.').pop()
-    const path = `products/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-    const { error } = await supabase.storage.from('product-media').upload(path, file)
-    if (!error) {
-      const { data } = supabase.storage.from('product-media').getPublicUrl(path)
-      onChange(data.publicUrl)
+    const formData = new FormData()
+    formData.append('file', file)
+    formData.append('bucket', 'product-media')
+    formData.append('folder', 'products')
+    const res = await adminFetch('/api/admin/storage/upload', { method: 'POST', body: formData })
+    const json = await res.json().catch(() => ({})) as { publicUrl?: string; error?: string }
+    if (res.ok && json.publicUrl) {
+      onChange(json.publicUrl)
       setPreviewError(false)
+    } else {
+      alert('Erreur upload: ' + (json.error || `${res.status}`))
     }
     setUploading(false)
   }

@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import {
   ShoppingCart, Plus, Trash2, Edit3, Save, X, Loader2, Search, ChevronRight,
   ChevronDown, Package,
@@ -116,14 +117,22 @@ export default function AdminSupplierOrders() {
       notes: form.notes || null,
     }
 
-    if (editingItem) {
-      await supabase.from('supplier_orders').update(payload).eq('id', editingItem.id)
-      setOrders(prev => prev.map(o => o.id === editingItem.id ? { ...o, ...payload } as SupplierOrder : o))
+    const res = editingItem
+      ? await adminFetch(`/api/admin/supplier-orders/${editingItem.id}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      : await adminFetch('/api/admin/supplier-orders', { method: 'POST', body: JSON.stringify(payload) })
+    const json = await res.json().catch(() => ({})) as { order?: SupplierOrder; error?: string }
+    if (res.ok && json.order) {
+      const order = json.order
+      if (editingItem) {
+        setOrders(prev => prev.map(o => o.id === editingItem.id ? order : o))
+      } else {
+        setOrders(prev => [order, ...prev])
+      }
+      setForm(emptyForm); setEditingItem(null); setShowForm(false)
     } else {
-      const { data } = await supabase.from('supplier_orders').insert(payload).select().single()
-      if (data) setOrders(prev => [data as SupplierOrder, ...prev])
+      alert(json.error || `Erreur ${res.status}`)
     }
-    setForm(emptyForm); setEditingItem(null); setShowForm(false); setSaving(false)
+    setSaving(false)
   }
 
   const handleEdit = (e: React.MouseEvent, order: SupplierOrder) => {
@@ -145,9 +154,13 @@ export default function AdminSupplierOrders() {
     e.preventDefault(); e.stopPropagation()
     if (!confirm('Supprimer cette commande fournisseur ?')) return
     setDeleting(id)
-    await supabase.from('supplier_order_items').delete().eq('supplier_order_id', id)
-    await supabase.from('supplier_orders').delete().eq('id', id)
-    setOrders(prev => prev.filter(o => o.id !== id))
+    const res = await adminFetch(`/api/admin/supplier-orders/${id}`, { method: 'DELETE' })
+    if (res.ok) {
+      setOrders(prev => prev.filter(o => o.id !== id))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeleting(null)
   }
 
@@ -194,22 +207,35 @@ export default function AdminSupplierOrders() {
       ads_amount: itemForm.ads_amount ? parseFloat(itemForm.ads_amount) : null,
       image_url: itemForm.image_url || null, notes: itemForm.notes || null,
     }
-    if (editingItemId) {
-      const { data } = await supabase.from('supplier_order_items').update(payload).eq('id', editingItemId).select().single()
-      if (data) setOrderItems(prev => ({ ...prev, [itemFormOrderId!]: (prev[itemFormOrderId!] || []).map(i => i.id === editingItemId ? data as SupplierOrderItem : i) }))
+    const res = editingItemId
+      ? await adminFetch(`/api/admin/supplier-order-items/${editingItemId}`, { method: 'PATCH', body: JSON.stringify(payload) })
+      : await adminFetch('/api/admin/supplier-order-items', { method: 'POST', body: JSON.stringify({ ...payload, supplier_order_id: itemFormOrderId }) })
+    const json = await res.json().catch(() => ({})) as { item?: SupplierOrderItem; error?: string }
+    if (res.ok && json.item) {
+      const item = json.item
+      if (editingItemId) {
+        setOrderItems(prev => ({ ...prev, [itemFormOrderId!]: (prev[itemFormOrderId!] || []).map(i => i.id === editingItemId ? item : i) }))
+      } else {
+        setOrderItems(prev => ({ ...prev, [itemFormOrderId!]: [...(prev[itemFormOrderId!] || []), item] }))
+      }
+      setItemForm(emptyItemForm); setEditingItemId(null); setItemFormOrderId(null); setShowItemForm(false)
     } else {
-      const { data } = await supabase.from('supplier_order_items').insert({ ...payload, supplier_order_id: itemFormOrderId }).select().single()
-      if (data) setOrderItems(prev => ({ ...prev, [itemFormOrderId!]: [...(prev[itemFormOrderId!] || []), data as SupplierOrderItem] }))
+      alert(json.error || `Erreur ${res.status}`)
     }
-    setItemForm(emptyItemForm); setEditingItemId(null); setItemFormOrderId(null); setShowItemForm(false); setSavingItem(false)
+    setSavingItem(false)
   }
 
   const handleDeleteItem = async (e: React.MouseEvent, orderId: string, itemId: string) => {
     e.preventDefault(); e.stopPropagation()
     if (!confirm('Supprimer cet article ?')) return
     setDeletingItemId(itemId)
-    await supabase.from('supplier_order_items').delete().eq('id', itemId)
-    setOrderItems(prev => ({ ...prev, [orderId]: (prev[orderId] || []).filter(i => i.id !== itemId) }))
+    const res = await adminFetch(`/api/admin/supplier-order-items/${itemId}`, { method: 'DELETE' })
+    if (res.ok) {
+      setOrderItems(prev => ({ ...prev, [orderId]: (prev[orderId] || []).filter(i => i.id !== itemId) }))
+    } else {
+      const err = await res.json().catch(() => ({})) as { error?: string }
+      alert(err.error || `Erreur ${res.status}`)
+    }
     setDeletingItemId(null)
   }
 
