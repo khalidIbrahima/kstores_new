@@ -99,13 +99,23 @@ function extractUrls(text: string): string[] {
 
 export async function POST(req: NextRequest) {
   try {
-    const config = await getAiConfig()
-    if (!config) {
+    const result = await getAiConfig()
+    if (!result.ok) {
+      console.error('AI config failed:', result.failure)
+      const messages = {
+        settings_missing: `Impossible de lire store_settings (ai_provider).${result.failure.reason === 'settings_missing' && result.failure.details ? ' ' + result.failure.details : ''}`,
+        rpc_error: result.failure.reason === 'rpc_error' ? `Erreur RPC Vault: ${result.failure.details}` : '',
+        secret_not_found:
+          result.failure.reason === 'secret_not_found'
+            ? `Le fournisseur selectionne est "${result.failure.provider}" mais aucune cle "${result.failure.secretName}" n'est presente dans Vault.`
+            : '',
+      }
       return NextResponse.json(
-        { error: 'Aucun fournisseur IA n\'est configure. Ajoutez une cle API depuis les parametres admin.' },
+        { error: messages[result.failure.reason], failure: result.failure },
         { status: 503 }
       )
     }
+    const config = result.config
 
     const { messages } = (await req.json()) as { messages: AiMessage[] }
 

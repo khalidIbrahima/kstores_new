@@ -12,7 +12,7 @@ interface AiConfig {
   apiKey: string
 }
 
-const CACHE_TTL_MS = 60_000
+const CACHE_TTL_MS = 5_000
 let cached: { value: AiConfig; expiresAt: number } | null = null
 
 function getSupabaseAdmin() {
@@ -26,25 +26,45 @@ export function invalidateAiConfigCache() {
   cached = null
 }
 
-export async function getAiConfig(): Promise<AiConfig | null> {
-  if (cached && cached.expiresAt > Date.now()) return cached.value
+export type AiConfigFailure =
+  | { reason: 'settings_missing'; details?: string }
+  | { reason: 'rpc_error'; details: string }
+  | { reason: 'secret_not_found'; provider: AiProvider; secretName: string }
+
+export async function getAiConfig(): Promise<
+  { ok: true; config: AiConfig } | { ok: false; failure: AiConfigFailure }
+> {
+  if (cached && cached.expiresAt > Date.now()) return { ok: true, config: cached.value }
 
   const supabase = getSupabaseAdmin()
 
-  const { data: settings } = await supabase
+  const { data: settings, error: settingsError } = await supabase
     .from('store_settings')
     .select('ai_provider')
     .single()
 
-  const provider: AiProvider = settings?.ai_provider === 'anthropic' ? 'anthropic' : 'groq'
+  if (settingsError || !settings) {
+    return {
+      ok: false,
+      failure: { reason: 'settings_missing', details: settingsError?.message },
+    }
+  }
+
+  const provider: AiProvider = settings.ai_provider === 'anthropic' ? 'anthropic' : 'groq'
   const secretName = provider === 'anthropic' ? 'anthropic_api_key' : 'groq_api_key'
 
-  const { data: apiKey, error } = await supabase.rpc('get_ai_secret', { p_name: secretName })
-  if (error || !apiKey) return null
+  const { data: apiKey, error: rpcError } = await supabase.rpc('get_ai_secret', { p_name: secretName })
 
-  const config: AiConfig = { provider, apiKey: apiKey as string }
+  if (rpcError) {
+    return { ok: false, failure: { reason: 'rpc_error', details: rpcError.message } }
+  }
+  if (!apiKey || typeof apiKey !== 'string') {
+    return { ok: false, failure: { reason: 'secret_not_found', provider, secretName } }
+  }
+
+  const config: AiConfig = { provider, apiKey }
   cached = { value: config, expiresAt: Date.now() + CACHE_TTL_MS }
-  return config
+  return { ok: true, config }
 }
 
 export async function hasAiSecret(name: 'anthropic_api_key' | 'groq_api_key'): Promise<boolean> {
