@@ -819,9 +819,21 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
         <button
           onClick={async () => {
             if (!confirm('Supprimer definitivement cette commande et tous ses articles ?')) return
-            await supabase.from('order_items').delete().eq('order_id', id)
-            await supabase.from('orders').delete().eq('id', id)
-            router.push('/admin/orders')
+            try {
+              const response = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' })
+              const payload = (await response.json().catch(() => ({}))) as { error?: string }
+              if (!response.ok) {
+                throw new Error(payload.error || 'Delete failed')
+              }
+              toast('Commande supprimee.', 'success')
+              router.push('/admin/orders')
+            } catch (error) {
+              console.error('Delete order error:', error)
+              toast(
+                error instanceof Error ? error.message : 'Impossible de supprimer la commande pour le moment.',
+                'error'
+              )
+            }
           }}
           className="shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors"
         >
