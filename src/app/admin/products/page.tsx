@@ -3,13 +3,15 @@
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { formatPrice } from '@/lib/utils'
 import { Product, Category } from '@/lib/types'
 import {
   Plus, Search, Trash2, Edit3, Eye, EyeOff, Tag, ChevronDown,
   ArrowUpDown, ArrowDown, ArrowUp, Package, Download, Filter, Loader2,
-  CheckSquare, Square, AlertTriangle, MoreHorizontal, Copy, ExternalLink
+  CheckSquare, Square, AlertTriangle, MoreHorizontal, Copy, ExternalLink, Link2, X
 } from 'lucide-react'
 import Pagination from '@/components/Pagination'
 
@@ -19,6 +21,7 @@ type SortField = 'created_at' | 'name' | 'price' | 'stock'
 type SortDir = 'asc' | 'desc'
 
 export default function AdminProducts() {
+  const router = useRouter()
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
@@ -32,6 +35,35 @@ export default function AdminProducts() {
   const [selected, setSelected] = useState<Set<string>>(new Set())
   const [bulkDeleting, setBulkDeleting] = useState(false)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [showImport, setShowImport] = useState(false)
+  const [importUrl, setImportUrl] = useState('')
+  const [importing, setImporting] = useState(false)
+  const [importError, setImportError] = useState<string | null>(null)
+
+  const handleImport = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!importUrl.trim()) return
+    setImporting(true)
+    setImportError(null)
+    try {
+      const res = await adminFetch('/api/admin/products/import', {
+        method: 'POST',
+        body: JSON.stringify({ url: importUrl.trim() }),
+      })
+      const json = await res.json() as { id?: string; error?: string }
+      if (!res.ok) {
+        setImportError(json.error || `Erreur ${res.status}`)
+        return
+      }
+      setShowImport(false)
+      setImportUrl('')
+      if (json.id) router.push(`/admin/products/${json.id}`)
+    } catch (err) {
+      setImportError(err instanceof Error ? err.message : 'Erreur reseau')
+    } finally {
+      setImporting(false)
+    }
+  }
 
   useEffect(() => {
     let active = true
@@ -202,6 +234,13 @@ export default function AdminProducts() {
             <Download className="w-4 h-4" />
             Exporter
           </button>
+          <button
+            onClick={() => setShowImport(true)}
+            className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-700 px-3 py-2.5 text-sm text-gray-400 transition-colors hover:border-gray-500"
+          >
+            <Link2 className="w-4 h-4" />
+            Importer URL
+          </button>
           <Link
             href="/admin/products/new"
             className="flex items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-green-600"
@@ -211,6 +250,65 @@ export default function AdminProducts() {
           </Link>
         </div>
       </div>
+
+      {showImport && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => !importing && setShowImport(false)}>
+          <div
+            className="w-full max-w-md rounded-xl border border-gray-800 bg-[#111827] p-6"
+            onClick={e => e.stopPropagation()}
+          >
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-bold text-white">Importer un produit Alibaba</h2>
+              <button
+                onClick={() => !importing && setShowImport(false)}
+                className="text-gray-500 hover:text-white"
+                disabled={importing}
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <form onSubmit={handleImport} className="space-y-4">
+              <div>
+                <label className="block text-xs text-gray-500 mb-1.5">URL du produit</label>
+                <input
+                  type="url"
+                  value={importUrl}
+                  onChange={e => setImportUrl(e.target.value)}
+                  placeholder="https://www.alibaba.com/product-detail/..."
+                  required
+                  disabled={importing}
+                  autoFocus
+                  className="w-full rounded-lg border border-gray-800 bg-[#0b1220] px-3 py-2.5 text-sm text-white outline-none focus:border-green-500 disabled:opacity-50"
+                />
+              </div>
+              {importError && (
+                <p className="text-xs text-red-400 bg-red-500/10 rounded-lg px-3 py-2">{importError}</p>
+              )}
+              <p className="text-xs text-gray-500">
+                Le produit sera cree en brouillon (inactif). Tu pourras l&apos;ajuster avant publication.
+              </p>
+              <div className="flex gap-2 justify-end">
+                <button
+                  type="button"
+                  onClick={() => setShowImport(false)}
+                  disabled={importing}
+                  className="px-4 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-50"
+                >
+                  Annuler
+                </button>
+                <button
+                  type="submit"
+                  disabled={importing || !importUrl.trim()}
+                  className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-black hover:bg-green-600 disabled:opacity-50"
+                >
+                  {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
+                  {importing ? 'Import en cours...' : 'Importer'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Stats */}
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
