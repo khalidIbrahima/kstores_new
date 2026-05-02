@@ -349,6 +349,7 @@ export default function AdminSettings() {
           {/* IA tab */}
           {activeTab === 'ia' && (
             <AiSection
+              settingsId={settings.id}
               provider={settings.ai_provider || 'groq'}
               onProviderChange={value => updateField('ai_provider', value)}
             />
@@ -377,14 +378,18 @@ interface KeyStatus {
 }
 
 function AiSection({
+  settingsId,
   provider,
   onProviderChange,
 }: {
+  settingsId: string
   provider: 'groq' | 'anthropic'
   onProviderChange: (value: 'groq' | 'anthropic') => void
 }) {
   const [status, setStatus] = useState<KeyStatus | null>(null)
   const [loadingStatus, setLoadingStatus] = useState(true)
+  const [savingProvider, setSavingProvider] = useState<'groq' | 'anthropic' | null>(null)
+  const [providerError, setProviderError] = useState<string | null>(null)
 
   const refreshStatus = async () => {
     try {
@@ -400,6 +405,22 @@ function AiSection({
     refreshStatus()
   }, [])
 
+  const selectProvider = async (value: 'groq' | 'anthropic') => {
+    if (value === provider) return
+    setSavingProvider(value)
+    setProviderError(null)
+    onProviderChange(value)
+    const { error } = await supabase
+      .from('store_settings')
+      .update({ ai_provider: value })
+      .eq('id', settingsId)
+    if (error) {
+      setProviderError(error.message)
+      onProviderChange(provider)
+    }
+    setSavingProvider(null)
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -412,8 +433,9 @@ function AiSection({
             <button
               key={opt.key}
               type="button"
-              onClick={() => onProviderChange(opt.key)}
-              className={`p-4 rounded-lg border-2 text-left transition-colors ${
+              onClick={() => selectProvider(opt.key)}
+              disabled={savingProvider !== null}
+              className={`p-4 rounded-lg border-2 text-left transition-colors disabled:opacity-60 ${
                 provider === opt.key
                   ? 'border-green-500 bg-green-500/10'
                   : 'border-gray-800 bg-gray-800/30 hover:border-gray-700'
@@ -423,15 +445,19 @@ function AiSection({
               <p className="text-gray-500 text-xs mt-0.5">{opt.sub}</p>
               {provider === opt.key && (
                 <p className="text-green-400 text-xs mt-2 flex items-center gap-1">
-                  <Check className="w-3 h-3" /> Selectionne
+                  {savingProvider === opt.key ? (
+                    <><Loader2 className="w-3 h-3 animate-spin" /> Enregistrement...</>
+                  ) : (
+                    <><Check className="w-3 h-3" /> Actif</>
+                  )}
                 </p>
               )}
             </button>
           ))}
         </div>
-        <p className="text-gray-500 text-xs mt-2">
-          Le changement prend effet apres clic sur &laquo; Enregistrer les modifications &raquo;.
-        </p>
+        {providerError && (
+          <p className="text-red-400 text-xs mt-2">Erreur: {providerError}</p>
+        )}
       </div>
 
       <div className="border-t border-gray-800 pt-6">
