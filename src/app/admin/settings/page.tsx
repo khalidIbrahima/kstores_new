@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { Save, Loader2, Store, CreditCard, Truck, Globe, Phone, Mail, Bot, Check, X, KeyRound } from 'lucide-react'
 
 interface SettingsData {
@@ -68,7 +69,7 @@ export default function AdminSettings() {
     setSaved(false)
 
     const { id, ...updates } = settings
-    const res = await fetch('/api/admin/store-settings', {
+    const res = await adminFetch('/api/admin/store-settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id, updates }),
@@ -402,7 +403,7 @@ function AiSection({
 
   const refreshStatus = async () => {
     try {
-      const res = await fetch('/api/admin/ai-keys')
+      const res = await adminFetch('/api/admin/ai-keys')
       const data = await res.json()
       if (res.ok) setStatus({ anthropic: !!data.anthropic, groq: !!data.groq })
     } finally {
@@ -420,7 +421,7 @@ function AiSection({
     setProviderError(null)
     onProviderChange(value)
 
-    const res = await fetch('/api/admin/store-settings', {
+    const res = await adminFetch('/api/admin/store-settings', {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ id: settingsId, updates: { ai_provider: value } }),
@@ -534,7 +535,7 @@ function KeyInput({
     setError(null)
     setSavedOk(false)
     try {
-      const res = await fetch('/api/admin/ai-keys', {
+      const res = await adminFetch('/api/admin/ai-keys', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, value }),

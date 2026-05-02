@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin, adminGuardResponse } from '@/lib/admin-auth'
 
 function getSupabaseAdmin() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -23,6 +24,9 @@ interface NewProduct {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req)
+  if (!auth.ok) return adminGuardResponse(auth)
+
   try {
     const product = (await req.json()) as NewProduct
 

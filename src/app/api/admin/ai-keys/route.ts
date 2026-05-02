@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { hasAiSecret, setAiSecret } from '@/lib/ai'
+import { requireAdmin, adminGuardResponse } from '@/lib/admin-auth'
 
 type SecretName = 'anthropic_api_key' | 'groq_api_key'
 
@@ -9,7 +10,10 @@ function isValidName(name: string): name is SecretName {
   return VALID_NAMES.includes(name as SecretName)
 }
 
-export async function GET() {
+export async function GET(req: NextRequest) {
+  const auth = await requireAdmin(req)
+  if (!auth.ok) return adminGuardResponse(auth)
+
   try {
     const [anthropic, groq] = await Promise.all([
       hasAiSecret('anthropic_api_key'),
@@ -25,6 +29,9 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const auth = await requireAdmin(req)
+  if (!auth.ok) return adminGuardResponse(auth)
+
   try {
     const { name, value } = (await req.json()) as { name: string; value: string }
 

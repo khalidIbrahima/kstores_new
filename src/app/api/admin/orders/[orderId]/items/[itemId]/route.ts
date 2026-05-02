@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { requireAdmin, adminGuardResponse } from '@/lib/admin-auth'
 
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -13,9 +14,12 @@ function getSupabaseAdmin() {
 }
 
 export async function DELETE(
-  _req: NextRequest,
+  req: NextRequest,
   context: { params: Promise<{ orderId: string; itemId: string }> }
 ) {
+  const auth = await requireAdmin(req)
+  if (!auth.ok) return adminGuardResponse(auth)
+
   try {
     const { orderId, itemId } = await context.params
     if (!orderId || !itemId) {

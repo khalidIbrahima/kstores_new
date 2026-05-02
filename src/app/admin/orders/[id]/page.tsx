@@ -5,6 +5,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { supabase } from '@/lib/supabase'
+import { adminFetch } from '@/lib/admin-fetch'
 import { formatPrice } from '@/lib/utils'
 import { generateInvoiceHtml } from '@/lib/invoice'
 import { notifyStatusUpdate } from '@/lib/notifications'
@@ -678,7 +679,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     const previousItems = items
 
     try {
-      const response = await fetch(`/api/admin/orders/${id}/items/${itemId}`, {
+      const response = await adminFetch(`/api/admin/orders/${id}/items/${itemId}`, {
         method: 'DELETE',
       })
       const payload = (await response.json()) as DeleteOrderItemResponse
@@ -820,7 +821,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           onClick={async () => {
             if (!confirm('Supprimer definitivement cette commande et tous ses articles ?')) return
             try {
-              const response = await fetch(`/api/admin/orders/${id}`, { method: 'DELETE' })
+              const response = await adminFetch(`/api/admin/orders/${id}`, { method: 'DELETE' })
               const payload = (await response.json().catch(() => ({}))) as { error?: string }
               if (!response.ok) {
                 throw new Error(payload.error || 'Delete failed')

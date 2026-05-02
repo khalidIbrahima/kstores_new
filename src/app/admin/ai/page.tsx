@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
+import { adminFetch } from '@/lib/admin-fetch'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import {
   Send, Bot, User, Loader2, Package, Plus, ExternalLink, Sparkles, Trash2, Link2,
@@ -97,7 +98,7 @@ export default function AdminAI() {
   const handleCreateProduct = async (product: ProductData, msgIndex: number) => {
     setCreatingProduct(String(msgIndex))
 
-    const res = await fetch('/api/admin/products', {
+    const res = await adminFetch('/api/admin/products', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
