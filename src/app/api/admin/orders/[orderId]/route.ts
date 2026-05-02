@@ -3,10 +3,10 @@ import { createClient } from '@supabase/supabase-js'
 
 function getSupabaseAdmin() {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
 
   if (!supabaseUrl || !serviceRoleKey) {
-    throw new Error('Supabase credentials are not configured')
+    throw new Error('SUPABASE_SERVICE_ROLE_KEY is not configured')
   }
 
   return createClient(supabaseUrl, serviceRoleKey)
@@ -33,13 +33,18 @@ export async function DELETE(
       return NextResponse.json({ error: itemsError.message }, { status: 500 })
     }
 
-    const { error: orderError } = await supabase
+    const { data: deleted, error: orderError } = await supabase
       .from('orders')
       .delete()
       .eq('id', orderId)
+      .select('id')
 
     if (orderError) {
       return NextResponse.json({ error: orderError.message }, { status: 500 })
+    }
+
+    if (!deleted || deleted.length === 0) {
+      return NextResponse.json({ error: 'Order not found' }, { status: 404 })
     }
 
     return NextResponse.json({ success: true })
