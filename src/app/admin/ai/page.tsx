@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 import {
   Send, Bot, User, Loader2, Package, Plus, ExternalLink, Sparkles, Trash2, Link2,
 } from 'lucide-react'
@@ -45,8 +46,16 @@ function generateSlug(name: string) {
   return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+const PROVIDER_META = {
+  groq: { label: 'Groq', model: 'LLaMA 3.3 70B' },
+  anthropic: { label: 'Anthropic', model: 'Claude Haiku 4.5' },
+} as const
+
 export default function AdminAI() {
   const router = useRouter()
+  const { settings } = useStoreSettings()
+  const provider = settings?.ai_provider === 'anthropic' ? 'anthropic' : 'groq'
+  const meta = PROVIDER_META[provider]
   const [messages, setMessages] = useState<Message[]>([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -139,7 +148,7 @@ export default function AdminAI() {
           </div>
           <div>
             <h1 className="text-base sm:text-lg font-black text-white">Assistant IA</h1>
-            <p className="text-gray-500 text-[10px] sm:text-xs">Groq LLaMA 3.3 70B</p>
+            <p className="text-gray-500 text-[10px] sm:text-xs">{meta.label} · {meta.model}</p>
           </div>
         </div>
         <button onClick={clearChat} className="text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition-colors" title="Effacer">
@@ -301,7 +310,7 @@ export default function AdminAI() {
           </button>
         </div>
         <p className="text-gray-600 text-[10px] text-center mt-2">
-          Propulse par Groq &middot; LLaMA 3.3 70B &middot; Les reponses peuvent contenir des erreurs
+          Propulse par {meta.label} &middot; {meta.model} &middot; Les reponses peuvent contenir des erreurs
         </p>
       </div>
     </div>

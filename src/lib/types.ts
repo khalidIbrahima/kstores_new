@@ -80,4 +80,5 @@ export interface StoreSettings {
     bank_transfer?: boolean
     orange_money?: boolean
   } | null
+  ai_provider: 'groq' | 'anthropic' | null
 }

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import { Save, Loader2, Store, CreditCard, Truck, Globe, Phone, Mail } from 'lucide-react'
+import { Save, Loader2, Store, CreditCard, Truck, Globe, Phone, Mail, Bot, Check, X, KeyRound } from 'lucide-react'
 
 interface SettingsData {
   id: string
@@ -34,9 +34,10 @@ interface SettingsData {
     youtube?: string
     linkedin?: string
   } | null
+  ai_provider: 'groq' | 'anthropic' | null
 }
 
-type Tab = 'boutique' | 'contact' | 'paiements' | 'livraison' | 'reseaux'
+type Tab = 'boutique' | 'contact' | 'paiements' | 'livraison' | 'reseaux' | 'ia'
 
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'boutique', label: 'Boutique', icon: <Store className="w-4 h-4" /> },
@@ -44,6 +45,7 @@ const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'paiements', label: 'Paiements', icon: <CreditCard className="w-4 h-4" /> },
   { id: 'livraison', label: 'Livraison', icon: <Truck className="w-4 h-4" /> },
   { id: 'reseaux', label: 'Reseaux sociaux', icon: <Globe className="w-4 h-4" /> },
+  { id: 'ia', label: 'IA', icon: <Bot className="w-4 h-4" /> },
 ]
 
 export default function AdminSettings() {
@@ -343,6 +345,14 @@ export default function AdminSettings() {
               ))}
             </div>
           )}
+
+          {/* IA tab */}
+          {activeTab === 'ia' && (
+            <AiSection
+              provider={settings.ai_provider || 'groq'}
+              onProviderChange={value => updateField('ai_provider', value)}
+            />
+          )}
         </div>
       </div>
 
@@ -357,6 +367,188 @@ export default function AdminSettings() {
           {saving ? 'Enregistrement...' : saved ? 'Enregistré !' : 'Enregistrer les modifications'}
         </button>
       </div>
+    </div>
+  )
+}
+
+interface KeyStatus {
+  anthropic: boolean
+  groq: boolean
+}
+
+function AiSection({
+  provider,
+  onProviderChange,
+}: {
+  provider: 'groq' | 'anthropic'
+  onProviderChange: (value: 'groq' | 'anthropic') => void
+}) {
+  const [status, setStatus] = useState<KeyStatus | null>(null)
+  const [loadingStatus, setLoadingStatus] = useState(true)
+
+  const refreshStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/ai-keys')
+      const data = await res.json()
+      if (res.ok) setStatus({ anthropic: !!data.anthropic, groq: !!data.groq })
+    } finally {
+      setLoadingStatus(false)
+    }
+  }
+
+  useEffect(() => {
+    refreshStatus()
+  }, [])
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <label className="block text-sm text-gray-400 mb-2">Fournisseur actif</label>
+        <div className="grid grid-cols-2 gap-3">
+          {[
+            { key: 'groq' as const, label: 'Groq', sub: 'LLaMA 3.3 70B' },
+            { key: 'anthropic' as const, label: 'Anthropic', sub: 'Claude Haiku 4.5' },
+          ].map(opt => (
+            <button
+              key={opt.key}
+              type="button"
+              onClick={() => onProviderChange(opt.key)}
+              className={`p-4 rounded-lg border-2 text-left transition-colors ${
+                provider === opt.key
+                  ? 'border-green-500 bg-green-500/10'
+                  : 'border-gray-800 bg-gray-800/30 hover:border-gray-700'
+              }`}
+            >
+              <p className="text-white font-bold text-sm">{opt.label}</p>
+              <p className="text-gray-500 text-xs mt-0.5">{opt.sub}</p>
+              {provider === opt.key && (
+                <p className="text-green-400 text-xs mt-2 flex items-center gap-1">
+                  <Check className="w-3 h-3" /> Selectionne
+                </p>
+              )}
+            </button>
+          ))}
+        </div>
+        <p className="text-gray-500 text-xs mt-2">
+          Le changement prend effet apres clic sur &laquo; Enregistrer les modifications &raquo;.
+        </p>
+      </div>
+
+      <div className="border-t border-gray-800 pt-6">
+        <div className="flex items-center gap-2 mb-1">
+          <KeyRound className="w-4 h-4 text-purple-400" />
+          <h3 className="text-white font-bold text-sm">Cles API (stockees dans Supabase Vault)</h3>
+        </div>
+        <p className="text-gray-500 text-xs mb-4">
+          Les cles sont chiffrees au repos. Elles ne sont jamais renvoyees au navigateur — seul le statut &laquo; configuree &raquo; est affiche.
+        </p>
+
+        <div className="space-y-3">
+          <KeyInput
+            name="anthropic_api_key"
+            label="Anthropic API Key"
+            placeholder="sk-ant-..."
+            isSet={status?.anthropic ?? false}
+            loadingStatus={loadingStatus}
+            onSaved={refreshStatus}
+          />
+          <KeyInput
+            name="groq_api_key"
+            label="Groq API Key"
+            placeholder="gsk_..."
+            isSet={status?.groq ?? false}
+            loadingStatus={loadingStatus}
+            onSaved={refreshStatus}
+          />
+        </div>
+      </div>
+    </div>
+  )
+}
+
+function KeyInput({
+  name,
+  label,
+  placeholder,
+  isSet,
+  loadingStatus,
+  onSaved,
+}: {
+  name: 'anthropic_api_key' | 'groq_api_key'
+  label: string
+  placeholder: string
+  isSet: boolean
+  loadingStatus: boolean
+  onSaved: () => void | Promise<void>
+}) {
+  const [value, setValue] = useState('')
+  const [busy, setBusy] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const [savedOk, setSavedOk] = useState(false)
+
+  const handleSave = async () => {
+    if (value.trim().length < 10) {
+      setError('Cle trop courte')
+      return
+    }
+    setBusy(true)
+    setError(null)
+    setSavedOk(false)
+    try {
+      const res = await fetch('/api/admin/ai-keys', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, value }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) throw new Error(data.error || 'Erreur')
+      setValue('')
+      setSavedOk(true)
+      await onSaved()
+      setTimeout(() => setSavedOk(false), 2500)
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Erreur')
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  return (
+    <div className="bg-gray-800/30 rounded-lg p-3">
+      <div className="flex items-center justify-between mb-2">
+        <span className="text-gray-300 text-sm font-medium">{label}</span>
+        {loadingStatus ? (
+          <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-500" />
+        ) : isSet ? (
+          <span className="inline-flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
+            <Check className="w-3 h-3" /> Configuree
+          </span>
+        ) : (
+          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-700/40 px-2 py-0.5 rounded-full">
+            <X className="w-3 h-3" /> Non configuree
+          </span>
+        )}
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="password"
+          value={value}
+          onChange={e => setValue(e.target.value)}
+          placeholder={isSet ? 'Remplacer la cle existante...' : placeholder}
+          className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm font-mono outline-none focus:border-purple-500"
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={busy || value.trim().length < 10}
+          className="bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold px-4 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+        >
+          {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : savedOk ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+          {savedOk ? 'OK' : 'Enregistrer'}
+        </button>
+      </div>
+      {error && <p className="text-red-400 text-xs mt-1.5">{error}</p>}
     </div>
   )
 }

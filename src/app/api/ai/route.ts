@@ -1,8 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-
-const GROQ_API_KEY = process.env.GROQ_API_KEY
-const GROQ_URL = 'https://api.groq.com/openai/v1/chat/completions'
-const MODEL = 'llama-3.3-70b-versatile'
+import { getAiConfig, callAi, type AiMessage } from '@/lib/ai'
 
 const SYSTEM_PROMPT = `Tu es l'assistant IA de Kapital Stores, une boutique e-commerce tech/electronique au Senegal.
 
@@ -54,7 +51,6 @@ Si l'admin te pose une question sans contenu de page, reponds normalement en tan
 
 Reponds TOUJOURS en francais.`
 
-// ─── Scrape product page ───
 async function scrapePage(url: string): Promise<string | null> {
   try {
     const controller = new AbortController()
@@ -74,34 +70,21 @@ async function scrapePage(url: string): Promise<string | null> {
     if (!res.ok) return null
     const html = await res.text()
 
-    // Extract useful content from HTML
-    // Remove scripts, styles, and tags — keep text + image URLs
     let text = html
-      // Extract image URLs first
       .replace(/<img[^>]+src="([^"]+)"[^>]*>/gi, ' [IMAGE:$1] ')
-      // Extract meta og:image
       .replace(/<meta[^>]+property="og:image"[^>]+content="([^"]+)"[^>]*>/gi, ' [OG_IMAGE:$1] ')
-      // Extract title
       .replace(/<title[^>]*>(.*?)<\/title>/gi, ' [TITLE:$1] ')
-      // Extract meta description
       .replace(/<meta[^>]+name="description"[^>]+content="([^"]+)"[^>]*>/gi, ' [META_DESC:$1] ')
-      // Extract meta keywords
       .replace(/<meta[^>]+name="keywords"[^>]+content="([^"]+)"[^>]*>/gi, ' [KEYWORDS:$1] ')
-      // Extract prices
       .replace(/<[^>]*class="[^"]*price[^"]*"[^>]*>(.*?)<\/[^>]*>/gi, ' [PRICE:$1] ')
-      // Remove scripts and styles
       .replace(/<script[\s\S]*?<\/script>/gi, '')
       .replace(/<style[\s\S]*?<\/style>/gi, '')
       .replace(/<noscript[\s\S]*?<\/noscript>/gi, '')
-      // Remove HTML tags but keep content
       .replace(/<[^>]+>/g, ' ')
-      // Clean whitespace
       .replace(/\s+/g, ' ')
       .trim()
 
-    // Truncate to avoid token limits (keep first ~4000 chars which has the key product info)
     if (text.length > 4000) text = text.slice(0, 4000) + '...'
-
     return text
   } catch (e) {
     console.error('Scrape error:', e)
@@ -109,28 +92,25 @@ async function scrapePage(url: string): Promise<string | null> {
   }
 }
 
-// Detect URLs in message
 function extractUrls(text: string): string[] {
   const urlRegex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/g
   return text.match(urlRegex) || []
 }
 
-interface Message {
-  role: 'system' | 'user' | 'assistant'
-  content: string
-}
-
 export async function POST(req: NextRequest) {
-  if (!GROQ_API_KEY) {
-    return NextResponse.json({ error: 'GROQ_API_KEY non configuree' }, { status: 500 })
-  }
-
   try {
-    const { messages } = (await req.json()) as { messages: Message[] }
+    const config = await getAiConfig()
+    if (!config) {
+      return NextResponse.json(
+        { error: 'Aucun fournisseur IA n\'est configure. Ajoutez une cle API depuis les parametres admin.' },
+        { status: 503 }
+      )
+    }
 
-    // Check if the last user message contains a URL — scrape it
+    const { messages } = (await req.json()) as { messages: AiMessage[] }
+
     const lastUserMsg = [...messages].reverse().find(m => m.role === 'user')
-    let augmentedMessages = [...messages]
+    let augmentedMessages: AiMessage[] = [...messages]
 
     if (lastUserMsg) {
       const urls = extractUrls(lastUserMsg.content)
@@ -139,20 +119,18 @@ export async function POST(req: NextRequest) {
         const pageContent = await scrapePage(url)
 
         if (pageContent) {
-          // Inject scraped content as a system context message
           augmentedMessages = [
             ...messages.slice(0, -1),
             {
-              role: 'user' as const,
+              role: 'user',
               content: `J'ai trouve cette page produit. Voici l'URL: ${url}\n\nVoici le contenu extrait de la page:\n\n${pageContent}\n\nCree un produit a partir de ces informations.`,
             },
           ]
         } else {
-          // Scrape failed — tell the AI to work with URL only
           augmentedMessages = [
             ...messages.slice(0, -1),
             {
-              role: 'user' as const,
+              role: 'user',
               content: `${lastUserMsg.content}\n\n(Note: je n'ai pas pu acceder au contenu de la page. Analyse le nom du produit depuis l'URL et genere le produit au mieux.)`,
             },
           ]
@@ -160,30 +138,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    const res = await fetch(GROQ_URL, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${GROQ_API_KEY}`,
-      },
-      body: JSON.stringify({
-        model: MODEL,
-        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...augmentedMessages],
-        temperature: 0.3,
-        max_tokens: 2000,
-      }),
-    })
-
-    if (!res.ok) {
-      const err = await res.text()
-      console.error('Groq API error:', err)
-      return NextResponse.json({ error: 'Erreur API Groq' }, { status: 502 })
+    try {
+      const { reply } = await callAi(config, SYSTEM_PROMPT, augmentedMessages)
+      return NextResponse.json({ reply, provider: config.provider })
+    } catch (err) {
+      console.error('AI provider error:', err)
+      return NextResponse.json(
+        { error: err instanceof Error ? err.message : `Erreur ${config.provider}` },
+        { status: 502 }
+      )
     }
-
-    const data = await res.json()
-    const reply = data.choices?.[0]?.message?.content || ''
-
-    return NextResponse.json({ reply })
   } catch (error) {
     console.error('AI route error:', error)
     return NextResponse.json({ error: 'Erreur interne' }, { status: 500 })
