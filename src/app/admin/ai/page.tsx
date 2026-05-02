@@ -3,7 +3,6 @@
 import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { supabase } from '@/lib/supabase'
 import { formatPrice } from '@/lib/utils'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import {
@@ -98,33 +97,36 @@ export default function AdminAI() {
   const handleCreateProduct = async (product: ProductData, msgIndex: number) => {
     setCreatingProduct(String(msgIndex))
 
-    const { data, error } = await supabase.from('products').insert({
-      name: product.name,
-      description: product.description,
-      price: product.price,
-      stock: product.stock || 50,
-      inventory: product.stock || 50,
-      image_url: product.image_url || '',
-      isActive: false,
-      promotion_active: product.promotion_active || false,
-      promotion_percentage: product.promotion_percentage || null,
-      colors: product.colors && product.colors.length > 0 ? product.colors : null,
-      slug: generateSlug(product.name),
-    }).select('id').single()
+    const res = await fetch('/api/admin/products', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: product.name,
+        description: product.description,
+        price: product.price,
+        stock: product.stock || 50,
+        image_url: product.image_url || '',
+        isActive: false,
+        promotion_active: product.promotion_active || false,
+        promotion_percentage: product.promotion_percentage || null,
+        colors: product.colors && product.colors.length > 0 ? product.colors : null,
+        slug: generateSlug(product.name),
+      }),
+    })
 
     setCreatingProduct(null)
 
-    if (error) {
-      setMessages(prev => [...prev, { role: 'assistant', content: `Erreur creation: ${error.message}` }])
+    const payload = (await res.json().catch(() => ({}))) as { id?: string; error?: string }
+
+    if (!res.ok || !payload.id) {
+      setMessages(prev => [...prev, { role: 'assistant', content: `Erreur creation: ${payload.error || 'inconnue'}` }])
       return
     }
 
-    if (data) {
-      setMessages(prev => [...prev, {
-        role: 'assistant',
-        content: `Produit **${product.name}** cree avec succes ! [Voir le produit](/admin/products/${data.id})`,
-      }])
-    }
+    setMessages(prev => [...prev, {
+      role: 'assistant',
+      content: `Produit **${product.name}** cree avec succes ! [Voir le produit](/admin/products/${payload.id})`,
+    }])
   }
 
   const clearChat = () => {

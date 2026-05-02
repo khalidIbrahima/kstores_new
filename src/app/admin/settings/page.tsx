@@ -68,11 +68,20 @@ export default function AdminSettings() {
     setSaved(false)
 
     const { id, ...updates } = settings
-    await supabase.from('store_settings').update(updates).eq('id', id)
+    const res = await fetch('/api/admin/store-settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, updates }),
+    })
 
     setSaving(false)
-    setSaved(true)
-    setTimeout(() => setSaved(false), 3000)
+    if (res.ok) {
+      setSaved(true)
+      setTimeout(() => setSaved(false), 3000)
+    } else {
+      const payload = await res.json().catch(() => ({}))
+      alert(`Erreur: ${payload.error || 'Echec de l\'enregistrement'}`)
+    }
   }
 
   const updateField = (field: string, value: unknown) => {
@@ -410,12 +419,16 @@ function AiSection({
     setSavingProvider(value)
     setProviderError(null)
     onProviderChange(value)
-    const { error } = await supabase
-      .from('store_settings')
-      .update({ ai_provider: value })
-      .eq('id', settingsId)
-    if (error) {
-      setProviderError(error.message)
+
+    const res = await fetch('/api/admin/store-settings', {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id: settingsId, updates: { ai_provider: value } }),
+    })
+
+    if (!res.ok) {
+      const payload = await res.json().catch(() => ({}))
+      setProviderError(payload.error || 'Echec de l\'enregistrement')
       onProviderChange(provider)
     }
     setSavingProvider(null)
