@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { notifyTelegramCriticalError } from '@/lib/telegram'
 
 // Use a server-side Supabase client with the service role key for webhook processing
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
@@ -108,6 +109,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true, status: 'ignored' })
   } catch (error) {
     console.error('Wave webhook error:', error)
+    notifyTelegramCriticalError('wave-webhook', error).catch(() => {})
     return NextResponse.json(
       { error: error instanceof Error ? error.message : 'Internal server error' },
       { status: 500 }

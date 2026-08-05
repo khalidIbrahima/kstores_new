@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Resend } from 'resend'
 import { emailLayout, emailButton, emailDivider, emailInfoRow } from '@/lib/email-layout'
+import { notifyTelegramNewOrder, notifyTelegramCriticalError } from '@/lib/telegram'
 
 const resend = new Resend(process.env.RESEND_API_KEY)
 const ADMIN_EMAIL = process.env.NEXT_PUBLIC_ADMIN_EMAIL || 'khalidou.dev@gmail.com'
@@ -31,6 +32,9 @@ export async function POST(req: NextRequest) {
     const safeAddress = address ? esc(address) : null
     const safeEmail = esc(email)
     const itemCount = items.length
+
+    // Notif Telegram admin — fire-and-forget, ne bloque jamais l'envoi des emails
+    notifyTelegramNewOrder({ orderId, total, itemCount, customerName: firstName, phone }).catch(() => {})
     const date = new Date().toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' })
 
     // ─── Item rows (shared by both emails) ───
@@ -296,6 +300,7 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ success: true })
   } catch (error) {
     console.error('Order confirmation email error:', error)
+    notifyTelegramCriticalError('order-confirmation', error).catch(() => {})
     return NextResponse.json({ error: "Erreur lors de l'envoi." }, { status: 500 })
   }
 }
