@@ -263,36 +263,49 @@ export default function AdminDashboard() {
             <h2 className="text-white font-bold text-sm">Revenus</h2>
             <span className="text-green-400 font-bold text-sm">{formatPrice(revenue)}</span>
           </div>
-          <div className="relative" style={{ height: 200 }}>
-            {[0, 1, 2, 3].map(i => (
-              <div key={i} className="absolute left-0 right-0 border-t border-[#1a2332]" style={{ top: `${i * 33.33}%` }}>
-                <span className="absolute -top-2 -left-1 text-[9px] text-gray-600 font-mono">
-                  {formatPrice(maxRev * (1 - i / 3)).replace(/\s*F\s*CFA/, '')}
-                </span>
-              </div>
-            ))}
-            <div className="absolute inset-0 flex items-end gap-[2px] pl-10">
-              {revenueChart.map((day, i) => {
-                const pct = maxRev > 0 ? (day.amount / maxRev) * 100 : 0
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center">
-                    <div className="w-full flex justify-center" style={{ height: 170 }}>
-                      <div
-                        className="w-full max-w-[32px] rounded-t-md transition-all hover:brightness-125 cursor-default self-end"
-                        style={{ height: `${Math.max(pct, 2)}%`, background: 'linear-gradient(to top, #16a34a, #22c55e)' }}
-                        title={formatPrice(day.amount)}
-                      />
+          {(() => {
+            const showLabels = period === '7d' || revenueChart.length <= 14
+            // Short axis labels ("9,9 M", "650 k") so they fit in the gutter instead of covering the bars
+            const axisLabel = (value: number) =>
+              new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(Math.round(value))
+            return (
+              <div>
+                {/* Plot area: grid lines and bars share the same box, so a full bar reaches the top line */}
+                <div className="relative" style={{ height: showLabels ? 180 : 200 }}>
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} className="absolute left-0 right-0 border-t border-[#1a2332]" style={{ top: `${(i * 100) / 3}%` }}>
+                      <span className="absolute -top-2 left-0 w-10 pr-1 text-[9px] leading-4 text-gray-500 font-mono whitespace-nowrap">
+                        {axisLabel(maxRev * (1 - i / 3))}
+                      </span>
                     </div>
-                    {(period === '7d' || revenueChart.length <= 14) && (
-                      <span className="text-gray-600 text-[8px] mt-1 truncate w-full text-center">
+                  ))}
+                  <div className="absolute inset-0 flex items-end gap-[2px] pl-11">
+                    {revenueChart.map((day, i) => {
+                      const pct = maxRev > 0 ? (day.amount / maxRev) * 100 : 0
+                      return (
+                        <div key={i} className="flex-1 h-full flex items-end justify-center">
+                          <div
+                            className="w-full max-w-[32px] rounded-t-md transition-all hover:brightness-125 cursor-default"
+                            style={{ height: `${Math.max(pct, 2)}%`, background: 'linear-gradient(to top, #16a34a, #22c55e)' }}
+                            title={formatPrice(day.amount)}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                {showLabels && (
+                  <div className="flex gap-[2px] pl-11 mt-1">
+                    {revenueChart.map((day, i) => (
+                      <span key={i} className="flex-1 min-w-0 text-gray-600 text-[8px] truncate text-center">
                         {period === '90d' ? day.label : new Date(day.label + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }).replace('.', '')}
                       </span>
-                    )}
+                    ))}
                   </div>
-                )
-              })}
-            </div>
-          </div>
+                )}
+              </div>
+            )
+          })()}
         </div>
 
         {/* Donut */}

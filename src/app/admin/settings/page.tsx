@@ -220,14 +220,14 @@ export default function AdminSettings() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer min-h-11 sm:min-h-0">
                   <input
                     type="checkbox"
                     checked={settings.maintenance_mode || false}
                     onChange={e => updateField('maintenance_mode', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-gray-700 peer-checked:bg-yellow-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                  <div className="relative w-11 h-6 sm:w-9 sm:h-5 bg-gray-700 peer-checked:bg-yellow-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 sm:after:h-4 sm:after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                 </label>
                 <span className="text-sm text-gray-400">Mode maintenance</span>
               </div>
@@ -334,14 +334,14 @@ export default function AdminSettings() {
               ].map(method => (
                 <div key={method.key} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
                   <span className="text-gray-300 text-sm">{method.label}</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer min-h-11 sm:min-h-0">
                     <input
                       type="checkbox"
                       checked={settings.payment_methods?.[method.key as keyof typeof settings.payment_methods] || false}
                       onChange={e => updatePayment(method.key, e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                    <div className="relative w-11 h-6 sm:w-9 sm:h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 sm:after:h-4 sm:after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                   </label>
                 </div>
               ))}
@@ -385,14 +385,14 @@ export default function AdminSettings() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer min-h-11 sm:min-h-0">
                   <input
                     type="checkbox"
                     checked={settings.shipping_options?.local_pickup || false}
                     onChange={e => updateShipping('local_pickup', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                  <div className="relative w-11 h-6 sm:w-9 sm:h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 sm:after:h-4 sm:after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                 </label>
                 <span className="text-sm text-gray-400">Retrait en boutique</span>
               </div>

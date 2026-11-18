@@ -79,8 +79,12 @@ L'orchestrateur relit chaque branche, la vérifie avec le harnais (ci-dessous), 
 - Fond sombre des fenêtres : dans l'émulateur il s'arrête 24 px avant le bas de l'écran.
 - Clavier iOS / Android sur la page Assistant IA.
 
-## Repéré, non corrigé
+## Corrigé ensuite (2026-11-18, demande « corrige »)
 
-- `src/components/ScrollToTop.tsx` : le bouton vert « haut de page » recouvre le bas des fenêtres sur mobile.
-- Dashboard : les libellés de l'axe du graphique chevauchent les premières barres (mobile et desktop).
-- Interrupteurs des réglages : 36×20 px, sous la taille tactile visée.
+- `ScrollToTop` : `z-50` → `z-30`, il passe sous les fenêtres (vérifié : avec une fenêtre ouverte, l'élément au-dessus
+  du bouton n'est plus le bouton).
+- Dashboard : libellés d'axe abrégés (« 9,9 M ») dans une gouttière réservée ; grille et barres partagent la même zone,
+  donc une barre pleine atteint bien la ligne du maximum (avant : décalage de 30 px).
+- Réglages : interrupteurs 44×24 px avec zone tactile de 44 px sous `sm` ; taille d'origine conservée à partir de `sm`.
+  Le bouton rond est maintenant positionné par rapport à la piste, plus par rapport au `label`.
+- Vérifié à 360 / 390 / 1440 px : aucun débordement.
