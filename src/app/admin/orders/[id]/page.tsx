@@ -62,6 +62,7 @@ interface ShippingAddress {
     shipping_fee?: number
     paid_at?: string | null
     payment_link?: string | null
+    payment_link_expires_at?: string | null
   }
 }
 
@@ -924,11 +925,11 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     }
   }
 
-  const savePaymentLink = async (link: string) => {
+  const savePaymentLink = async (link: string, expiresAt: string | null = null) => {
     if (!order) return false
     const nextShippingAddress: ShippingAddress = {
       ...order.shipping_address,
-      _meta: { ...order.shipping_address?._meta, payment_link: link || null },
+      _meta: { ...order.shipping_address?._meta, payment_link: link || null, payment_link_expires_at: link ? expiresAt : null },
     }
     const response = await adminFetch(`/api/admin/orders/${id}`, {
       method: 'PATCH',
@@ -967,18 +968,18 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       const response = await fetch('/api/wave', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          amount: order.total,
-          orderId: order.id,
-          customerEmail: order.shipping_address?.email || settings?.contact_email || 'client',
-        }),
+        body: JSON.stringify({ orderId: order.id }),
       })
-      const payload = (await response.json().catch(() => ({}))) as { checkout_url?: string; error?: string }
+      const payload = (await response.json().catch(() => ({}))) as {
+        checkout_url?: string
+        expires_at?: string | null
+        error?: string
+      }
       if (!response.ok || !payload.checkout_url) {
         throw new Error(payload.error || 'Wave n\'a pas renvoye de lien.')
       }
-      await savePaymentLink(payload.checkout_url)
-      toast('Lien Wave genere et enregistre.', 'success')
+      await savePaymentLink(payload.checkout_url, payload.expires_at || null)
+      toast('Lien Wave genere. Il est valable 30 minutes.', 'success')
     } catch (error) {
       toast(error instanceof Error ? error.message : 'Impossible de generer le lien Wave.', 'error')
     } finally {
@@ -1037,7 +1038,9 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       'Facture et suivi de commande :',
       `${baseUrl}/orders/track/${order.id}`,
     ]
-    const payLink = order.shipping_address?._meta?.payment_link || settings?.payment_link
+    const meta = order.shipping_address?._meta
+    const orderLinkExpired = !!meta?.payment_link_expires_at && new Date(meta.payment_link_expires_at).getTime() <= Date.now()
+    const payLink = (!orderLinkExpired && meta?.payment_link) || settings?.payment_link
     if (!paid && order.status !== 'cancelled' && payLink) {
       lines.push('', 'Payer en ligne :', payLink)
     }
@@ -1086,6 +1089,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       paidAt: addr?._meta?.paid_at,
       orderStatus: order.status,
       paymentLink: addr?._meta?.payment_link,
+      paymentLinkExpiresAt: addr?._meta?.payment_link_expires_at,
     }, {
       name: settings?.store_name,
       url: settings?.store_url,
@@ -1645,8 +1649,16 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
                       Generer Wave
                     </button>
                   </div>
+                  {addr?._meta?.payment_link_expires_at && (
+                    <p className="mt-2 text-yellow-400 text-xs">
+                      Lien Wave valable jusqu&apos;au{' '}
+                      {new Date(addr._meta.payment_link_expires_at).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}.
+                      Passe ce delai, il disparait de la facture : generez-en un nouveau.
+                    </p>
+                  )}
                   <p className="mt-2 text-gray-500 text-xs">
                     Le lien apparait sur la facture et dans le message WhatsApp tant que la commande n&apos;est pas payee.
+                    Un lien genere par Wave expire au bout de 30 minutes.
                   </p>
                 </div>
               </div>

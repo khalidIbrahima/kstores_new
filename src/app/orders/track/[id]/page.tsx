@@ -35,7 +35,7 @@ interface Order {
     address?: string
     city?: string
     country?: string
-    _meta?: { shipping_fee?: number; paid_at?: string | null; payment_link?: string | null }
+    _meta?: { shipping_fee?: number; paid_at?: string | null; payment_link?: string | null; payment_link_expires_at?: string | null }
   }
 }
 
@@ -227,6 +227,7 @@ export default function TrackOrderDetail({ params }: { params: Promise<{ id: str
               paidAt: addr._meta?.paid_at,
               orderStatus: order.status,
               paymentLink: addr._meta?.payment_link,
+              paymentLinkExpiresAt: addr._meta?.payment_link_expires_at,
             }, {
               name: settings?.store_name,
               url: settings?.store_url,

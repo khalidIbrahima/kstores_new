@@ -29,6 +29,8 @@ export interface InvoiceOrder {
   orderStatus?: string | null
   /** Payment link for this order (e.g. a Wave checkout URL); overrides the store-wide link */
   paymentLink?: string | null
+  /** ISO date after which the order's payment link no longer works (Wave sessions last 30 minutes) */
+  paymentLinkExpiresAt?: string | null
 }
 
 /** Seller details printed on the invoice. Every field falls back to a default. */
@@ -302,14 +304,20 @@ export function generateInvoiceHtml(order: InvoiceOrder, store: InvoiceStore = {
   const totalLabel = isPaid ? 'Total payé' : state === 'cancelled' ? 'Total' : 'Total à payer'
   const acceptedMethods = (store.paymentMethods || []).map(methodLabel).filter(Boolean)
   const paymentInstructions = clean(store.paymentInstructions)
-  const paymentLink = safeHttpUrl(order.paymentLink) || safeHttpUrl(store.paymentLink)
+  const linkExpiry = clean(order.paymentLinkExpiresAt) ? new Date(order.paymentLinkExpiresAt!) : null
+  const orderLinkExpired = !!linkExpiry && !Number.isNaN(linkExpiry.getTime()) && linkExpiry.getTime() <= Date.now()
+  const orderPaymentLink = orderLinkExpired ? '' : safeHttpUrl(order.paymentLink)
+  const paymentLink = orderPaymentLink || safeHttpUrl(store.paymentLink)
+  const linkValidity = orderPaymentLink && linkExpiry && !Number.isNaN(linkExpiry.getTime())
+    ? ` (valable jusqu'au ${new Intl.DateTimeFormat('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' }).format(linkExpiry)})`
+    : ''
 
   const howToPay = state === 'due' ? `
         <div class="howto">
           <div class="label">Comment payer</div>
           ${acceptedMethods.length ? `<p>Moyens acceptés : <strong>${escapeHtml(acceptedMethods.join(', '))}</strong></p>` : ''}
           ${paymentInstructions ? `<p>${escapeHtml(paymentInstructions)}</p>` : ''}
-          ${paymentLink ? `<p>Payer en ligne : <a href="${escapeHtml(paymentLink)}" target="_blank" rel="noopener">${escapeHtml(displayUrl(paymentLink))}</a></p>` : ''}
+          ${paymentLink ? `<p>Payer en ligne : <a href="${escapeHtml(paymentLink)}" target="_blank" rel="noopener">${escapeHtml(displayUrl(paymentLink))}</a>${escapeHtml(linkValidity)}</p>` : ''}
           <p>Référence à indiquer : <strong>${shortId}</strong></p>
         </div>` : ''
 
