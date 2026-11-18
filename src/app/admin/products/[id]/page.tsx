@@ -18,6 +18,14 @@ import type { Variant } from '@/components/admin/ProductVariantsManager'
 
 type Tab = 'overview' | 'edit'
 
+// Montant et devise séparés par une espace normale pour pouvoir passer à la ligne sur mobile.
+function PriceText({ value }: { value: number }) {
+  const s = formatPrice(value)
+  const m = s.match(/^(.*?)\s*(F\s*CFA)$/)
+  if (!m) return <>{s}</>
+  return <>{m[1]} <span className="whitespace-nowrap">{m[2]}</span></>
+}
+
 interface ReviewStats {
   count: number
   avg: number
@@ -288,12 +296,12 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
       <div className="space-y-3">
         {/* Top row: back + title */}
         <div className="flex items-start gap-3">
-          <Link href="/admin/products" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 shrink-0 mt-0.5">
+          <Link href="/admin/products" aria-label="Retour aux produits" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 shrink-0 mt-0.5">
             <ArrowLeft className="w-5 h-5" />
           </Link>
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h1 className="text-lg sm:text-2xl font-black text-white truncate max-w-[250px] sm:max-w-none">{product.name}</h1>
+              <h1 className="min-w-0 break-words text-lg leading-snug sm:text-2xl sm:leading-(--text-2xl--line-height) font-black text-white sm:truncate">{product.name}</h1>
               <button
                 onClick={toggleActive}
                 className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
@@ -307,7 +315,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
               </button>
             </div>
             <div className="flex items-center gap-2 mt-1 flex-wrap">
-              <button onClick={copyId} className="text-gray-600 hover:text-gray-400 text-xs flex items-center gap-1 font-mono">
+              <button onClick={copyId} className="text-gray-600 hover:text-gray-400 text-xs flex items-center gap-1 font-mono pointer-coarse:py-1.5">
                 {copied ? <Check className="w-3 h-3 text-green-400" /> : <Copy className="w-3 h-3" />}
                 {id.slice(0, 8)}
               </button>
@@ -328,21 +336,21 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
           <Link
             href={`/products/${slug}`}
             target="_blank"
-            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
+            className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs sm:text-sm text-gray-400 hover:text-white border border-gray-700 hover:border-gray-500 rounded-lg transition-colors"
           >
             <ExternalLink className="w-3.5 h-3.5" /> Boutique
           </Link>
           <button
             onClick={handleClone}
             disabled={cloning}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-purple-400 border border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs sm:text-sm text-purple-400 border border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-colors disabled:opacity-50"
           >
             <Copy className="w-3.5 h-3.5" /> {cloning ? '...' : 'Cloner'}
           </button>
           <button
             onClick={handleDelete}
             disabled={deleting}
-            className="flex items-center gap-1.5 px-3 py-2 text-xs sm:text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-colors disabled:opacity-50"
+            className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs sm:text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 rounded-lg transition-colors disabled:opacity-50"
           >
             <Trash2 className="w-3.5 h-3.5" /> {deleting ? '...' : 'Supprimer'}
           </button>
@@ -369,9 +377,9 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
 
       {/* Overview Tab */}
       {tab === 'overview' && (
-        <div className="grid lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
           {/* Left — Images */}
-          <div className="lg:col-span-1">
+          <div className="min-w-0 lg:col-span-1">
             <div className="bg-[#111827] border border-gray-800 rounded-xl overflow-hidden">
               <div className="relative aspect-square bg-gray-900">
                 <Image src={images[selectedImage] || product.image_url} alt="" fill className="object-cover" sizes="400px" />
@@ -382,7 +390,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
                 )}
               </div>
               {images.length > 1 && (
-                <div className="flex gap-1 p-2">
+                <div className="flex gap-1 p-2 overflow-x-auto">
                   {images.map((img, i) => (
                     <button
                       key={i}
@@ -400,22 +408,22 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
           </div>
 
           {/* Right — Info */}
-          <div className="lg:col-span-2 space-y-4">
+          <div className="min-w-0 lg:col-span-2 space-y-4">
             {/* Price + Stock Row */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
-              <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              <div className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-3 sm:p-4">
                 <p className="text-gray-500 text-xs mb-1">Prix</p>
-                <p className="text-green-400 font-bold text-lg">{formatPrice(product.price)}</p>
+                <p className="text-green-400 font-bold text-base sm:text-lg"><PriceText value={product.price} /></p>
                 {hasPromo && <p className="text-gray-600 text-xs line-through">{formatPrice(product.old_price)}</p>}
               </div>
-              <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
+              <div className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-3 sm:p-4">
                 <p className="text-gray-500 text-xs mb-1">Stock</p>
                 <p className={`font-bold text-lg ${stock > 10 ? 'text-green-400' : stock > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
                   {stock}
                 </p>
                 <p className="text-gray-600 text-xs">{stock === 0 ? 'Rupture' : stock < 10 ? 'Faible' : 'En stock'}</p>
               </div>
-              <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
+              <div className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-3 sm:p-4">
                 <p className="text-gray-500 text-xs mb-1">Avis</p>
                 <div className="flex items-center gap-1.5">
                   <Star className={`w-4 h-4 ${reviewStats.count > 0 ? 'text-yellow-400 fill-yellow-400' : 'text-gray-600'}`} />
@@ -423,7 +431,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
                 </div>
                 <p className="text-gray-600 text-xs">{reviewStats.count} avis</p>
               </div>
-              <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
+              <div className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-3 sm:p-4">
                 <p className="text-gray-500 text-xs mb-1">Ventes</p>
                 <div className="flex items-center gap-1.5">
                   <ShoppingCart className="w-4 h-4 text-blue-400" />
@@ -434,24 +442,24 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
             </div>
 
             {/* Description */}
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
               <h3 className="text-white font-bold text-sm mb-2">Description</h3>
-              <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line line-clamp-6">
+              <p className="text-gray-400 text-sm leading-relaxed whitespace-pre-line break-words line-clamp-6">
                 {product.description || 'Aucune description'}
               </p>
             </div>
 
             {/* Details Grid */}
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
               <h3 className="text-white font-bold text-sm mb-3">Details</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-3 gap-x-6 text-sm [&>div]:gap-3 [&>div>span:first-child]:shrink-0 [&>div>span:last-child]:min-w-0 [&>div>span:last-child]:text-right [&>div>span:last-child]:break-words">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Categorie</span>
                   <span className="text-white">{product.categories?.name || '—'}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Slug</span>
-                  <span className="text-gray-400 font-mono text-xs">{slug}</span>
+                  <span className="text-gray-400 font-mono text-xs break-all">{slug}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-gray-500">Cree le</span>
@@ -486,7 +494,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
               {Array.isArray(product.colors) && product.colors.length > 0 && (
                 <div className="mt-4 pt-3 border-t border-gray-800">
                   <p className="text-gray-500 text-xs mb-2">Couleurs</p>
-                  <div className="flex gap-2">
+                  <div className="flex flex-wrap gap-2">
                     {(product.colors as string[]).map((color, i) => (
                       <div key={i} className="w-7 h-7 rounded-full border-2 border-gray-600" style={{ backgroundColor: color }} title={color} />
                     ))}

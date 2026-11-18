@@ -89,7 +89,7 @@ function ImageInput({ label, value, onChange, required, compact }: {
               <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">Erreur</div>
             )}
             <button type="button" onClick={() => onChange('')}
-              className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+              className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-0.5 pointer-coarse:p-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
               <X className="w-3 h-3" />
             </button>
           </div>
@@ -97,7 +97,7 @@ function ImageInput({ label, value, onChange, required, compact }: {
           <div
             onDragOver={e => { e.preventDefault(); setDragOver(true) }} onDragLeave={() => setDragOver(false)} onDrop={handleDrop}
             onClick={() => fileRef.current?.click()}
-            className={`aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-xs cursor-pointer transition-colors ${
+            className={`aspect-square border-2 border-dashed rounded-lg flex flex-col items-center justify-center text-center text-[10px] sm:text-xs leading-tight cursor-pointer transition-colors ${
               dragOver ? 'border-green-500 bg-green-500/5 text-green-400' : 'border-gray-700 text-gray-600 hover:border-gray-500 hover:text-gray-400'
             }`}
           >
@@ -116,9 +116,10 @@ function ImageInput({ label, value, onChange, required, compact }: {
       <div className="flex gap-2">
         <input type="url" value={value} onChange={e => { onChange(e.target.value); setPreviewError(false) }}
           placeholder="https://..." required={required}
-          className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-green-500" />
+          className="min-w-0 flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base sm:text-sm outline-none focus:border-green-500" />
         <button type="button" onClick={() => fileRef.current?.click()} disabled={uploading}
-          className="px-2.5 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white hover:border-gray-500 transition-colors disabled:opacity-50">
+          aria-label="Televerser une image"
+          className="shrink-0 px-2.5 py-2 bg-gray-800 border border-gray-700 rounded-lg text-gray-400 hover:text-white hover:border-gray-500 transition-colors disabled:opacity-50">
           {uploading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Upload className="w-4 h-4" />}
         </button>
         <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={e => { const f = e.target.files?.[0]; if (f) handleUpload(f) }} />
@@ -131,7 +132,7 @@ function ImageInput({ label, value, onChange, required, compact }: {
             <div className="w-full h-full flex items-center justify-center text-gray-600 text-[10px]">Err</div>
           )}
           <button type="button" onClick={() => onChange('')}
-            className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+            className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 pointer-coarse:p-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
             <X className="w-2.5 h-2.5" />
           </button>
         </div>
@@ -171,9 +172,9 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-3 sm:gap-4">
 
         {/* ─── LEFT COLUMN: Info + Pricing ─── */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {/* Basic Info */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Package className="w-4 h-4 text-blue-400" />
               <h2 className="text-white font-bold text-sm">Informations generales</h2>
@@ -183,18 +184,18 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
                 <label className="block text-xs text-gray-400 mb-1">Nom du produit *</label>
                 <input type="text" value={form.name} onChange={e => update('name', e.target.value)}
                   required placeholder="Ex: Casque Bluetooth Pro"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Description *</label>
                 <textarea value={form.description} onChange={e => update('description', e.target.value)}
                   required rows={3} placeholder="Decrivez votre produit..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 resize-none" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 resize-none" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Categorie</label>
                 <select value={form.category_id} onChange={e => update('category_id', e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500">
                   <option value="">Sans categorie</option>
                   {categories.map(cat => <option key={cat.id} value={cat.id}>{cat.name}</option>)}
                 </select>
@@ -203,7 +204,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
           </div>
 
           {/* Pricing + Stock + Status — single row */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <DollarSign className="w-4 h-4 text-green-400" />
               <h2 className="text-white font-bold text-sm">Prix & Stock</h2>
@@ -213,13 +214,13 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
                 <label className="block text-xs text-gray-400 mb-1">Prix (FCFA) *</label>
                 <input type="number" value={form.price} onChange={e => update('price', e.target.value)}
                   required min={0} step="0.01"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Stock *</label>
                 <input type="number" value={form.stock} onChange={e => update('stock', e.target.value)}
                   required min={0}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
             </div>
             <div className="flex items-center gap-3 mt-3">
@@ -235,7 +236,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
           </div>
 
           {/* Promotion — collapsible */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Tag className="w-4 h-4 text-orange-400" />
@@ -249,14 +250,14 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
             {form.promotion_active && (
               <div className="mt-3 space-y-3">
                 <div className="flex items-center gap-3">
-                  <div className="relative flex-1">
+                  <div className="relative min-w-0 flex-1">
                     <input type="number" value={form.promotion_percentage} onChange={e => update('promotion_percentage', e.target.value)}
                       min={1} max={99} placeholder="25"
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                     <Percent className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
                   </div>
                   {promoPrice !== null && (
-                    <div className="bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-center min-w-[130px]">
+                    <div className="shrink-0 bg-green-500/10 border border-green-500/30 rounded-lg px-3 py-2 text-center min-w-[130px]">
                       <p className="text-[9px] text-gray-500 uppercase tracking-wider">Nouveau prix</p>
                       <p className="text-green-400 font-bold">{formatPrice(promoPrice)}</p>
                     </div>
@@ -266,12 +267,12 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
                   <div>
                     <label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Debut</label>
                     <input type="datetime-local" value={form.promotion_start_date} onChange={e => update('promotion_start_date', e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-green-500" />
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                   </div>
                   <div>
                     <label className="block text-xs text-gray-400 mb-1 flex items-center gap-1"><CalendarDays className="w-3 h-3" /> Fin</label>
                     <input type="datetime-local" value={form.promotion_end_date} onChange={e => update('promotion_end_date', e.target.value)}
-                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-green-500" />
+                      className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                   </div>
                 </div>
                 <p className="text-gray-600 text-xs flex items-center gap-1"><Info className="w-3 h-3" /> Dates vides = promo permanente</p>
@@ -281,15 +282,15 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
         </div>
 
         {/* ─── RIGHT COLUMN: Images + Colors ─── */}
-        <div className="space-y-4">
+        <div className="min-w-0 space-y-4">
           {/* Images */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <ImagePlus className="w-4 h-4 text-cyan-400" />
               <h2 className="text-white font-bold text-sm">Images</h2>
             </div>
             <ImageInput label="Image principale" value={form.image_url} onChange={v => update('image_url', v)} required />
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-3">
+            <div className="grid grid-cols-4 sm:grid-cols-2 gap-2 mt-3">
               <ImageInput label="Image 2" value={form.image_url1} onChange={v => update('image_url1', v)} compact />
               <ImageInput label="Image 3" value={form.image_url2} onChange={v => update('image_url2', v)} compact />
               <ImageInput label="Image 4" value={form.image_url3} onChange={v => update('image_url3', v)} compact />
@@ -298,7 +299,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
           </div>
 
           {/* Variants */}
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
             <div className="flex items-center gap-2 mb-3">
               <Palette className="w-4 h-4 text-purple-400" />
               <h2 className="text-white font-bold text-sm">Variants</h2>
@@ -317,7 +318,7 @@ export default function ProductForm({ initialData, onSubmit, submitLabel, onCanc
       </div>
 
       {/* ═══ STICKY ACTIONS BAR ═══ */}
-      <div className="sticky bottom-0 z-10 bg-[#0a0f1a]/95 backdrop-blur-sm border-t border-gray-800 -mx-4 px-4 sm:-mx-8 sm:px-8 py-3 flex gap-3">
+      <div className="sticky bottom-0 z-10 bg-[#0a0f1a]/95 backdrop-blur-sm border-t border-gray-800 -mx-4 px-4 sm:-mx-6 sm:px-6 lg:-mx-8 lg:px-8 py-3 flex gap-3">
         <button type="button" onClick={onCancel}
           className="flex-1 border border-gray-700 hover:border-gray-500 text-gray-300 py-2.5 rounded-lg text-center text-sm transition-colors">
           Annuler
