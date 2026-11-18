@@ -81,3 +81,15 @@ input[type="range"]::-webkit-slider-thumb {
   background: #22c55e;
   cursor: pointer;
 }
+
+/* iOS (Safari et WebView) zoome automatiquement sur un champ dont la police fait moins de 16 px.
+   Avant, ce zoom était évité en bloquant tout zoom (`maximum-scale=1, user-scalable=no`), ce qui gênait
+   les personnes qui ont besoin d'agrandir. On garde le zoom et on met les champs à 16 px sur iOS seulement
+   (`-webkit-touch-callout` n'existe que sur iOS). Règle hors @layer : elle passe devant `text-sm`. */
+@supports (-webkit-touch-callout: none) {
+  input:not([type="checkbox"]):not([type="radio"]):not([type="range"]):not([type="file"]),
+  select,
+  textarea {
+    font-size: max(16px, 1em);
+  }
+}
