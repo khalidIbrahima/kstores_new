@@ -292,7 +292,7 @@ CREATE POLICY "allow_all_delete"
                       </button>
                     </td>
                     <td className="px-4 py-3">
-                      <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="flex items-center justify-end opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
                         <button onClick={() => handleDelete(sub.id)} disabled={deleting === sub.id}
                           className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-800 rounded transition-colors disabled:opacity-50">
                           <Trash2 className="w-3.5 h-3.5" />

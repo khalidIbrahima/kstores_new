@@ -447,7 +447,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                         <td className="py-3 text-gray-500 text-right">{totalWeight > 0 ? `${totalWeight.toFixed(1)} kg` : '—'}</td>
                         <td className="py-3 text-gray-500 text-right">{totalCbm > 0 ? totalCbm.toFixed(3) : '—'}</td>
                         <td className="py-3 text-right">
-                          <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
                             <button onClick={() => openEditItem(item)}
                               className="p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 rounded transition-colors">
                               <Edit3 className="w-3.5 h-3.5" />
@@ -535,7 +535,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                           {d.notes && <p className="text-gray-600 text-xs mt-1 truncate">{d.notes}</p>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0">
+                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity flex-shrink-0">
                         <button onClick={() => openEditDelivery(d)} className="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded transition-colors">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>

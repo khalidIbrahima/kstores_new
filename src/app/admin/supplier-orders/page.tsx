@@ -475,7 +475,7 @@ export default function AdminSupplierOrders() {
                                       <td className="py-2 text-green-400 font-medium text-right">{fmtUsd(lineTotal)}</td>
                                       <td className="py-2 text-gray-600 text-right">{item.unit_weight ? `${(item.unit_weight * item.quantity).toFixed(1)} kg` : '—'}</td>
                                       <td className="py-2 text-right">
-                                        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                                        <div className="flex items-center justify-end gap-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
                                           <button onClick={() => openEditItemForm(item)}
                                             className="p-1 text-gray-500 hover:text-white transition-colors">
                                             <Edit3 className="w-3 h-3" />

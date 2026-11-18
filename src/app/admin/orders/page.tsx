@@ -123,7 +123,7 @@ export default function AdminOrders() {
           value={search}
           onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
           placeholder="Rechercher par nom, email, ID..."
-          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-sm outline-none focus:border-green-500"
+          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
         />
       </div>
 
@@ -134,7 +134,45 @@ export default function AdminOrders() {
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-500">Aucune commande trouvée</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: tappable cards */}
+          <div className="md:hidden divide-y divide-gray-800">
+            {paginated.map(order => {
+              const config = STATUS_CONFIG[order.status] || STATUS_CONFIG.pending
+              const StatusIcon = config.icon
+              const customerName =
+                [order.shipping_address?.firstName, order.shipping_address?.lastName].filter(Boolean).join(' ') || 'Client'
+              return (
+                <Link
+                  key={order.id}
+                  href={`/admin/orders/${order.id}`}
+                  className="flex items-center gap-3 px-4 py-3.5 active:bg-gray-800/50 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <p className="text-white text-sm font-medium truncate">{customerName}</p>
+                      <span className="text-green-400 font-bold text-sm whitespace-nowrap">{formatPrice(order.total)}</span>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between gap-3">
+                      <span className="text-gray-500 text-xs truncate">
+                        <span className="font-mono">#{order.id.slice(0, 8)}</span>
+                        {' · '}
+                        {new Date(order.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                      <span className={`inline-flex shrink-0 items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium ${config.color}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {config.label}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 shrink-0 text-gray-500" />
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Tablet / desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[760px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
@@ -193,6 +231,7 @@ export default function AdminOrders() {
             </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />

@@ -182,7 +182,7 @@ export default function AdminCategories() {
                   <p className="text-white font-medium">{cat.name}</p>
                   <p className="text-gray-500 text-xs">{cat.slug}</p>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
                   <button
                     onClick={() => openEdit(cat)}
                     className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors text-xs"

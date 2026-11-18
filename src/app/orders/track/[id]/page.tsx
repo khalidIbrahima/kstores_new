@@ -10,6 +10,7 @@ import {
   MapPin, Phone, Mail, Calendar, Hash, ShoppingCart, FileText,
 } from 'lucide-react'
 import { generateInvoiceHtml } from '@/lib/invoice'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 
 interface OrderItem {
   id: string
@@ -23,6 +24,8 @@ interface Order {
   created_at: string
   status: string
   total: number
+  payment_status?: string | null
+  payment_method?: string | null
   shipping_address: {
     name?: string
     firstName?: string
@@ -32,7 +35,7 @@ interface Order {
     address?: string
     city?: string
     country?: string
-    _meta?: { shipping_fee?: number }
+    _meta?: { shipping_fee?: number; paid_at?: string | null }
   }
 }
 
@@ -56,6 +59,7 @@ export default function TrackOrderDetail({ params }: { params: Promise<{ id: str
   const [order, setOrder] = useState<Order | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
+  const { settings } = useStoreSettings()
 
   useEffect(() => {
     const fetch = async () => {
@@ -213,10 +217,21 @@ export default function TrackOrderDetail({ params }: { params: Promise<{ id: str
               phone: addr.phone,
               address: addr.address,
               city: addr.city,
+              country: addr.country,
               items: items.map(i => ({ name: i.products?.name || 'Produit', quantity: i.quantity, price: i.price })),
               subtotal,
               shipping: shippingFee,
               total: order.total,
+              paymentStatus: order.payment_status,
+              paymentMethod: order.payment_method,
+              paidAt: addr._meta?.paid_at,
+              orderStatus: order.status,
+            }, {
+              name: settings?.store_name,
+              url: settings?.store_url,
+              email: settings?.contact_email,
+              phone: settings?.support_phone,
+              paymentMethods: Object.entries(settings?.payment_methods || {}).filter(([, on]) => on).map(([key]) => key),
             })
             const win = window.open('', '_blank')
             if (win) { win.document.write(html); win.document.close() }
