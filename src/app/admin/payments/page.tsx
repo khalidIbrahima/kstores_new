@@ -10,6 +10,7 @@ import {
   XCircle,
   Loader2,
   CreditCard,
+  ChevronRight,
 } from 'lucide-react'
 
 interface Payment {
@@ -114,7 +115,7 @@ export default function AdminPayments() {
         <select
           value={statusFilter}
           onChange={e => setStatusFilter(e.target.value)}
-          className="w-full rounded-lg border border-gray-800 bg-[#111827] px-4 py-3 text-sm text-white outline-none focus:border-green-500 sm:w-auto"
+          className="w-full rounded-lg border border-gray-800 bg-[#111827] px-4 py-3 text-base sm:text-sm text-white outline-none focus:border-green-500 sm:w-auto"
         >
           <option value="all">Tous les statuts</option>
           {Object.entries(STATUS_CONFIG).map(([key, config]) => (
@@ -131,7 +132,47 @@ export default function AdminPayments() {
             <p className="text-gray-500">Aucun paiement trouve</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile : lignes cliquables vers la commande */}
+          <div className="md:hidden divide-y divide-gray-800/70">
+            {filtered.map(payment => {
+              const config = STATUS_CONFIG[payment.status] || STATUS_CONFIG.pending
+              const StatusIcon = config.icon
+              return (
+                <Link
+                  key={payment.id}
+                  href={`/admin/orders/${payment.orderId}`}
+                  className="flex items-center gap-3 px-4 py-3 active:bg-gray-800/50 transition-colors"
+                >
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="min-w-0 truncate text-white font-bold text-sm">
+                        {formatPrice(payment.amount, payment.currency || 'XOF')}
+                      </span>
+                      <span className={`inline-flex shrink-0 items-center gap-1 px-2 py-0.5 rounded-full text-xs font-medium ${config.color}`}>
+                        <StatusIcon className="w-3 h-3" />
+                        {config.label}
+                      </span>
+                    </div>
+                    <div className="mt-1.5 flex items-center justify-between gap-3">
+                      <span className="min-w-0 truncate text-gray-500 text-xs">
+                        <span className="font-mono text-green-400">#{payment.orderId?.slice(0, 8)}</span>
+                        {' · '}
+                        {new Date(payment.created_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                      <span className="max-w-[45%] shrink-0 truncate text-[11px] px-2 py-0.5 rounded-full bg-purple-400/10 text-purple-400 font-medium">
+                        {payment.provider || '—'}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronRight className="w-4 h-4 shrink-0 text-gray-500" />
+                </Link>
+              )
+            })}
+          </div>
+
+          {/* Tablette / desktop : table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
@@ -185,6 +226,7 @@ export default function AdminPayments() {
             </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

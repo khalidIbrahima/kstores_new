@@ -75,9 +75,9 @@ export default function AdminCategories() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <h1 className="text-3xl font-black text-white">Catégories</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <h1 className="text-2xl sm:text-3xl font-black text-white">Catégories</h1>
           <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-gray-700 text-gray-200">
             <FolderOpen className="w-3 h-3" />
             {categories.length}
@@ -85,7 +85,7 @@ export default function AdminCategories() {
         </div>
         <button
           onClick={openNew}
-          className="bg-green-500 hover:bg-green-600 text-black font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors"
+          className="shrink-0 bg-green-500 hover:bg-green-600 text-black font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
           Ajouter
@@ -95,27 +95,27 @@ export default function AdminCategories() {
       {/* Modal overlay */}
       {showForm && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4"
           onClick={(e) => { if (e.target === e.currentTarget) closeModal() }}
         >
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-md mx-4 shadow-2xl">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-md shadow-2xl flex max-h-[calc(100dvh-2rem)] flex-col">
             {/* Modal header */}
-            <div className="flex items-center justify-between px-6 pt-6 pb-4 border-b border-gray-800">
+            <div className="flex items-center justify-between gap-3 px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-800">
               <h2 className="text-white font-bold text-lg">{editing ? 'Modifier' : 'Nouvelle'} catégorie</h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition-colors">
+              <button onClick={closeModal} aria-label="Fermer" className="text-gray-400 hover:text-white p-1 pointer-coarse:p-2 rounded-lg hover:bg-gray-800 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Modal body */}
-            <div className="px-6 py-5 space-y-4">
+            <div className="px-5 sm:px-6 py-5 space-y-4 min-h-0 flex-1 overflow-y-auto">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Nom *</label>
                 <input
                   type="text"
                   value={form.name}
                   onChange={e => setForm({ ...form, name: e.target.value, slug: generateSlug(e.target.value) })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
               <div>
@@ -124,7 +124,7 @@ export default function AdminCategories() {
                   type="text"
                   value={form.slug}
                   onChange={e => setForm({ ...form, slug: e.target.value })}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
               <div>
@@ -134,13 +134,13 @@ export default function AdminCategories() {
                   value={form.cover_image_url}
                   onChange={e => setForm({ ...form, cover_image_url: e.target.value })}
                   placeholder="https://..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
             </div>
 
             {/* Modal footer */}
-            <div className="flex items-center justify-end gap-3 px-6 pb-6 pt-2">
+            <div className="flex items-center justify-end gap-3 px-5 sm:px-6 pb-5 sm:pb-6 pt-2">
               <button
                 onClick={closeModal}
                 className="px-4 py-2.5 rounded-lg text-sm font-medium text-gray-400 hover:text-white hover:bg-gray-800 transition-colors"
@@ -177,21 +177,22 @@ export default function AdminCategories() {
                   <Image src={cat.cover_image_url} alt="" fill className="object-cover" sizes="300px" />
                 </div>
               )}
-              <div className="p-4 flex items-center justify-between">
-                <div>
-                  <p className="text-white font-medium">{cat.name}</p>
-                  <p className="text-gray-500 text-xs">{cat.slug}</p>
+              <div className="p-4 flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <p className="text-white font-medium break-words">{cat.name}</p>
+                  <p className="text-gray-500 text-xs break-words">{cat.slug}</p>
                 </div>
-                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+                <div className="flex shrink-0 items-center gap-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
                   <button
                     onClick={() => openEdit(cat)}
-                    className="p-2 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors text-xs"
+                    className="p-2 pointer-coarse:px-3 pointer-coarse:py-2.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors text-xs"
                   >
                     Modifier
                   </button>
                   <button
                     onClick={() => handleDelete(cat.id)}
-                    className="p-2 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
+                    aria-label="Supprimer"
+                    className="p-2 pointer-coarse:p-2.5 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>

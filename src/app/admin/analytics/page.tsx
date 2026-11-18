@@ -87,10 +87,10 @@ export default function AdminAnalytics() {
           <p className="text-gray-500 text-xs mt-0.5">Suivi du trafic et des vues</p>
         </div>
         <div className="flex items-center gap-1 bg-[#0d1117] border border-gray-800 rounded-lg p-1">
-          <Calendar className="w-3.5 h-3.5 text-gray-500 ml-2 mr-1" />
+          <Calendar className="w-3.5 h-3.5 shrink-0 text-gray-500 ml-2 mr-1" />
           {(['7d', '30d', '90d'] as Period[]).map(p => (
             <button key={p} onClick={() => setPeriod(p)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${period === p ? 'bg-[#111827] text-green-400' : 'text-gray-500 hover:text-gray-300'}`}>
+              className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${period === p ? 'bg-[#111827] text-green-400' : 'text-gray-500 hover:text-gray-300'}`}>
               {p === '7d' ? '7 jours' : p === '30d' ? '30 jours' : '90 jours'}
             </button>
           ))}
@@ -106,12 +106,12 @@ export default function AdminAnalytics() {
             { label: 'Ce mois', views: totals.views_month, visitors: totals.visitors_month, icon: BarChart3, accent: '#a78bfa', bg: 'bg-purple-400/10' },
             { label: 'Total', views: totals.views_all, visitors: 0, icon: Users, accent: '#facc15', bg: 'bg-yellow-400/10' },
           ].map(card => (
-            <div key={card.label} className="bg-[#111827] border border-[#1f2937] rounded-xl p-4">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`w-7 h-7 rounded-md ${card.bg} flex items-center justify-center`}>
+            <div key={card.label} className="min-w-0 bg-[#111827] border border-[#1f2937] rounded-xl p-3 sm:p-4">
+              <div className="flex min-w-0 items-center gap-2 mb-2">
+                <div className={`w-7 h-7 shrink-0 rounded-md ${card.bg} flex items-center justify-center`}>
                   <card.icon className="w-3.5 h-3.5" style={{ color: card.accent }} />
                 </div>
-                <span className="text-gray-400 text-xs">{card.label}</span>
+                <span className="text-gray-400 text-xs truncate">{card.label}</span>
               </div>
               <p className="text-lg font-black text-white">{card.views} <span className="text-gray-500 text-xs font-normal">vues</span></p>
               {card.visitors > 0 && (
@@ -125,7 +125,7 @@ export default function AdminAnalytics() {
       {/* Traffic Chart + Top Pages */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Daily visits chart */}
-        <div className="lg:col-span-2 bg-[#111827] border border-[#1f2937] rounded-xl p-5">
+        <div className="min-w-0 lg:col-span-2 bg-[#111827] border border-[#1f2937] rounded-xl p-4 sm:p-5">
           <h2 className="text-white font-bold text-sm mb-4">Visites par jour</h2>
           <div className="relative" style={{ height: 200 }}>
             {[0, 1, 2, 3].map(i => (
@@ -156,7 +156,7 @@ export default function AdminAnalytics() {
         </div>
 
         {/* Top Pages */}
-        <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-5">
+        <div className="min-w-0 bg-[#111827] border border-[#1f2937] rounded-xl p-4 sm:p-5">
           <h2 className="text-white font-bold text-sm mb-3">Pages populaires</h2>
           {topPages.length === 0 ? (
             <p className="text-gray-500 text-sm py-6 text-center">Aucune donnee</p>
@@ -167,12 +167,12 @@ export default function AdminAnalytics() {
                 const w = Math.max((page.views / maxV) * 100, 5)
                 return (
                   <div key={page.page_path}>
-                    <div className="flex items-center justify-between mb-0.5">
-                      <div className="flex items-center gap-1.5">
-                        <span className="text-gray-600 text-[10px] w-4 text-right font-mono">{i + 1}</span>
-                        <span className="text-gray-300 text-xs truncate max-w-[150px]">{page.page_path}</span>
+                    <div className="flex items-center justify-between gap-2 mb-0.5">
+                      <div className="flex min-w-0 items-center gap-1.5">
+                        <span className="shrink-0 text-gray-600 text-[10px] w-4 text-right font-mono">{i + 1}</span>
+                        <span className="text-gray-300 text-xs truncate lg:max-w-[150px]">{page.page_path}</span>
                       </div>
-                      <span className="text-white font-bold text-xs">{page.views}</span>
+                      <span className="shrink-0 text-white font-bold text-xs">{page.views}</span>
                     </div>
                     <div className="ml-5 h-1.5 bg-[#1a2332] rounded-full overflow-hidden">
                       <div className="h-full rounded-full" style={{ width: `${w}%`, background: 'linear-gradient(to right, #16a34a, #22c55e)' }} />
@@ -186,12 +186,12 @@ export default function AdminAnalytics() {
       </div>
 
       {/* Most Viewed Products */}
-      <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-5">
-        <div className="flex items-center justify-between mb-4">
+      <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-4 sm:p-5">
+        <div className="flex items-center justify-between gap-2 mb-4">
           <h2 className="text-white font-bold text-sm flex items-center gap-2">
             <Package className="w-4 h-4 text-blue-400" /> Produits les plus vus
           </h2>
-          <Link href="/admin/products" className="text-green-400 hover:text-green-300 text-xs">Voir les produits</Link>
+          <Link href="/admin/products" className="shrink-0 text-green-400 hover:text-green-300 text-xs">Voir les produits</Link>
         </div>
         {topProducts.length === 0 ? (
           <p className="text-gray-500 text-sm py-6 text-center">Aucune vue de produit enregistree</p>
