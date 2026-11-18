@@ -213,17 +213,17 @@ CREATE POLICY "allow_all_delete"
             <span className="px-2.5 py-1 rounded-full text-xs font-medium bg-blue-400/10 text-blue-400">{total} total</span>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:items-center">
           <button onClick={exportCSV}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-gray-400 border border-gray-700 hover:border-gray-500 rounded-lg transition-colors">
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 text-sm text-gray-400 border border-gray-700 hover:border-gray-500 rounded-lg transition-colors">
             <Download className="w-4 h-4" /> Exporter
           </button>
           <button onClick={() => setShowCampaign(true)}
-            className="flex items-center gap-1.5 px-3 py-2 text-sm text-purple-400 border border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-colors">
+            className="flex items-center justify-center gap-1.5 px-3 py-2.5 sm:py-2 text-sm text-purple-400 border border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-colors">
             <Send className="w-4 h-4" /> Campagne
           </button>
           <button onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-1.5 px-4 py-2 text-sm bg-green-500 hover:bg-green-600 text-black font-bold rounded-lg transition-colors">
+            className="col-span-2 flex items-center justify-center gap-1.5 px-4 py-2.5 sm:py-2 text-sm bg-green-500 hover:bg-green-600 text-black font-bold rounded-lg transition-colors">
             <Plus className="w-4 h-4" /> Ajouter
           </button>
         </div>
@@ -235,12 +235,12 @@ CREATE POLICY "allow_all_delete"
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
           <input type="text" value={search} onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher par email..."
-            className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+            className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
         </div>
         <div className="flex gap-1 bg-[#0d1117] border border-gray-800 rounded-lg p-1">
           {(['all', 'active', 'unsubscribed'] as const).map(s => (
             <button key={s} onClick={() => setStatusFilter(s)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${statusFilter === s ? 'bg-[#111827] text-green-400' : 'text-gray-500 hover:text-gray-300'}`}>
+              className={`flex-1 sm:flex-none px-3 py-2 sm:py-1.5 rounded-md text-xs font-medium transition-colors ${statusFilter === s ? 'bg-[#111827] text-green-400' : 'text-gray-500 hover:text-gray-300'}`}>
               {s === 'all' ? 'Tous' : s === 'active' ? 'Actifs' : 'Desinscrits'}
             </button>
           ))}
@@ -255,7 +255,34 @@ CREATE POLICY "allow_all_delete"
             <p className="text-gray-500">Aucun abonne</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: cards */}
+          <ul className="md:hidden divide-y divide-gray-800">
+            {filtered.map(sub => (
+              <li key={sub.id} className="flex items-center gap-2 py-2.5 pl-4 pr-2">
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-sm font-medium truncate">{sub.email}</p>
+                  <p className="mt-0.5 flex items-center gap-2 text-xs text-gray-500">
+                    <span className="min-w-0 truncate px-2 py-0.5 rounded-full bg-gray-700 text-gray-300">{sub.source || 'website'}</span>
+                    <span className="shrink-0">{new Date(sub.subscribed_at).toLocaleDateString('fr-FR')}</span>
+                  </p>
+                </div>
+                <button onClick={() => handleToggleStatus(sub)}
+                  className={`inline-flex min-h-10 shrink-0 items-center gap-1 px-2.5 rounded-full text-xs font-medium ${
+                    sub.status === 'active' ? 'bg-green-400/10 text-green-400 active:bg-green-400/20' : 'bg-red-400/10 text-red-400 active:bg-red-400/20'
+                  }`}>
+                  {sub.status === 'active' ? <><UserPlus className="w-3 h-3" /> Actif</> : <><UserMinus className="w-3 h-3" /> Desinscrit</>}
+                </button>
+                <button onClick={() => handleDelete(sub.id)} disabled={deleting === sub.id} aria-label="Supprimer"
+                  className="shrink-0 p-2.5 text-gray-500 active:text-red-400 active:bg-gray-800 rounded-lg disabled:opacity-50">
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet / desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full">
               <thead>
                 <tr className="border-b border-gray-800 text-left">
@@ -304,28 +331,29 @@ CREATE POLICY "allow_all_delete"
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
       {/* Add subscriber modal */}
       {showAddForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={() => setShowAddForm(false)}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-md mx-4 mt-10 sm:mt-20 p-4 sm:p-5" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-md mx-4 mt-10 sm:mt-20 p-4 sm:p-5" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-white font-bold">Ajouter un abonne</h3>
-              <button onClick={() => setShowAddForm(false)} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={() => setShowAddForm(false)} aria-label="Fermer" className="shrink-0 p-2 -m-2 sm:p-0 sm:m-0 text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
             <div>
               <label className="block text-xs text-gray-400 mb-1">Email *</label>
               <input type="email" value={newEmail} onChange={e => setNewEmail(e.target.value)}
                 placeholder="email@example.com"
                 onKeyDown={e => e.key === 'Enter' && handleAdd()}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
             </div>
             <div className="flex justify-end gap-3 mt-4">
-              <button onClick={() => setShowAddForm(false)} className="px-4 py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
+              <button onClick={() => setShowAddForm(false)} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
               <button onClick={handleAdd} disabled={saving || !newEmail.trim()}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
+                className="flex-1 sm:flex-none justify-center py-2.5 sm:py-2 bg-green-500 hover:bg-green-600 text-black font-bold px-5 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
                 <Save className="w-4 h-4" /> {saving ? '...' : 'Ajouter'}
               </button>
             </div>
@@ -336,12 +364,12 @@ CREATE POLICY "allow_all_delete"
       {/* Campaign modal */}
       {showCampaign && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={() => { setShowCampaign(false); setSendResult(null) }}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-16 p-5" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-lg mx-4 mt-4 sm:mt-16 p-4 sm:p-5 max-h-[calc(100dvh-2rem)] overflow-y-auto" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-white font-bold flex items-center gap-2">
                 <Send className="w-4 h-4 text-purple-400" /> Envoyer une campagne
               </h3>
-              <button onClick={() => { setShowCampaign(false); setSendResult(null) }} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={() => { setShowCampaign(false); setSendResult(null) }} aria-label="Fermer" className="shrink-0 p-2 -m-2 sm:p-0 sm:m-0 text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
             <p className="text-gray-500 text-xs mb-4">Sera envoye a {active} abonne{active > 1 ? 's' : ''} actif{active > 1 ? 's' : ''}</p>
 
@@ -358,18 +386,18 @@ CREATE POLICY "allow_all_delete"
                   <label className="block text-xs text-gray-400 mb-1">Sujet *</label>
                   <input type="text" value={campaignSubject} onChange={e => setCampaignSubject(e.target.value)}
                     placeholder="Nouveautes, offres speciales..."
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Contenu *</label>
                   <textarea value={campaignBody} onChange={e => setCampaignBody(e.target.value)}
                     rows={6} placeholder="Ecrivez votre message ici... (HTML supporte)"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 resize-none" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 resize-none" />
                 </div>
                 <div className="flex justify-end gap-3 mt-4">
-                  <button onClick={() => setShowCampaign(false)} className="px-4 py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
+                  <button onClick={() => setShowCampaign(false)} className="shrink-0 px-4 py-2.5 sm:py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
                   <button onClick={handleSendCampaign} disabled={sending || !campaignSubject.trim() || !campaignBody.trim()}
-                    className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-5 py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
+                    className="flex-1 sm:flex-none justify-center py-2.5 sm:py-2 bg-purple-500 hover:bg-purple-600 text-white font-bold px-5 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
                     <Send className="w-4 h-4" /> {sending ? 'Envoi en cours...' : `Envoyer a ${active} abonnes`}
                   </button>
                 </div>

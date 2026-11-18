@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Image from 'next/image'
+import Link from 'next/link'
 import { supabase } from '@/lib/supabase'
 import { adminFetch } from '@/lib/admin-fetch'
 import {
@@ -291,57 +292,57 @@ export default function AdminSupplierOrders() {
       {/* Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={handleCancel}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-2xl mx-4 mt-10 sm:mt-20 p-4 sm:p-6" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-2xl mx-4 mt-4 sm:mt-20 p-4 sm:p-6 flex max-h-[calc(100dvh-2rem)] flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h2 className="text-white font-bold text-lg">{editingItem ? 'Modifier' : 'Nouvelle'} commande</h2>
-              <button onClick={handleCancel} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800"><X className="w-5 h-5" /></button>
+              <button onClick={handleCancel} aria-label="Fermer" className="shrink-0 text-gray-400 hover:text-white p-2 sm:p-1 rounded-lg hover:bg-gray-800"><X className="w-5 h-5" /></button>
             </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-y-auto sm:grid-cols-2 sm:overflow-visible">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Titre</label>
                 <input type="text" value={form.title} onChange={e => setForm(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Commande Alibaba..." className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  placeholder="Commande Alibaba..." className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Date</label>
                 <input type="date" value={form.order_date} onChange={e => setForm(prev => ({ ...prev, order_date: e.target.value }))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">N° commande</label>
                 <input type="text" value={form.order_number} onChange={e => setForm(prev => ({ ...prev, order_number: e.target.value }))}
-                  placeholder="N° Alibaba" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  placeholder="N° Alibaba" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Montant total (USD)</label>
                 <input type="number" step="0.01" value={form.total_amount_usd} onChange={e => setForm(prev => ({ ...prev, total_amount_usd: e.target.value }))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Frais bancaires (USD)</label>
                 <input type="number" step="0.01" value={form.bank_fees_usd} onChange={e => setForm(prev => ({ ...prev, bank_fees_usd: e.target.value }))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Frais livraison (USD)</label>
                 <input type="number" step="0.01" value={form.shipping_fees_usd} onChange={e => setForm(prev => ({ ...prev, shipping_fees_usd: e.target.value }))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Taux USD → XOF</label>
                 <input type="number" step="0.01" value={form.usd_xof_value} onChange={e => setForm(prev => ({ ...prev, usd_xof_value: e.target.value }))}
-                  placeholder="Ex: 615" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  placeholder="Ex: 615" className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Notes</label>
                 <input type="text" value={form.notes || ''} onChange={e => setForm(prev => ({ ...prev, notes: e.target.value }))}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-5">
-              <button onClick={handleCancel} className="px-4 py-2 rounded-lg text-gray-400 hover:text-white text-sm hover:bg-gray-800">Annuler</button>
+            <div className="flex shrink-0 justify-end gap-3 mt-5">
+              <button onClick={handleCancel} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 rounded-lg text-gray-400 hover:text-white text-sm hover:bg-gray-800">Annuler</button>
               <button onClick={handleSave} disabled={saving}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
+                className="flex-1 sm:flex-none justify-center bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2.5 sm:py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
                 <Save className="w-4 h-4" /> {saving ? '...' : editingItem ? 'Modifier' : 'Ajouter'}
               </button>
             </div>
@@ -354,7 +355,7 @@ export default function AdminSupplierOrders() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher par titre ou numero..."
-          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
       </div>
 
       {/* Table — rows are clickable */}
@@ -365,7 +366,102 @@ export default function AdminSupplierOrders() {
             <p className="text-gray-500">Aucune commande fournisseur</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: cards */}
+          <ul className="md:hidden divide-y divide-gray-800">
+            {filtered.map(order => {
+              const fees = (Number(order.bank_fees_usd) || 0) + (Number(order.shipping_fees_usd) || 0)
+              const isExpanded = expandedOrder === order.id
+              const items = orderItems[order.id] || []
+              const isItemsLoading = loadingItems === order.id
+              return (
+                <li key={order.id} className={isExpanded ? 'bg-gray-800/20' : ''}>
+                  <div className="flex items-start gap-1 py-3 pl-1 pr-2">
+                    <button onClick={(e) => toggleExpand(e, order.id)} aria-label={isExpanded ? 'Masquer les articles' : 'Voir les articles'} aria-expanded={isExpanded}
+                      className="shrink-0 p-2.5 text-gray-500 active:text-white">
+                      {isExpanded ? <ChevronDown className="w-4 h-4 text-green-400" /> : <ChevronRight className="w-4 h-4" />}
+                    </button>
+                    <Link href={`/admin/supplier-orders/${order.id}`} className="min-w-0 flex-1 py-1">
+                      <p className="text-white text-sm font-medium line-clamp-2 break-words">{order.title || 'Sans titre'}</p>
+                      <p className="mt-0.5 text-gray-500 text-xs truncate">
+                        {order.order_date ? new Date(order.order_date).toLocaleDateString('fr-FR') : '—'}
+                        {order.order_number && <span className="font-mono"> · {order.order_number}</span>}
+                      </p>
+                      <p className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-0.5 text-xs">
+                        <span className="text-green-400 font-bold text-sm">{fmtUsd(order.total_amount_usd)}</span>
+                        <span className="text-yellow-400">Frais {fmtUsd(fees)}</span>
+                        {order.usd_xof_value ? <span className="text-gray-400">{order.usd_xof_value} XOF</span> : null}
+                      </p>
+                    </Link>
+                    <div className="flex shrink-0 items-center">
+                      <button onClick={(e) => handleEdit(e, order)} aria-label="Modifier"
+                        className="p-2.5 text-gray-400 active:bg-gray-800 rounded-lg">
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button onClick={(e) => handleDelete(e, order.id)} disabled={deleting === order.id} aria-label="Supprimer"
+                        className="p-2.5 text-gray-400 active:text-red-400 active:bg-gray-800 rounded-lg disabled:opacity-50">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                  {isExpanded && (
+                    <div className="border-t border-gray-800 bg-[#0d1117] px-4 py-3">
+                      <div className="flex items-center justify-between mb-2">
+                        <h4 className="text-white text-sm font-bold flex items-center gap-2">
+                          <Package className="w-3.5 h-3.5 text-blue-400" />
+                          Articles ({items.length})
+                        </h4>
+                        <button onClick={(e) => openAddItemForm(e, order.id)} aria-label="Ajouter un article"
+                          className="bg-green-500/20 text-green-400 active:bg-green-500/30 px-3 py-2 rounded-lg flex items-center gap-1 text-xs font-medium">
+                          <Plus className="w-3.5 h-3.5" /> Ajouter
+                        </button>
+                      </div>
+                      {isItemsLoading ? (
+                        <div className="flex items-center justify-center py-4">
+                          <Loader2 className="w-4 h-4 text-green-400 animate-spin" />
+                        </div>
+                      ) : items.length === 0 ? (
+                        <p className="text-gray-600 text-xs text-center py-3">Aucun article</p>
+                      ) : (
+                        <ul className="divide-y divide-gray-800/50">
+                          {items.map(item => {
+                            const lineTotal = (Number(item.unit_price_usd) || 0) * (item.quantity || 0)
+                            return (
+                              <li key={item.id} className="flex items-center gap-2 py-2">
+                                {item.image_url && (
+                                  <div className="relative h-8 w-8 shrink-0 overflow-hidden rounded border border-gray-700">
+                                    <Image src={item.image_url} alt="" fill className="object-cover" sizes="32px" />
+                                  </div>
+                                )}
+                                <div className="min-w-0 flex-1 text-xs">
+                                  <p className="text-gray-300 truncate">{item.product_name}</p>
+                                  <p className="text-gray-500">
+                                    {item.quantity} × {fmtUsd(item.unit_price_usd)} = <span className="text-green-400 font-medium">{fmtUsd(lineTotal)}</span>
+                                    {item.unit_weight ? ` · ${(item.unit_weight * item.quantity).toFixed(1)} kg` : ''}
+                                  </p>
+                                </div>
+                                <button onClick={() => openEditItemForm(item)} aria-label="Modifier l'article"
+                                  className="shrink-0 p-2 text-gray-500 active:text-white">
+                                  <Edit3 className="w-3.5 h-3.5" />
+                                </button>
+                                <button onClick={(e) => handleDeleteItem(e, order.id, item.id)} disabled={deletingItemId === item.id} aria-label="Supprimer l'article"
+                                  className="shrink-0 p-2 text-gray-500 active:text-red-400 disabled:opacity-50">
+                                  <Trash2 className="w-3.5 h-3.5" />
+                                </button>
+                              </li>
+                            )
+                          })}
+                        </ul>
+                      )}
+                    </div>
+                  )}
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* Tablet / desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[720px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
@@ -502,45 +598,46 @@ export default function AdminSupplierOrders() {
             </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
 
       {/* Add/Edit Item Modal */}
       {showItemForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={closeItemForm}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-16 p-5" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-lg mx-4 mt-4 sm:mt-16 p-4 sm:p-5 flex max-h-[calc(100dvh-2rem)] flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-white font-bold flex items-center gap-2">
                 <Package className="w-4 h-4 text-blue-400" />
                 {editingItemId ? 'Modifier' : 'Ajouter'} un article
               </h3>
-              <button onClick={closeItemForm} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={closeItemForm} aria-label="Fermer" className="shrink-0 p-2 -m-2 sm:p-0 sm:m-0 text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
-            <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+            <div className="space-y-3 min-h-0 flex-1 overflow-y-auto sm:max-h-[65vh] pr-1">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Nom du produit *</label>
                 <input type="text" value={itemForm.product_name} onChange={e => setItemForm(prev => ({ ...prev, product_name: e.target.value }))}
                   placeholder="Nom du produit..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Prix USD *</label>
                   <input type="number" step="0.01" min="0" value={itemForm.unit_price_usd}
                     onChange={e => setItemForm(prev => ({ ...prev, unit_price_usd: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Quantite *</label>
                   <input type="number" min="1" value={itemForm.quantity}
                     onChange={e => setItemForm(prev => ({ ...prev, quantity: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Ads USD</label>
                   <input type="number" step="0.01" min="0" value={itemForm.ads_amount}
                     onChange={e => setItemForm(prev => ({ ...prev, ads_amount: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
@@ -548,32 +645,32 @@ export default function AdminSupplierOrders() {
                   <label className="block text-xs text-gray-400 mb-1">Poids unit. (kg)</label>
                   <input type="number" step="0.01" min="0" value={itemForm.unit_weight}
                     onChange={e => setItemForm(prev => ({ ...prev, unit_weight: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Volume unit. (CBM)</label>
                   <input type="number" step="0.001" min="0" value={itemForm.unit_cbm}
                     onChange={e => setItemForm(prev => ({ ...prev, unit_cbm: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Image (URL)</label>
                 <input type="url" value={itemForm.image_url} onChange={e => setItemForm(prev => ({ ...prev, image_url: e.target.value }))}
                   placeholder="https://..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Notes</label>
                 <textarea value={itemForm.notes} onChange={e => setItemForm(prev => ({ ...prev, notes: e.target.value }))}
                   rows={2} placeholder="Notes..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 resize-none" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 resize-none" />
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <button onClick={closeItemForm} className="px-4 py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
+            <div className="flex shrink-0 justify-end gap-3 mt-4">
+              <button onClick={closeItemForm} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
               <button onClick={handleSaveItem} disabled={savingItem || !itemForm.product_name.trim()}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
+                className="flex-1 sm:flex-none justify-center bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2.5 sm:py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
                 <Save className="w-4 h-4" /> {savingItem ? '...' : editingItemId ? 'Enregistrer' : 'Ajouter'}
               </button>
             </div>
