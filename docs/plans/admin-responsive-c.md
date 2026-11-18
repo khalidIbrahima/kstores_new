@@ -87,3 +87,14 @@
 - APRÈS : 360/390 docH = 800 = viewport, 0 débordement. Desktop : écran vide identique au pixel ; après envoi,
   seule la zone de saisie diffère (elle reprend une ligne au lieu de rester haute — correction voulue).
 - Non vérifié : comportement réel du clavier iOS/Android (le viewport `interactive-widget` appartient au chantier PWA/layout).
+
+### settings (7 onglets + test Wave) — commit 7
+- AVANT : onglet Paiements → bouton « Enregistrer » des clés Wave à 392 px (hors écran à 360 et 390) ; tous les champs en 14 px
+  sauf Facturation ; contenu des onglets en `p-6` (étroit à 360).
+- Champs de clé : saisie et bouton empilés sous `sm` (bouton pleine largeur, 40 px), libellé long + badge « Configuree » qui passent à la ligne ;
+  contenu `p-4 sm:p-6` ; onglets `shrink-0`, `px-4 sm:px-5`. Tous les champs en `text-base sm:text-sm`.
+- Testés : Boutique, Contact, Facturation, Paiements, Paiements + résultat d'un test Wave en échec (message long), Livraison,
+  Réseaux sociaux, IA — 0 débordement, 0 champ < 16 px à 360 et 390.
+- Desktop 1440 : identique (au plus 1–4 niveaux de gris d'écart d'antialiasing sur quelques onglets, 0 pixel au-delà de 8).
+- Non fait : les interrupteurs (toggle) restent à 36×20 px — les agrandir demanderait de retoucher leur pseudo-élément ;
+  toute la ligne n'est pas cliquable.
