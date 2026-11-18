@@ -74,3 +74,16 @@
 - `grid-cols-1` + `min-w-0` ; noms/emails/messages en `[overflow-wrap:anywhere]` (ne change rien quand le texte tient → desktop identique) ;
   montants `whitespace-nowrap` ; libellés WhatsApp / Email visibles aussi sur mobile, boutons 40 px.
 - APRÈS : 360/390 sans débordement. Desktop 1440 identique au pixel.
+
+### ai (assistant) — commit 6
+- AVANT : pas de débordement mesuré, mais une URL longue était coupée à droite dans la bulle, le placeholder
+  (2 lignes à 16 px) débordait de la zone de saisie d'une ligne, la zone de saisie restait haute après l'envoi,
+  et la hauteur en `100vh-80px` dépassait de 9 px l'écran sous la barre mobile.
+- Hauteur `100dvh-93px` (mobile) / `100dvh-109px` (`sm`) : page = exactement la hauteur visible, la liste défile,
+  la zone de saisie reste en bas ; `lg` inchangé.
+- Bulles `min-w-0` + `[overflow-wrap:anywhere]` ; saisie en 16 px ; hauteur remise à zéro après envoi ;
+  bouton Envoyer ≥ 48 px ; placeholder court sous 640 px (`useSyncExternalStore` + `matchMedia`,
+  « Lien Alibaba ou question... ») — texte desktop inchangé.
+- APRÈS : 360/390 docH = 800 = viewport, 0 débordement. Desktop : écran vide identique au pixel ; après envoi,
+  seule la zone de saisie diffère (elle reprend une ligne au lieu de rester haute — correction voulue).
+- Non vérifié : comportement réel du clavier iOS/Android (le viewport `interactive-widget` appartient au chantier PWA/layout).
