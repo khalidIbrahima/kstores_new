@@ -56,3 +56,15 @@
 - Modales article et livraison : hauteur bornée au viewport, pied fixe, largeur avec marges.
 - APRÈS : 360/390 sans débordement. Desktop 1440 (page, 2 modales) : identique au pixel.
 - Vu hors périmètre : le bouton vert « remonter en haut » (composant global) passe au-dessus du pied des modales sur mobile.
+
+### shipping, newsletter — commit 4
+- shipping AVANT : **471 px** à 360/390, et **1500 px à 1440** (email long sans césure dans la grille de cartes).
+  Cartes `min-w-0`, email `break-all`, nom/adresse `break-words`, icônes `shrink-0`, actions 40 px sur mobile ;
+  titre `text-2xl sm:text-3xl` ; modale bornée au viewport avec pied fixe.
+  Desktop : la page ne déborde plus (1440 au lieu de 1500) — seule différence voulue.
+- newsletter : cartes sous `md` (email tronqué, source, date, bascule Actif/Désinscrit en 40 px, supprimer toujours visible) ;
+  boutons d'en-tête en grille (Exporter | Campagne, puis Ajouter pleine largeur) ; filtres pleine largeur ;
+  modales Ajouter/Campagne avec marges et hauteur bornée.
+  Desktop : liste et modale Ajouter identiques au pixel ; modale Campagne : différence pixel limitée au rendu
+  des champs (comparaison visuelle identique — probablement le curseur/antialiasing).
+- APRÈS : 360/390 sans débordement, 0 champ < 16 px.

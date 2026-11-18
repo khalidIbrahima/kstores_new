@@ -150,14 +150,14 @@ export default function AdminShipping() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-black text-white">Livraison</h1>
+      <div className="flex items-center justify-between gap-3">
+        <div className="min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-black text-white">Livraison</h1>
           <p className="text-gray-500 text-sm mt-1">{agencies.length} agence{agencies.length > 1 ? 's' : ''} de livraison</p>
         </div>
         <button
           onClick={() => { setForm(emptyForm); setEditingItem(null); setShowForm(true) }}
-          className="bg-green-500 hover:bg-green-600 text-black font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors"
+          className="shrink-0 bg-green-500 hover:bg-green-600 text-black font-bold px-4 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors"
         >
           <Plus className="w-4 h-4" />
           Ajouter
@@ -171,16 +171,16 @@ export default function AdminShipping() {
           onClick={handleCancel}
         >
           <div
-            className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-10 sm:mt-20 p-6"
+            className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-lg mx-4 mt-4 sm:mt-20 p-4 sm:p-6 flex max-h-[calc(100dvh-2rem)] flex-col"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center justify-between gap-3 mb-4 sm:mb-6">
               <h2 className="text-white font-bold text-lg">{editingItem ? 'Modifier l\'agence' : 'Nouvelle agence'}</h2>
-              <button onClick={handleCancel} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition-colors">
+              <button onClick={handleCancel} aria-label="Fermer" className="shrink-0 text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="grid min-h-0 flex-1 grid-cols-1 sm:grid-cols-2 gap-4 overflow-y-auto sm:overflow-visible">
               <div>
                 <label className="block text-sm text-gray-400 mb-1">Nom</label>
                 <input
@@ -188,7 +188,7 @@ export default function AdminShipping() {
                   value={form.name}
                   onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Nom de l'agence..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
               <div>
@@ -198,7 +198,7 @@ export default function AdminShipping() {
                   value={form.phone}
                   onChange={e => setForm(prev => ({ ...prev, phone: e.target.value }))}
                   placeholder="+225..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
               <div>
@@ -208,7 +208,7 @@ export default function AdminShipping() {
                   value={form.email}
                   onChange={e => setForm(prev => ({ ...prev, email: e.target.value }))}
                   placeholder="contact@..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
               <div>
@@ -218,21 +218,21 @@ export default function AdminShipping() {
                   value={form.address}
                   onChange={e => setForm(prev => ({ ...prev, address: e.target.value }))}
                   placeholder="Adresse..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-6">
+            <div className="flex shrink-0 justify-end gap-3 mt-6">
               <button
                 onClick={handleCancel}
-                className="px-4 py-2.5 rounded-lg text-gray-400 hover:text-white text-sm font-medium hover:bg-gray-800 transition-colors"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-lg text-gray-400 hover:text-white text-sm font-medium hover:bg-gray-800 transition-colors"
               >
                 Annuler
               </button>
               <button
                 onClick={handleSave}
                 disabled={saving || !form.name.trim()}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors disabled:opacity-50"
+                className="flex-1 sm:flex-none justify-center bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2.5 rounded-lg flex items-center gap-2 text-sm transition-colors disabled:opacity-50"
               >
                 <Save className="w-4 h-4" />
                 {saving ? 'Enregistrement...' : editingItem ? 'Modifier' : 'Ajouter'}
@@ -251,25 +251,27 @@ export default function AdminShipping() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {agencies.map(agency => (
-            <div key={agency.id} className="bg-[#111827] border border-gray-800 rounded-xl p-6 hover:border-gray-700 transition-colors">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-green-400/10 flex items-center justify-center">
+            <div key={agency.id} className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6 hover:border-gray-700 transition-colors">
+              <div className="flex items-start justify-between gap-2 mb-4">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="w-10 h-10 shrink-0 rounded-lg bg-green-400/10 flex items-center justify-center">
                     <Truck className="w-5 h-5 text-green-400" />
                   </div>
-                  <h3 className="text-white font-bold">{agency.name}</h3>
+                  <h3 className="min-w-0 break-words text-white font-bold">{agency.name}</h3>
                 </div>
-                <div className="flex items-center gap-1">
+                <div className="flex shrink-0 items-center gap-1">
                   <button
                     onClick={() => handleEdit(agency)}
-                    className="p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                    aria-label="Modifier"
+                    className="p-2.5 sm:p-1.5 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
                   >
                     <Edit3 className="w-4 h-4" />
                   </button>
                   <button
                     onClick={() => handleDelete(agency.id)}
                     disabled={deleting === agency.id}
-                    className="p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
+                    aria-label="Supprimer"
+                    className="p-2.5 sm:p-1.5 text-gray-400 hover:text-red-400 hover:bg-gray-800 rounded-lg transition-colors disabled:opacity-50"
                   >
                     <Trash2 className="w-4 h-4" />
                   </button>
@@ -278,20 +280,20 @@ export default function AdminShipping() {
               <div className="space-y-2">
                 {agency.phone && (
                   <div className="flex items-center gap-2 text-gray-400 text-sm">
-                    <Phone className="w-3.5 h-3.5 text-gray-500" />
-                    {agency.phone}
+                    <Phone className="w-3.5 h-3.5 shrink-0 text-gray-500" />
+                    <span className="min-w-0 break-words">{agency.phone}</span>
                   </div>
                 )}
                 {agency.email && (
                   <div className="flex items-center gap-2 text-gray-400 text-sm">
-                    <Mail className="w-3.5 h-3.5 text-gray-500" />
-                    {agency.email}
+                    <Mail className="w-3.5 h-3.5 shrink-0 text-gray-500" />
+                    <span className="min-w-0 break-all">{agency.email}</span>
                   </div>
                 )}
                 {agency.address && (
                   <div className="flex items-center gap-2 text-gray-400 text-sm">
-                    <MapPin className="w-3.5 h-3.5 text-gray-500" />
-                    {agency.address}
+                    <MapPin className="w-3.5 h-3.5 shrink-0 text-gray-500" />
+                    <span className="min-w-0 break-words">{agency.address}</span>
                   </div>
                 )}
                 {!agency.phone && !agency.email && !agency.address && (
