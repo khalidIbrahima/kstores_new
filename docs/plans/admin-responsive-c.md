@@ -35,3 +35,13 @@
 - Bouton Admin/Client : cible de 40 px dans la carte. Recherche en `text-base sm:text-sm`.
 - guest-customers : téléphone cliquable (`tel:`) dans la carte mobile ; stats en 2 colonnes sous `sm` (au lieu d'une).
 - APRÈS : 360/390 sans débordement. Desktop 1440 : capture identique au pixel.
+
+### suppliers, supplier-orders (liste) — commit 2
+- Cartes sous `md` avec actions visibles (lien, modifier, supprimer ; cibles ~40 px) ; tableau inchangé dès `md`.
+- supplier-orders : carte = lien vers le détail + bouton de dépliage ; les articles dépliés s'affichent en liste
+  (quantité × prix = total) avec modifier/supprimer toujours visibles.
+- Modales : `max-h-[calc(100dvh-2rem)]`, corps qui défile, pied (Annuler / Enregistrer) toujours visible, boutons pleine largeur sous `sm`.
+  Correction d'un défaut existant : `w-full mx-4` dans un conteneur flex collait la modale aux bords de l'écran
+  → `w-[calc(100%-2rem)] sm:w-full`.
+- Champs en `text-base sm:text-sm` (pas de zoom iOS).
+- APRÈS : 360/390 sans débordement, 0 champ < 16 px. Desktop 1440 (liste, dépliage, 2 modales) : identique au pixel.
