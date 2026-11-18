@@ -72,3 +72,16 @@
 - Aperçu local : script hors dépôt qui importe `src/lib/invoice.ts` avec Node 22 (types retirés nativement)
   et capture avec Chrome headless.
 - Dépôt cloné en lecture seule dans cette session : rien n'est poussé tant que Khalidou ne le demande pas.
+
+## Partage WhatsApp (2026-11-18)
+
+Demande : « un bouton partager pour WhatsApp qui envoie le PDF et le lien du produit en boutique ».
+
+- V1 livrée (carte « Facture » de l'admin commande) : bouton **WhatsApp** (`wa.me/<numéro client>?text=…`,
+  ou choix du contact si le numéro est inexploitable) et bouton **Partager** (`navigator.share`, sinon copie).
+  Le message contient le lien `/orders/track/<id>` (où le client télécharge sa facture) et un lien
+  `/products/<slug|id>` par article.
+- Limite : un lien `wa.me` ne transporte que du texte. Le PDF n'est PAS joint.
+- À décider pour joindre un vrai PDF :
+  1. générer le PDF dans le navigateur puis `navigator.share({ files })` (mobile uniquement, nouvelle dépendance) ;
+  2. envoi automatique via l'API WhatsApp Business (`src/lib/whatsapp.ts`), PDF généré et hébergé côté serveur.

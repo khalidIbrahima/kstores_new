@@ -33,13 +33,16 @@ import {
   Trash2,
   Navigation,
   ExternalLink,
+  MessageCircle,
+  Share2,
 } from 'lucide-react'
 
 interface OrderItem {
   id: string
+  product_id?: string | null
   quantity: number
   price: number
-  products: { name: string; image_url: string } | null
+  products: { name: string; image_url: string; slug?: string | null } | null
 }
 
 interface ShippingAddress {
@@ -106,6 +109,14 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   bank_transfer: 'Virement',
   credit_card: 'Carte bancaire',
   paypal: 'PayPal',
+}
+
+/** Digits only for wa.me; a 9-digit Senegalese mobile number gets the 221 prefix. */
+const toWhatsAppNumber = (phone?: string | null) => {
+  let digits = (phone || '').replace(/\D/g, '')
+  if (digits.startsWith('00')) digits = digits.slice(2)
+  if (digits.length === 9 && digits.startsWith('7')) digits = `221${digits}`
+  return digits.length >= 10 ? digits : null
 }
 
 const TIMELINE_STATUSES = ['pending', 'processing', 'shipped', 'delivered']
@@ -622,7 +633,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const fetchData = useCallback(async () => {
     const [orderRes, itemsRes] = await Promise.all([
       supabase.from('orders').select('*').eq('id', id).single(),
-      supabase.from('order_items').select('*, products(name, image_url)').eq('order_id', id),
+      supabase.from('order_items').select('*, products(name, image_url, slug)').eq('order_id', id),
     ])
     if (orderRes.data) {
       const nextOrder = orderRes.data as Order
@@ -937,6 +948,57 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       )
     } finally {
       setSavingPayment(false)
+    }
+  }
+
+  const buildShareMessage = () => {
+    if (!order) return ''
+    const addr = order.shipping_address
+    const storeName = settings?.store_name || 'Kapital Stores'
+    const baseUrl = (settings?.store_url || window.location.origin).replace(/\/+$/, '')
+    const shortId = order.id.slice(0, 8).toUpperCase()
+    const paid = order.payment_status === 'paid'
+    const lines = [
+      `Bonjour${addr?.firstName ? ` ${addr.firstName}` : ''},`,
+      '',
+      `Voici votre ${paid ? 'facture' : 'facture proforma'} ${storeName} N° ${shortId}.`,
+      `${paid ? 'Total payé' : 'Total à payer'} : ${formatPrice(order.total)}`,
+      '',
+      'Facture et suivi de commande :',
+      `${baseUrl}/orders/track/${order.id}`,
+    ]
+    const productLines = items
+      .filter(it => it.products && (it.products.slug || it.product_id))
+      .map(it => `• ${it.products!.name} (x${it.quantity}) : ${baseUrl}/products/${it.products!.slug || it.product_id}`)
+    if (productLines.length > 0) {
+      lines.push('', productLines.length > 1 ? 'Vos articles en boutique :' : 'Votre article en boutique :', ...productLines)
+    }
+    lines.push('', 'Merci pour votre confiance !')
+    return lines.join('\n')
+  }
+
+  const handleShareWhatsApp = () => {
+    if (!order) return
+    const number = toWhatsAppNumber(order.shipping_address?.phone)
+    const text = encodeURIComponent(buildShareMessage())
+    // Without a usable number, WhatsApp asks which contact to send to.
+    window.open(number ? `https://wa.me/${number}?text=${text}` : `https://wa.me/?text=${text}`, '_blank', 'noopener')
+  }
+
+  const handleShareOther = async () => {
+    const text = buildShareMessage()
+    if (!text) return
+    try {
+      if (typeof navigator.share === 'function') {
+        await navigator.share({ text })
+        return
+      }
+      await navigator.clipboard.writeText(text)
+      toast('Message copie dans le presse-papiers.', 'success')
+    } catch (error) {
+      // AbortError = the user closed the share sheet
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      toast('Partage impossible sur cet appareil.', 'error')
     }
   }
 
@@ -1459,6 +1521,25 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
               <FileText className="w-4 h-4 text-green-400" />
               Telecharger facture
             </button>
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                onClick={handleShareWhatsApp}
+                className="inline-flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-black text-sm font-bold transition-colors"
+              >
+                <MessageCircle className="w-4 h-4" />
+                WhatsApp
+              </button>
+              <button
+                onClick={handleShareOther}
+                className="inline-flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                <Share2 className="w-4 h-4 text-green-400" />
+                Partager
+              </button>
+            </div>
+            <p className="mt-2 text-gray-500 text-xs">
+              Envoie au client le lien de sa facture et les liens des produits commandes.
+            </p>
           </div>
 
           {/* Order Info */}
