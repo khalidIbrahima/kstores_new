@@ -132,3 +132,14 @@ Demande : « ajoute un moyen d'y mettre un lien de paiement » + numéro Wave fo
 - `/api/wave` n'est pas authentifié et prend le montant envoyé par le client ; le webhook ne semble pas comparer
   le montant payé au total de la commande. À vérifier : un lien créé avec un montant inférieur pourrait marquer
   la commande comme payée.
+
+## Base de production — scripts appliqués (2026-11-18)
+
+Projet Supabase `kstores` (`prszfxibvgjeqxadzbfo`), via le connecteur Supabase :
+
+- `db/store-settings-invoice-fields.sql` appliqué (migration `store_settings_invoice_fields`) : colonnes présentes.
+- `db/wave-vault.sql` appliqué (migration `wave_vault_secret_names`) : liste blanche étendue ; `anon` et
+  `authenticated` ne peuvent pas exécuter `set_ai_secret` / `get_ai_secret`, `service_role` oui.
+- `store_settings.payment_instructions` renseigné (numéro Wave fourni par Khalidou).
+- Restent vides, à saisir dans Paramètres > Facturation : NINEA, RCCM, adresse, lien de paiement général.
+- Clés Wave : toujours absentes du Vault et de Vercel.
