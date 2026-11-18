@@ -77,3 +77,34 @@ Demande : « comment ajouter mes clés depuis l'admin ? »
 - Vérifié en local : sans variable d'environnement, clé absente du Vault → 503 ; clé + secret dans le Vault →
   signature exigée (401) puis appel à Wave. Panneau testé sur 390 px avec API simulée.
 - Non vérifié : la route admin avec une vraie session, et le vrai Vault.
+
+## Tester les clés (2026-11-18)
+
+Demande : « y a pas moyen de tester les clés ? »
+
+- **Clé API** : bouton « Tester la clé API » (Paramètres > Paiements) → `POST /api/admin/payment-keys/test` →
+  `testWaveApiKey()` : recherche en lecture seule d'une référence inexistante
+  (`GET /v1/checkout/sessions/search`). 200 = clé valide ; 401 = clé refusée ; 403 = permission ou IP non autorisée.
+  Wave ne documente pas d'endpoint dédié à la vérification d'une clé.
+- **Secret du webhook** : ne peut être testé que par Wave. Le portail Wave Business a un « Webhook Tester » qui envoie
+  un événement `test.test_event` ; le webhook y répond maintenant 200 (signature vérifiée si un secret est configuré,
+  401 sinon). Avant ce changement il aurait répondu 400.
+- Les événements Wave non liés à Checkout sont acquittés (200) au lieu de 400, pour éviter les relances
+  (Wave relance jusqu'à 3 jours sur une réponse non 2xx).
+- Garde-fou : une clé collée dans le mauvais champ (préfixes `wave_sn_prod_` / `wave_sn_WHS_`) est refusée.
+
+## Clé de signature des requêtes (2026-11-18)
+
+Khalidou : « la clé de signature n'est pas configurable aussi ».
+
+- Une clé API Wave peut être créée avec la signature des requêtes activée : Wave fournit alors un secret
+  `wave_sn_AKS_…` et refuse (401 `missing-signature`) toute requête sans en-tête `Wave-Signature`.
+- Ajout du secret `wave_signing_secret` (env `WAVE_SIGNING_SECRET`, sinon Vault) et du champ dans
+  Paramètres > Paiements.
+- `signWaveRequest` : `t=<secondes>,v1=<HMAC-SHA256 hex de timestamp + corps brut>` ; un GET signe l'horodatage seul.
+  Tous les appels à Wave (création, lecture de session, test) passent par `waveHeaders`.
+- Le test de clé traduit les codes `missing-signature` / `invalid-signature` en message clair.
+- Liste blanche du Vault étendue : migration `wave_vault_signing_secret` **appliquée en production** ;
+  `db/wave-vault.sql` mis à jour.
+- Vérifié : signature identique à l'exemple de la documentation Wave ; 3 appels signés avec un `fetch` simulé.
+  Non vérifié : contre la vraie API Wave.

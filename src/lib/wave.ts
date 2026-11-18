@@ -9,11 +9,12 @@ const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://kapitalstores.com'
 /** Webhook signatures older than this are rejected (replay protection). */
 const SIGNATURE_TOLERANCE_MS = 5 * 60 * 1000
 
-type WaveSecretName = 'wave_api_key' | 'wave_webhook_secret'
+type WaveSecretName = 'wave_api_key' | 'wave_webhook_secret' | 'wave_signing_secret'
 
 const ENV_NAMES: Record<WaveSecretName, string> = {
   wave_api_key: 'WAVE_API_KEY',
   wave_webhook_secret: 'WAVE_WEBHOOK_SECRET',
+  wave_signing_secret: 'WAVE_SIGNING_SECRET',
 }
 
 const SECRET_CACHE_TTL_MS = 60_000
@@ -53,6 +54,26 @@ async function getWaveSecret(name: WaveSecretName): Promise<string> {
 const getApiKey = () => getWaveSecret('wave_api_key')
 
 export const getWaveWebhookSecret = () => getWaveSecret('wave_webhook_secret')
+
+/**
+ * `Wave-Signature` header for an outgoing API request, for API keys created with
+ * request signing: HMAC-SHA256 (hex) over `<unix seconds><raw body>`. GET requests sign
+ * the timestamp alone. The body passed here must be the exact string that is sent.
+ */
+export function signWaveRequest(signingSecret: string, body: string = '', nowMs: number = Date.now()): string {
+  const timestamp = Math.floor(nowMs / 1000)
+  const signature = createHmac('sha256', signingSecret).update(`${timestamp}${body}`).digest('hex')
+  return `t=${timestamp},v1=${signature}`
+}
+
+/** Headers for a Wave API call; signed when a request signing secret is configured. */
+async function waveHeaders(apiKey: string, body?: string): Promise<Record<string, string>> {
+  const headers: Record<string, string> = { Authorization: `Bearer ${apiKey}` }
+  if (body !== undefined) headers['Content-Type'] = 'application/json'
+  const signingSecret = await getWaveSecret('wave_signing_secret')
+  if (signingSecret) headers['Wave-Signature'] = signWaveRequest(signingSecret, body ?? '')
+  return headers
+}
 
 export const isWaveConfigured = async (): Promise<boolean> => (await getApiKey()) !== ''
 
@@ -95,20 +116,19 @@ export async function createWaveCheckout(data: {
   }
 
   try {
+    // Serialized once: the signature must cover the exact bytes that are sent.
+    const body = JSON.stringify({
+      // XOF has no decimals and Wave expects the amount as a string
+      amount: String(Math.round(data.amount)),
+      currency: 'XOF',
+      client_reference: data.orderId,
+      error_url: `${SITE_URL}/checkout?error=payment_failed&order=${data.orderId}`,
+      success_url: `${SITE_URL}/orders?success=true&order=${data.orderId}`,
+    })
     const response = await fetch(`${WAVE_API_URL}/checkout/sessions`, {
       method: 'POST',
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        // XOF has no decimals and Wave expects the amount as a string
-        amount: String(Math.round(data.amount)),
-        currency: 'XOF',
-        client_reference: data.orderId,
-        error_url: `${SITE_URL}/checkout?error=payment_failed&order=${data.orderId}`,
-        success_url: `${SITE_URL}/orders?success=true&order=${data.orderId}`,
-      }),
+      headers: await waveHeaders(apiKey, body),
+      body,
     })
 
     if (!response.ok) {
@@ -144,7 +164,7 @@ export async function getWaveCheckoutSession(checkoutId: string): Promise<WaveRe
   try {
     const response = await fetch(`${WAVE_API_URL}/checkout/sessions/${checkoutId}`, {
       method: 'GET',
-      headers: { Authorization: `Bearer ${apiKey}` },
+      headers: await waveHeaders(apiKey),
       cache: 'no-store',
     })
 
@@ -163,6 +183,67 @@ export async function getWaveCheckoutSession(checkoutId: string): Promise<WaveRe
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error checking payment status',
+    }
+  }
+}
+
+export interface WaveKeyTestResult {
+  ok: boolean
+  /** HTTP status returned by Wave, when Wave could be reached */
+  status?: number
+  /** Wave's own error code, e.g. `no-matching-api-key` */
+  code?: string
+  message: string
+}
+
+/**
+ * Checks the stored API key against Wave with a read-only call: a search for a
+ * reference that cannot exist. Nothing is created and no money moves.
+ */
+export async function testWaveApiKey(): Promise<WaveKeyTestResult> {
+  const apiKey = await getApiKey()
+  if (!apiKey) return { ok: false, message: 'Aucune cle API Wave configuree.' }
+
+  try {
+    const reference = `test-cle-${Date.now()}`
+    const response = await fetch(
+      `${WAVE_API_URL}/checkout/sessions/search?client_reference=${encodeURIComponent(reference)}`,
+      { method: 'GET', headers: await waveHeaders(apiKey), cache: 'no-store' }
+    )
+    if (response.ok) {
+      return { ok: true, status: response.status, message: 'Cle acceptee par Wave (acces aux paiements Checkout).' }
+    }
+
+    const body = (await response.json().catch(() => ({}))) as {
+      code?: string
+      message?: string
+      error_code?: string
+      error_message?: string
+      error?: { code?: string; message?: string } | string
+    }
+    const nested = typeof body.error === 'object' && body.error ? body.error : null
+    const code = nested?.code || body.code || body.error_code
+    const detail = nested?.message || body.message || body.error_message || (typeof body.error === 'string' ? body.error : '')
+    const SIGNATURE_HINTS: Record<string, string> = {
+      'missing-signature': 'Cette cle API exige la signature des requetes : renseignez la cle de signature (wave_sn_AKS_...).',
+      'invalid-signature': 'La cle de signature ne correspond pas a cette cle API.',
+      'invalid-signature-format': 'Signature mal formee.',
+      'invalid-signature-timestamp': 'Horodatage de signature invalide.',
+      'expired-signature-timestamp': 'Horodatage de signature hors delai (horloge du serveur).',
+    }
+    const summary =
+      code && SIGNATURE_HINTS[code]
+        ? SIGNATURE_HINTS[code]
+        : response.status === 401
+        ? 'Cle refusee par Wave (inconnue, revoquee ou mal copiee).'
+        : response.status === 403
+          ? 'Cle reconnue mais non autorisee (permission Checkout manquante ou adresse IP non autorisee).'
+          : `Wave a repondu ${response.status}.`
+    return { ok: false, status: response.status, code, message: detail ? `${summary} ${detail}` : summary }
+  } catch (error) {
+    return {
+      ok: false,
+      message: `Wave est injoignable : ${error instanceof Error ? error.message : 'erreur reseau'}`,
     }
   }
 }
