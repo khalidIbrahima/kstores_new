@@ -98,3 +98,12 @@
 - Desktop 1440 : identique (au plus 1–4 niveaux de gris d'écart d'antialiasing sur quelques onglets, 0 pixel au-delà de 8).
 - Non fait : les interrupteurs (toggle) restent à 36×20 px — les agrandir demanderait de retoucher leur pseudo-élément ;
   toute la ligne n'est pas cliquable.
+
+### orders/new — commit 8
+- AVANT (panier rempli, 360 px) : body 361 px ; la ligne d'article était écrasée — nom du produit réduit à 0 px (invisible),
+  prix unitaire recouvert par les boutons −/+, corbeille au bord de l'écran ; champs en 14 px.
+- Ligne d'article sur deux rangées sous `sm` : image + nom (2 lignes) + prix unitaire, puis −/+ (40 px), total de ligne, corbeille (40 px).
+  À partir de `sm` l'enveloppe est en `display: contents` → disposition desktop inchangée.
+- Champs en `text-base sm:text-sm`.
+- Testés : formulaire vide, panier de 2 articles, panier + liste de résultats de recherche ouverte.
+- APRÈS : 360/390 sans débordement, 0 champ < 16 px. Desktop 1440 (3 états) : identique au pixel.

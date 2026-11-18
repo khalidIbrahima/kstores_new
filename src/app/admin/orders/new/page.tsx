@@ -122,7 +122,7 @@ export default function AdminCreateOrder() {
   return (
     <div className="space-y-4">
       <div className="flex items-center gap-3">
-        <Link href="/admin/orders" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800">
+        <Link href="/admin/orders" aria-label="Retour" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800">
           <ArrowLeft className="w-5 h-5" />
         </Link>
         <div>
@@ -148,7 +148,7 @@ export default function AdminCreateOrder() {
                       <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                       <input type="text" value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} required
                         placeholder="Nom du client"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                     </div>
                   </div>
                   <div>
@@ -157,7 +157,7 @@ export default function AdminCreateOrder() {
                       <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                       <input type="tel" value={form.phone} onChange={e => setForm(p => ({ ...p, phone: e.target.value }))} required
                         placeholder="+221 XX XXX XX XX"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                     </div>
                   </div>
                 </div>
@@ -168,7 +168,7 @@ export default function AdminCreateOrder() {
                       <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                       <input type="email" value={form.email} onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
                         placeholder="email@example.com"
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                     </div>
                   </div>
                   <div>
@@ -177,7 +177,7 @@ export default function AdminCreateOrder() {
                       <Home className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-600" />
                       <input type="text" value={form.address} onChange={e => setForm(p => ({ ...p, address: e.target.value }))}
                         placeholder="Quartier, rue..."
-                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                        className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                     </div>
                   </div>
                 </div>
@@ -196,7 +196,7 @@ export default function AdminCreateOrder() {
                 <input
                   type="text" value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                   placeholder="Rechercher un produit..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-10 pr-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
                 {searching && <Loader2 className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-green-400 animate-spin" />}
 
@@ -227,24 +227,27 @@ export default function AdminCreateOrder() {
               ) : (
                 <div className="space-y-2">
                   {cartItems.map(item => (
-                    <div key={item.product.id} className="flex items-center gap-3 bg-gray-800/30 rounded-lg p-3">
+                    <div key={item.product.id} className="flex flex-wrap sm:flex-nowrap items-center gap-3 bg-gray-800/30 rounded-lg p-3">
                       <img src={item.product.image_url} alt="" className="w-12 h-12 rounded-lg object-cover bg-gray-900 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-white text-sm font-medium truncate">{item.product.name}</p>
+                        <p className="text-white text-sm font-medium max-sm:line-clamp-2 sm:truncate">{item.product.name}</p>
                         <p className="text-green-400 text-xs font-bold">{formatPrice(item.unitPrice)}</p>
                       </div>
+                      {/* Phone: quantity, line total and delete on their own row; from sm the wrapper disappears (display: contents) */}
+                      <div className="flex w-full items-center gap-3 sm:contents">
                       <div className="flex items-center gap-1">
-                        <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                          className="w-7 h-7 rounded bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center text-sm">-</button>
+                        <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity - 1)} aria-label="Diminuer la quantite"
+                          className="w-10 h-10 sm:w-7 sm:h-7 rounded bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center text-base sm:text-sm">-</button>
                         <span className="w-8 text-center text-white text-sm font-bold">{item.quantity}</span>
-                        <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                          className="w-7 h-7 rounded bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center text-sm">+</button>
+                        <button type="button" onClick={() => updateQuantity(item.product.id, item.quantity + 1)} aria-label="Augmenter la quantite"
+                          className="w-10 h-10 sm:w-7 sm:h-7 rounded bg-gray-800 text-gray-400 hover:text-white flex items-center justify-center text-base sm:text-sm">+</button>
                       </div>
-                      <span className="text-green-400 font-bold text-sm w-24 text-right">{formatPrice(item.unitPrice * item.quantity)}</span>
-                      <button type="button" onClick={() => removeItem(item.product.id)}
-                        className="p-1.5 text-gray-500 hover:text-red-400 transition-colors">
+                      <span className="ml-auto sm:ml-0 max-sm:whitespace-nowrap text-green-400 font-bold text-sm sm:w-24 text-right">{formatPrice(item.unitPrice * item.quantity)}</span>
+                      <button type="button" onClick={() => removeItem(item.product.id)} aria-label="Retirer l'article"
+                        className="p-2.5 sm:p-1.5 text-gray-500 hover:text-red-400 transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -272,7 +275,7 @@ export default function AdminCreateOrder() {
                 <input type="number" min={0} step={100} value={shippingFee}
                   onChange={e => setShippingFee(e.target.value)}
                   placeholder="0"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
 
               {shipping > 0 && (
