@@ -2,15 +2,59 @@
 // API reference: https://docs.wave.com/checkout and https://docs.wave.com/webhook
 
 import { createHmac, timingSafeEqual } from 'node:crypto'
+import { createClient } from '@supabase/supabase-js'
 
 const WAVE_API_URL = 'https://api.wave.com/v1'
 const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://kapitalstores.com'
 /** Webhook signatures older than this are rejected (replay protection). */
 const SIGNATURE_TOLERANCE_MS = 5 * 60 * 1000
 
-const getApiKey = () => process.env.WAVE_API_KEY || ''
+type WaveSecretName = 'wave_api_key' | 'wave_webhook_secret'
 
-export const isWaveConfigured = () => getApiKey() !== ''
+const ENV_NAMES: Record<WaveSecretName, string> = {
+  wave_api_key: 'WAVE_API_KEY',
+  wave_webhook_secret: 'WAVE_WEBHOOK_SECRET',
+}
+
+const SECRET_CACHE_TTL_MS = 60_000
+const secretCache = new Map<WaveSecretName, { value: string; expiresAt: number }>()
+
+export function invalidateWaveSecretCache(): void {
+  secretCache.clear()
+}
+
+/**
+ * A Wave secret comes from the environment variable when it is set, otherwise from
+ * Supabase Vault (entered in Admin > Parametres > Paiements). Empty string when unset.
+ */
+async function getWaveSecret(name: WaveSecretName): Promise<string> {
+  const fromEnv = process.env[ENV_NAMES[name]]
+  if (fromEnv) return fromEnv
+
+  const hit = secretCache.get(name)
+  if (hit && hit.expiresAt > Date.now()) return hit.value
+
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
+  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+  if (!url || !serviceRoleKey) return ''
+
+  try {
+    const { data, error } = await createClient(url, serviceRoleKey).rpc('get_ai_secret', { p_name: name })
+    // A failed lookup is not cached: it must not hide a key for a whole minute.
+    if (error) return ''
+    const value = typeof data === 'string' ? data : ''
+    secretCache.set(name, { value, expiresAt: Date.now() + SECRET_CACHE_TTL_MS })
+    return value
+  } catch {
+    return ''
+  }
+}
+
+const getApiKey = () => getWaveSecret('wave_api_key')
+
+export const getWaveWebhookSecret = () => getWaveSecret('wave_webhook_secret')
+
+export const isWaveConfigured = async (): Promise<boolean> => (await getApiKey()) !== ''
 
 export interface WaveCheckoutSession {
   id: string
@@ -44,7 +88,7 @@ export async function createWaveCheckout(data: {
   amount: number
   orderId: string
 }): Promise<WaveResult<WaveCheckoutSession>> {
-  const apiKey = getApiKey()
+  const apiKey = await getApiKey()
   if (!apiKey) {
     console.error('Wave API key is not configured')
     return { success: false, error: 'Wave payment is not configured. Please contact support.', status: 503 }
@@ -89,7 +133,7 @@ export async function createWaveCheckout(data: {
 
 /** Reads a checkout session straight from Wave — the only trusted source for its status and amount. */
 export async function getWaveCheckoutSession(checkoutId: string): Promise<WaveResult<WaveCheckoutSession>> {
-  const apiKey = getApiKey()
+  const apiKey = await getApiKey()
   if (!apiKey) {
     return { success: false, error: 'Wave payment is not configured.', status: 503 }
   }

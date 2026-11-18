@@ -345,6 +345,7 @@ export default function AdminSettings() {
                   </label>
                 </div>
               ))}
+              <WaveKeysPanel storeUrl={settings.store_url} />
             </div>
           )}
 
@@ -572,6 +573,86 @@ function AiSection({
   )
 }
 
+interface WaveKeyStatus {
+  wave_api_key?: { set: boolean; source: 'env' | 'vault' }
+  wave_webhook_secret?: { set: boolean; source: 'env' | 'vault' }
+}
+
+function WaveKeysPanel({ storeUrl }: { storeUrl: string | null }) {
+  const [status, setStatus] = useState<WaveKeyStatus | null>(null)
+  const [loadingStatus, setLoadingStatus] = useState(true)
+
+  const refreshStatus = async () => {
+    try {
+      const res = await adminFetch('/api/admin/payment-keys')
+      if (res.ok) setStatus((await res.json()) as WaveKeyStatus)
+    } finally {
+      setLoadingStatus(false)
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    adminFetch('/api/admin/payment-keys')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (cancelled) return
+        if (data) setStatus(data as WaveKeyStatus)
+        setLoadingStatus(false)
+      })
+      .catch(() => {
+        if (!cancelled) setLoadingStatus(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const baseUrl = (storeUrl || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/+$/, '')
+  const fromEnv = status?.wave_api_key?.source === 'env' || status?.wave_webhook_secret?.source === 'env'
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-800">
+      <div className="flex items-center gap-2 mb-1">
+        <KeyRound className="w-4 h-4 text-green-400" />
+        <h3 className="text-white font-bold text-sm">Cles Wave (stockees dans Supabase Vault)</h3>
+      </div>
+      <p className="text-gray-500 text-xs mb-4">
+        Les cles sont chiffrees au repos et ne sont jamais renvoyees au navigateur. Sans cle API, le paiement Wave en ligne
+        est desactive et le webhook refuse toute requete.
+      </p>
+      <div className="space-y-3">
+        <KeyInput
+          name="wave_api_key"
+          endpoint="/api/admin/payment-keys"
+          label="Cle API Wave"
+          placeholder="wave_sn_prod_..."
+          isSet={status?.wave_api_key?.set ?? false}
+          loadingStatus={loadingStatus}
+          onSaved={refreshStatus}
+        />
+        <KeyInput
+          name="wave_webhook_secret"
+          endpoint="/api/admin/payment-keys"
+          label="Secret du webhook Wave"
+          placeholder="wave_sn_WHS_..."
+          isSet={status?.wave_webhook_secret?.set ?? false}
+          loadingStatus={loadingStatus}
+          onSaved={refreshStatus}
+        />
+      </div>
+      {fromEnv && (
+        <p className="mt-3 text-yellow-400 text-xs">
+          Une cle est definie dans les variables d&apos;environnement du serveur : elle est prioritaire sur celle saisie ici.
+        </p>
+      )}
+      <p className="mt-3 text-gray-500 text-xs break-all">
+        Adresse du webhook a declarer dans le portail Wave Business : <span className="font-mono text-gray-300">{baseUrl}/api/wave/webhook</span>
+      </p>
+    </div>
+  )
+}
+
 function KeyInput({
   name,
   label,
@@ -579,9 +660,11 @@ function KeyInput({
   isSet,
   loadingStatus,
   onSaved,
+  endpoint = '/api/admin/ai-keys',
 }: {
-  name: 'anthropic_api_key' | 'groq_api_key'
+  name: string
   label: string
+  endpoint?: string
   placeholder: string
   isSet: boolean
   loadingStatus: boolean
@@ -601,7 +684,7 @@ function KeyInput({
     setError(null)
     setSavedOk(false)
     try {
-      const res = await adminFetch('/api/admin/ai-keys', {
+      const res = await adminFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, value }),
