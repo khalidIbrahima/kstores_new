@@ -58,7 +58,29 @@ L'orchestrateur relit chaque branche, la vérifie avec le harnais (ci-dessous), 
 
 ## Avancement
 
-- [ ] A — PWA
-- [ ] B — Admin mobile 1
-- [ ] C — Admin mobile 2
-- [ ] Intégration, vérification croisée, PR
+- [x] A — PWA (branche `claude/pwa`, journal `docs/plans/pwa.md`)
+- [x] B — Admin mobile 1 (branche `claude/admin-mobile-b`, journal `docs/plans/admin-responsive-b.md`)
+- [x] C — Admin mobile 2 (branche `claude/admin-mobile-c`, journal `docs/plans/admin-responsive-c.md`)
+- [x] Intégration dans `claude/pwa-admin-mobile` (3 fusions sans conflit), vérification croisée, PR
+
+## Vérification par l'orchestrateur (2026-11-18)
+
+- Relecture des trois branches ; `tsc` OK ; les 2 erreurs ESLint restantes existaient avant (catégories, dashboard).
+- Suites B et C relancées sur chaque branche puis sur la branche intégrée : 121 mesures (360 / 390 / 1440 px),
+  0 débordement, 0 champ sous 16 px côté C.
+- Suite PWA relancée 3 fois sur un build de production de la branche intégrée : 2 passages complets ; 1 arrêt sur une
+  navigation annulée juste après le retour en ligne (la page hors-ligne se recharge seule à l'événement `online`,
+  ce qui annule la navigation du test).
+- `next build` demande `RESEND_API_KEY` (sinon échec sur `/api/contact`) : sans rapport avec ces chantiers.
+
+## Reste à confirmer sur de vrais appareils
+
+- Installation réelle Android / iPhone (icône, barre d'état, mise à jour d'une app déjà installée).
+- Fond sombre des fenêtres : dans l'émulateur il s'arrête 24 px avant le bas de l'écran.
+- Clavier iOS / Android sur la page Assistant IA.
+
+## Repéré, non corrigé
+
+- `src/components/ScrollToTop.tsx` : le bouton vert « haut de page » recouvre le bas des fenêtres sur mobile.
+- Dashboard : les libellés de l'axe du graphique chevauchent les premières barres (mobile et desktop).
+- Interrupteurs des réglages : 36×20 px, sous la taille tactile visée.
