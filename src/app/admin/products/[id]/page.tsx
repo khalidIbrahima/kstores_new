@@ -304,7 +304,7 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
               <h1 className="min-w-0 break-words text-lg leading-snug sm:text-2xl sm:leading-(--text-2xl--line-height) font-black text-white sm:truncate">{product.name}</h1>
               <button
                 onClick={toggleActive}
-                className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-medium transition-colors ${
+                className={`shrink-0 inline-flex items-center gap-1 px-2 py-0.5 pointer-coarse:px-2.5 pointer-coarse:py-1.5 rounded-full text-[11px] font-medium transition-colors ${
                   product.isActive !== false
                     ? 'bg-green-400/10 text-green-400 hover:bg-green-400/20'
                     : 'bg-gray-700 text-gray-400 hover:bg-gray-600'

@@ -102,7 +102,7 @@ export default function AdminCategories() {
             {/* Modal header */}
             <div className="flex items-center justify-between gap-3 px-5 sm:px-6 pt-5 sm:pt-6 pb-4 border-b border-gray-800">
               <h2 className="text-white font-bold text-lg">{editing ? 'Modifier' : 'Nouvelle'} catégorie</h2>
-              <button onClick={closeModal} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 transition-colors">
+              <button onClick={closeModal} aria-label="Fermer" className="text-gray-400 hover:text-white p-1 pointer-coarse:p-2 rounded-lg hover:bg-gray-800 transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>

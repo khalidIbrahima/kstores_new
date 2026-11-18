@@ -497,7 +497,7 @@ export default function AdminProducts() {
                       </span>
                       <button
                         onClick={() => toggleActive(product)}
-                        className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-full text-xs font-medium transition-colors ${
+                        className={`inline-flex items-center gap-1 px-2.5 py-2 rounded-full text-xs font-medium transition-colors ${
                           product.isActive !== false
                             ? 'bg-green-400/10 text-green-400 hover:bg-green-400/20'
                             : 'bg-gray-700 text-gray-400 hover:bg-gray-600'

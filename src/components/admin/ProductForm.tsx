@@ -89,7 +89,7 @@ function ImageInput({ label, value, onChange, required, compact }: {
               <div className="w-full h-full flex items-center justify-center text-gray-600 text-xs">Erreur</div>
             )}
             <button type="button" onClick={() => onChange('')}
-              className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-0.5 pointer-coarse:p-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+              className="absolute top-1 right-1 bg-red-500/80 text-white rounded-full p-0.5 pointer-coarse:p-1.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
               <X className="w-3 h-3" />
             </button>
           </div>
@@ -132,7 +132,7 @@ function ImageInput({ label, value, onChange, required, compact }: {
             <div className="w-full h-full flex items-center justify-center text-gray-600 text-[10px]">Err</div>
           )}
           <button type="button" onClick={() => onChange('')}
-            className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 pointer-coarse:p-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+            className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 pointer-coarse:p-1.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
             <X className="w-2.5 h-2.5" />
           </button>
         </div>
