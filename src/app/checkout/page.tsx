@@ -132,7 +132,7 @@ export default function CheckoutPage() {
             const waveRes = await fetch('/api/wave', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ amount: total, orderId: order.id, customerEmail: form.email }),
+              body: JSON.stringify({ orderId: order.id }),
             })
             const waveData = await waveRes.json()
             if (waveData.checkout_url) {
