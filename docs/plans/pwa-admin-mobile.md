@@ -29,9 +29,10 @@
 
 ## Décisions
 
-- **Deux applications installables** : la boutique (`/manifest.webmanifest`, départ `/`) et l'admin
-  (`/admin` avec son propre manifeste, départ `/admin`). Ainsi les clients installent la boutique et Khalidou l'admin.
-  À confirmer par Khalidou ; réversible.
+- **Une seule application installable : l'admin** (décision de Khalidou, 2026-11-18 : « seul admin pour le moment »).
+  Manifeste, service worker et invite d'installation limités à `/admin`. La boutique publique n'est pas
+  installable et ne reçoit pas de service worker. L'ancien service worker (portée `/`) doit être désinscrit.
+  (Proposition initiale écartée : deux applications, boutique + admin.)
 - Aucune nouvelle dépendance npm sans nécessité.
 - Ne pas changer le comportement ni la mise en page desktop (≥ 1024 px) : corrections mobile-first.
 
@@ -39,7 +40,7 @@
 
 | Chantier | Périmètre | Suivi |
 |---|---|---|
-| A — PWA | manifestes, icônes, service worker, invite d'installation, méta iOS | `docs/plans/pwa.md` |
+| A — PWA (admin seulement) | manifeste admin, icônes, service worker limité à `/admin`, invite d'installation, méta iOS | `docs/plans/pwa.md` |
 | B — Admin mobile 1 | `admin/page.tsx` (dashboard), `analytics`, `products` (liste, new, [id]), `components/admin/*`, `inventory`, `categories`, `payments`, `reports` | `docs/plans/admin-responsive-b.md` |
 | C — Admin mobile 2 | `customers`, `guest-customers`, `users`, `suppliers`, `supplier-orders` (liste, [id]), `shipping`, `newsletter`, `support`, `ai`, `settings`, `orders/new` | `docs/plans/admin-responsive-c.md` |
 
