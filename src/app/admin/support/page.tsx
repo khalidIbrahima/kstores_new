@@ -124,20 +124,20 @@ export default function AdminSupport() {
             href="https://wa.me/"
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-green-400/10 border border-green-500/20 hover:bg-green-400/20 transition-colors text-green-400 text-xs font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-lg bg-green-400/10 border border-green-500/20 hover:bg-green-400/20 transition-colors text-green-400 text-xs font-medium"
             title="WhatsApp Admin"
           >
             <Phone className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">WhatsApp</span>
+            <span>WhatsApp</span>
             <ExternalLink className="w-3 h-3 opacity-50" />
           </a>
           <a
             href="mailto:admin@kapitalstores.com"
-            className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-blue-400/10 border border-blue-500/20 hover:bg-blue-400/20 transition-colors text-blue-400 text-xs font-medium"
+            className="inline-flex items-center gap-1.5 px-3 py-2.5 sm:py-2 rounded-lg bg-blue-400/10 border border-blue-500/20 hover:bg-blue-400/20 transition-colors text-blue-400 text-xs font-medium"
             title="Email Admin"
           >
             <Mail className="w-3.5 h-3.5" />
-            <span className="hidden md:inline">Email</span>
+            <span>Email</span>
             <ExternalLink className="w-3 h-3 opacity-50" />
           </a>
         </div>
@@ -160,9 +160,9 @@ export default function AdminSupport() {
       </div>
 
       {/* Main 2-column grid: Pending Orders + Messages */}
-      <div className="grid lg:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         {/* Pending Orders */}
-        <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+        <div className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
           <div className="flex items-center justify-between mb-3">
             <div className="flex items-center gap-2">
               <Clock className="w-4 h-4 text-yellow-400" />
@@ -184,10 +184,10 @@ export default function AdminSupport() {
                 <Link
                   key={order.id}
                   href={`/admin/orders/${order.id}`}
-                  className="flex items-center justify-between p-2.5 rounded-lg hover:bg-gray-800/50 transition-colors"
+                  className="flex items-center justify-between gap-3 p-2.5 rounded-lg hover:bg-gray-800/50 active:bg-gray-800/50 transition-colors"
                 >
-                  <div>
-                    <p className="text-white text-sm font-medium">
+                  <div className="min-w-0">
+                    <p className="text-white text-sm font-medium [overflow-wrap:anywhere]">
                       {order.shipping_address?.firstName} {order.shipping_address?.lastName}
                     </p>
                     <p className="text-gray-500 text-xs">
@@ -199,8 +199,8 @@ export default function AdminSupport() {
                       })}
                     </p>
                   </div>
-                  <div className="text-right">
-                    <p className="text-green-400 font-bold text-sm">{formatPrice(order.total)}</p>
+                  <div className="shrink-0 text-right">
+                    <p className="text-green-400 font-bold text-sm whitespace-nowrap">{formatPrice(order.total)}</p>
                     <span className="text-yellow-400 text-xs">En attente</span>
                   </div>
                 </Link>
@@ -210,7 +210,7 @@ export default function AdminSupport() {
         </div>
 
         {/* Contact Messages */}
-        <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+        <div className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
           <div className="flex items-center gap-2 mb-3">
             <MessageSquare className="w-4 h-4 text-blue-400" />
             <h2 className="text-white font-bold text-sm">Messages recents</h2>
@@ -228,14 +228,14 @@ export default function AdminSupport() {
             <div className="space-y-2">
               {messages.map(msg => (
                 <div key={msg.id} className="p-2.5 bg-gray-800/30 rounded-lg">
-                  <div className="flex items-center justify-between mb-1">
-                    <p className="text-white text-sm font-medium">{msg.name}</p>
-                    <span className="text-gray-500 text-xs">
+                  <div className="flex items-center justify-between gap-3 mb-1">
+                    <p className="min-w-0 text-white text-sm font-medium [overflow-wrap:anywhere]">{msg.name}</p>
+                    <span className="shrink-0 text-gray-500 text-xs">
                       {new Date(msg.created_at).toLocaleDateString('fr-FR')}
                     </span>
                   </div>
-                  <p className="text-gray-500 text-xs mb-1">{msg.email}</p>
-                  <p className="text-gray-400 text-sm line-clamp-2">{msg.message}</p>
+                  <p className="text-gray-500 text-xs mb-1 [overflow-wrap:anywhere]">{msg.email}</p>
+                  <p className="text-gray-400 text-sm line-clamp-2 [overflow-wrap:anywhere]">{msg.message}</p>
                 </div>
               ))}
             </div>

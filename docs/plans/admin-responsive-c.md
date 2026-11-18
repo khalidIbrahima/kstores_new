@@ -68,3 +68,9 @@
   Desktop : liste et modale Ajouter identiques au pixel ; modale Campagne : différence pixel limitée au rendu
   des champs (comparaison visuelle identique — probablement le curseur/antialiasing).
 - APRÈS : 360/390 sans débordement, 0 champ < 16 px.
+
+### support — commit 5
+- AVANT : **440 px** à 360/390 (piège `grid lg:grid-cols-2` sans `grid-cols-1` ; montants et date des messages coupés).
+- `grid-cols-1` + `min-w-0` ; noms/emails/messages en `[overflow-wrap:anywhere]` (ne change rien quand le texte tient → desktop identique) ;
+  montants `whitespace-nowrap` ; libellés WhatsApp / Email visibles aussi sur mobile, boutons 40 px.
+- APRÈS : 360/390 sans débordement. Desktop 1440 identique au pixel.
