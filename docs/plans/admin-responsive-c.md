@@ -45,3 +45,14 @@
   → `w-[calc(100%-2rem)] sm:w-full`.
 - Champs en `text-base sm:text-sm` (pas de zoom iOS).
 - APRÈS : 360/390 sans débordement, 0 champ < 16 px. Desktop 1440 (liste, dépliage, 2 modales) : identique au pixel.
+
+### supplier-orders/[id] — commit 3
+- AVANT : page à **747 px** (360 et 390) — piège `grid lg:grid-cols-3` sans `grid-cols-1` + tableau des articles sans `min-w`.
+- `grid-cols-1` + `min-w-0` sur les colonnes ; titre/numéro de commande qui passent à la ligne ou se tronquent.
+- Articles : liste sous `md` (quantité × prix, Ads, total USD et XOF, poids, CBM, modifier/supprimer visibles, ligne de total) ;
+  tableau inchangé dès `md`.
+- Livraisons : nom d'agence et n° de suivi qui passent à la ligne ; boutons modifier/supprimer en 40 px empilés sous `sm`.
+- Carte « Total (XOF) » sur 2 colonnes sous `sm` (le montant ne se coupe plus en « F C / FA »).
+- Modales article et livraison : hauteur bornée au viewport, pied fixe, largeur avec marges.
+- APRÈS : 360/390 sans débordement. Desktop 1440 (page, 2 modales) : identique au pixel.
+- Vu hors périmètre : le bouton vert « remonter en haut » (composant global) passe au-dessus du pied des modales sur mobile.

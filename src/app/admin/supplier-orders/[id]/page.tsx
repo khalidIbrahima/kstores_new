@@ -334,15 +334,15 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center gap-3">
-        <Link href="/admin/supplier-orders" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800">
+        <Link href="/admin/supplier-orders" aria-label="Retour" className="shrink-0 text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800">
           <ArrowLeft className="w-5 h-5" />
         </Link>
-        <div className="flex-1">
-          <h1 className="text-lg sm:text-2xl font-black text-white">{order.title || 'Sans titre'}</h1>
+        <div className="min-w-0 flex-1">
+          <h1 className="text-lg sm:text-2xl font-black text-white break-words">{order.title || 'Sans titre'}</h1>
           <div className="flex items-center gap-2 mt-1 flex-wrap">
             {order.order_number && (
-              <span className="text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 font-mono flex items-center gap-1">
-                <Hash className="w-3 h-3" />{order.order_number}
+              <span className="min-w-0 max-w-full text-xs px-2 py-0.5 rounded-full bg-gray-700 text-gray-300 font-mono flex items-center gap-1">
+                <Hash className="w-3 h-3 shrink-0" /><span className="truncate">{order.order_number}</span>
               </span>
             )}
             <span className="text-xs text-gray-500 flex items-center gap-1">
@@ -356,7 +356,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* Financial Summary */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 [&>div]:min-w-0 [&>div]:p-3 sm:[&>div]:p-4">
         <div className="bg-[#111827] border border-gray-800 rounded-xl p-4">
           <p className="text-gray-500 text-xs">Produits (USD)</p>
           <p className="text-green-400 font-bold text-lg">{fmtUsd(totalAmountUsd)}</p>
@@ -374,7 +374,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
           <p className="text-white font-bold text-lg">{fmtUsd(totalWithFees)}</p>
         </div>
         {rate > 0 && (
-          <div className="bg-[#111827] border border-green-500/30 rounded-xl p-4">
+          <div className="col-span-2 sm:col-span-1 bg-[#111827] border border-green-500/30 rounded-xl p-4">
             <p className="text-gray-500 text-xs">Total (XOF)</p>
             <p className="text-green-400 font-bold text-lg">{formatPrice(totalWithFees * rate)}</p>
           </div>
@@ -382,19 +382,19 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       </div>
 
       {/* 2-column grid */}
-      <div className="grid lg:grid-cols-3 gap-4">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Left — Items */}
-        <div className="lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
+        <div className="min-w-0 lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2 mb-4">
             <h2 className="text-white font-bold flex items-center gap-2">
               <Package className="w-4 h-4 text-blue-400" /> Articles ({items.length})
             </h2>
             <div className="flex items-center gap-2">
-              <button onClick={refreshItems} className="p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 rounded-lg transition-colors" title="Rafraichir">
+              <button onClick={refreshItems} aria-label="Rafraichir" className="p-2.5 sm:p-1.5 text-gray-500 hover:text-white hover:bg-gray-800 rounded-lg transition-colors" title="Rafraichir">
                 <RefreshCw className="w-3.5 h-3.5" />
               </button>
               <button onClick={openAddItem}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs transition-colors">
+                className="bg-green-500 hover:bg-green-600 text-black font-bold px-3 py-2.5 sm:py-1.5 rounded-lg flex items-center gap-1.5 text-xs transition-colors">
                 <Plus className="w-3.5 h-3.5" /> Ajouter
               </button>
             </div>
@@ -406,7 +406,56 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
               <p className="text-gray-500 text-sm">Aucun article</p>
             </div>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Mobile: list */}
+            <ul className="md:hidden divide-y divide-gray-800/50 border-t border-gray-800">
+              {items.map(item => {
+                const lineTotal = (Number(item.unit_price_usd) || 0) * (item.quantity || 0)
+                const totalWeight = (Number(item.unit_weight) || 0) * (item.quantity || 0)
+                const totalCbm = (Number(item.unit_cbm) || 0) * (item.quantity || 0)
+                return (
+                  <li key={item.id} className="flex items-start gap-3 py-3">
+                    {item.image_url && (
+                      <img src={item.image_url} alt="" className="w-10 h-10 rounded object-cover shrink-0 border border-gray-700" />
+                    )}
+                    <div className="min-w-0 flex-1 text-sm">
+                      <p className="text-white font-medium line-clamp-2 break-words">{item.product_name}</p>
+                      {item.notes && <p className="text-gray-600 text-xs truncate">{item.notes}</p>}
+                      <p className="mt-1 text-gray-400 text-xs">
+                        {item.quantity} × {fmtUsd(item.unit_price_usd)}
+                        {item.ads_amount ? <span className="text-gray-500"> · Ads {fmtUsd(item.ads_amount)}</span> : null}
+                      </p>
+                      <p className="mt-0.5 flex flex-wrap gap-x-3 text-xs">
+                        <span className="text-green-400 font-bold">{fmtUsd(lineTotal)}</span>
+                        {rate > 0 && <span className="text-green-400">{formatPrice(lineTotal * rate)}</span>}
+                        {totalWeight > 0 && <span className="text-gray-500">{totalWeight.toFixed(1)} kg</span>}
+                        {totalCbm > 0 && <span className="text-gray-500">{totalCbm.toFixed(3)} CBM</span>}
+                      </p>
+                    </div>
+                    <div className="flex shrink-0 items-center">
+                      <button onClick={() => openEditItem(item)} aria-label="Modifier l'article"
+                        className="p-2.5 text-gray-500 active:text-white active:bg-gray-800 rounded-lg">
+                        <Edit3 className="w-4 h-4" />
+                      </button>
+                      <button onClick={() => handleDeleteItem(item.id)} disabled={deletingItem === item.id} aria-label="Supprimer l'article"
+                        className="p-2.5 text-gray-500 active:text-red-400 active:bg-gray-800 rounded-lg disabled:opacity-50">
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </li>
+                )
+              })}
+              <li className="flex items-center justify-between gap-3 border-t border-gray-700 py-3 text-sm">
+                <span className="text-white font-bold">Total · {totalQuantity} pcs</span>
+                <span className="text-right">
+                  <span className="block text-green-400 font-bold">{fmtUsd(itemsValueUsd)}</span>
+                  {rate > 0 && <span className="block text-green-400 text-xs font-bold">{formatPrice(itemsValueUsd * rate)}</span>}
+                </span>
+              </li>
+            </ul>
+
+            {/* Tablet / desktop: table */}
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-sm">
                 <thead>
                   <tr className="border-b border-gray-800 text-left">
@@ -475,22 +524,23 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                 </tfoot>
               </table>
             </div>
+            </>
           )}
         </div>
 
         {/* Deliveries — full width below items */}
-        <div className="lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-5">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-white font-bold flex items-center gap-2">
-              <Truck className="w-4 h-4 text-purple-400" /> Livraisons ({deliveries.length})
+        <div className="min-w-0 lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2 mb-4">
+            <h2 className="min-w-0 text-white font-bold flex flex-wrap items-center gap-x-2 gap-y-1">
+              <span className="flex items-center gap-2"><Truck className="w-4 h-4 text-purple-400" /> Livraisons ({deliveries.length})</span>
               {totalDeliveryFees > 0 && (
-                <span className="text-xs px-2 py-0.5 rounded-full bg-green-400/10 text-green-400 font-normal ml-2">
+                <span className="text-xs px-2 py-0.5 rounded-full bg-green-400/10 text-green-400 font-normal sm:ml-2">
                   {formatPrice(totalDeliveryFees)} total
                 </span>
               )}
             </h2>
             <button onClick={openAddDelivery}
-              className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5 text-xs transition-colors">
+              className="shrink-0 bg-purple-500 hover:bg-purple-600 text-white font-bold px-3 py-2.5 sm:py-1.5 rounded-lg flex items-center gap-1.5 text-xs transition-colors">
               <Plus className="w-3.5 h-3.5" /> Livraison
             </button>
           </div>
@@ -508,7 +558,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                 const statusColor = d.status ? (STATUS_COLORS[d.status] || 'text-gray-400 bg-gray-700') : ''
                 const totalFees = (Number(d.shipping_fees_xof) || 0) + (Number(d.other_fees_xof) || 0)
                 return (
-                  <div key={d.id} className="bg-gray-800/30 border border-gray-800 rounded-lg p-4 group hover:border-gray-700 transition-colors">
+                  <div key={d.id} className="bg-gray-800/30 border border-gray-800 rounded-lg p-3 sm:p-4 group hover:border-gray-700 transition-colors">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex items-start gap-3 flex-1 min-w-0">
                         <div className={`w-9 h-9 rounded-lg ${typeConf.color} flex items-center justify-center flex-shrink-0`}>
@@ -516,18 +566,18 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                         </div>
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 flex-wrap">
-                            <span className="text-white text-sm font-medium">{d.shipping_agencies?.name || 'Sans agence'}</span>
+                            <span className="min-w-0 break-words text-white text-sm font-medium">{d.shipping_agencies?.name || 'Sans agence'}</span>
                             <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${typeConf.color}`}>{typeConf.label}</span>
                             {d.status && <span className={`text-[10px] px-2 py-0.5 rounded-full font-medium ${statusColor}`}>{d.status}</span>}
                           </div>
-                          <div className="flex items-center gap-4 mt-1.5 text-xs text-gray-500 flex-wrap">
+                          <div className="flex items-center gap-x-4 gap-y-0.5 mt-1.5 text-xs text-gray-500 flex-wrap">
                             {d.weight_kg && <span>{d.weight_kg} kg</span>}
                             {d.cbm && <span>{d.cbm} CBM</span>}
                             {totalFees > 0 && <span className="text-green-400 font-medium">{formatPrice(totalFees)}</span>}
-                            {d.tracking_number && <span className="font-mono text-gray-400">#{d.tracking_number}</span>}
+                            {d.tracking_number && <span className="max-w-full break-all font-mono text-gray-400">#{d.tracking_number}</span>}
                           </div>
                           {(d.send_date || d.receive_date) && (
-                            <div className="flex items-center gap-3 mt-1 text-xs text-gray-600">
+                            <div className="flex flex-wrap items-center gap-x-3 mt-1 text-xs text-gray-600">
                               {d.send_date && <span>Envoi: {new Date(d.send_date).toLocaleDateString('fr-FR')}</span>}
                               {d.receive_date && <span>Reception: {new Date(d.receive_date).toLocaleDateString('fr-FR')}</span>}
                             </div>
@@ -535,12 +585,12 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                           {d.notes && <p className="text-gray-600 text-xs mt-1 truncate">{d.notes}</p>}
                         </div>
                       </div>
-                      <div className="flex items-center gap-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity flex-shrink-0">
-                        <button onClick={() => openEditDelivery(d)} className="p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded transition-colors">
+                      <div className="flex flex-col sm:flex-row items-center gap-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity flex-shrink-0">
+                        <button onClick={() => openEditDelivery(d)} aria-label="Modifier la livraison" className="p-2.5 sm:p-1.5 text-gray-500 hover:text-white hover:bg-gray-700 rounded transition-colors">
                           <Edit3 className="w-3.5 h-3.5" />
                         </button>
-                        <button onClick={() => handleDeleteDelivery(d.id)} disabled={deletingDelivery === d.id}
-                          className="p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700 rounded transition-colors disabled:opacity-50">
+                        <button onClick={() => handleDeleteDelivery(d.id)} disabled={deletingDelivery === d.id} aria-label="Supprimer la livraison"
+                          className="p-2.5 sm:p-1.5 text-gray-500 hover:text-red-400 hover:bg-gray-700 rounded transition-colors disabled:opacity-50">
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
@@ -553,8 +603,8 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
         </div>
 
         {/* Right — Order info + notes */}
-        <div className="space-y-4">
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+        <div className="min-w-0 space-y-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
             <h3 className="text-white font-bold text-sm mb-3 flex items-center gap-2">
               <DollarSign className="w-4 h-4 text-green-400" /> Resume financier
             </h3>
@@ -575,7 +625,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
             </div>
           </div>
 
-          <div className="bg-[#111827] border border-gray-800 rounded-xl p-5">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-5">
             <h3 className="text-white font-bold text-sm mb-2 flex items-center gap-2">
               <FileText className="w-4 h-4 text-gray-400" /> Notes
             </h3>
@@ -585,7 +635,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
               onBlur={handleSaveNotes}
               rows={4}
               placeholder="Notes..."
-              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-green-500 resize-none"
+              className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-base sm:text-sm outline-none focus:border-green-500 resize-none"
             />
           </div>
         </div>
@@ -594,52 +644,52 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       {/* Add/Edit Item Modal */}
       {showItemForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={closeItemForm}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-8 sm:mt-16 p-5" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-lg mx-4 mt-4 sm:mt-16 p-4 sm:p-5 flex max-h-[calc(100dvh-2rem)] flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-white font-bold">{editingItemId ? 'Modifier' : 'Ajouter'} un article</h3>
-              <button onClick={closeItemForm} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={closeItemForm} aria-label="Fermer" className="shrink-0 p-2 -m-2 sm:p-0 sm:m-0 text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
-            <div className="space-y-3">
+            <div className="space-y-3 min-h-0 flex-1 overflow-y-auto sm:overflow-visible">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Nom du produit *</label>
                 <input type="text" value={itemForm.product_name} onChange={e => setItemForm(prev => ({ ...prev, product_name: e.target.value }))}
                   placeholder="Nom du produit..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Prix USD *</label>
                   <input type="number" step="0.01" min="0" value={itemForm.unit_price_usd} onChange={e => setItemForm(prev => ({ ...prev, unit_price_usd: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Quantite *</label>
                   <input type="number" min="1" value={itemForm.quantity} onChange={e => setItemForm(prev => ({ ...prev, quantity: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Ads USD</label>
                   <input type="number" step="0.01" min="0" value={itemForm.ads_amount} onChange={e => setItemForm(prev => ({ ...prev, ads_amount: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Poids unit. (kg)</label>
                   <input type="number" step="0.01" min="0" value={itemForm.unit_weight} onChange={e => setItemForm(prev => ({ ...prev, unit_weight: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Volume unit. (CBM)</label>
                   <input type="number" step="0.001" min="0" value={itemForm.unit_cbm} onChange={e => setItemForm(prev => ({ ...prev, unit_cbm: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Image (URL)</label>
                 <input type="url" value={itemForm.image_url} onChange={e => setItemForm(prev => ({ ...prev, image_url: e.target.value }))}
                   placeholder="https://..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 {itemForm.image_url && (
                   <img src={itemForm.image_url} alt="" className="mt-2 w-16 h-16 rounded-lg object-cover border border-gray-700" />
                 )}
@@ -648,13 +698,13 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                 <label className="block text-xs text-gray-400 mb-1">Notes</label>
                 <textarea value={itemForm.notes} onChange={e => setItemForm(prev => ({ ...prev, notes: e.target.value }))}
                   rows={2} placeholder="Notes..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 resize-none" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 resize-none" />
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <button onClick={closeItemForm} className="px-4 py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
+            <div className="flex shrink-0 justify-end gap-3 mt-4">
+              <button onClick={closeItemForm} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
               <button onClick={handleSaveItem} disabled={savingItem || !itemForm.product_name.trim()}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
+                className="flex-1 sm:flex-none justify-center bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2.5 sm:py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
                 <Save className="w-4 h-4" /> {savingItem ? '...' : editingItemId ? 'Enregistrer' : 'Ajouter'}
               </button>
             </div>
@@ -665,20 +715,20 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
       {/* Add/Edit Delivery Modal */}
       {showDeliveryForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={closeDeliveryForm}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-8 sm:mt-12 p-5" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-lg mx-4 mt-4 sm:mt-12 p-4 sm:p-5 flex max-h-[calc(100dvh-2rem)] flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h3 className="text-white font-bold flex items-center gap-2">
                 <Truck className="w-4 h-4 text-purple-400" />
                 {editingDeliveryId ? 'Modifier' : 'Nouvelle'} livraison
               </h3>
-              <button onClick={closeDeliveryForm} className="text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
+              <button onClick={closeDeliveryForm} aria-label="Fermer" className="shrink-0 p-2 -m-2 sm:p-0 sm:m-0 text-gray-400 hover:text-white"><X className="w-5 h-5" /></button>
             </div>
-            <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+            <div className="space-y-3 min-h-0 flex-1 overflow-y-auto sm:max-h-[65vh] pr-1">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Agence de livraison</label>
                   <select value={deliveryForm.shipping_agency_id} onChange={e => setDeliveryForm(prev => ({ ...prev, shipping_agency_id: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500">
                     <option value="">Selectionnez...</option>
                     {agencies.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
                   </select>
@@ -686,7 +736,7 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Type</label>
                   <select value={deliveryForm.type} onChange={e => setDeliveryForm(prev => ({ ...prev, type: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500">
                     <option value="air">Aerien</option>
                     <option value="sea">Maritime</option>
                     <option value="express">Express</option>
@@ -698,13 +748,13 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                   <label className="block text-xs text-gray-400 mb-1">Poids (kg)</label>
                   <input type="number" step="0.01" min="0" value={deliveryForm.weight_kg}
                     onChange={e => setDeliveryForm(prev => ({ ...prev, weight_kg: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">CBM</label>
                   <input type="number" step="0.001" min="0" value={deliveryForm.cbm}
                     onChange={e => setDeliveryForm(prev => ({ ...prev, cbm: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -712,13 +762,13 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                   <label className="block text-xs text-gray-400 mb-1">Frais livraison (F CFA)</label>
                   <input type="number" step="0.01" min="0" value={deliveryForm.shipping_fees_xof}
                     onChange={e => setDeliveryForm(prev => ({ ...prev, shipping_fees_xof: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Autres frais (F CFA)</label>
                   <input type="number" step="0.01" min="0" value={deliveryForm.other_fees_xof}
                     onChange={e => setDeliveryForm(prev => ({ ...prev, other_fees_xof: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -726,13 +776,13 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                   <label className="block text-xs text-gray-400 mb-1">Date envoi</label>
                   <input type="date" value={deliveryForm.send_date}
                     onChange={e => setDeliveryForm(prev => ({ ...prev, send_date: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Date reception</label>
                   <input type="date" value={deliveryForm.receive_date}
                     onChange={e => setDeliveryForm(prev => ({ ...prev, receive_date: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -741,12 +791,12 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                   <input type="text" value={deliveryForm.tracking_number}
                     onChange={e => setDeliveryForm(prev => ({ ...prev, tracking_number: e.target.value }))}
                     placeholder="Tracking..."
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Statut</label>
                   <select value={deliveryForm.status} onChange={e => setDeliveryForm(prev => ({ ...prev, status: e.target.value }))}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500">
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500">
                     <option value="">—</option>
                     <option value="En cours">En cours</option>
                     <option value="Livré">Livre</option>
@@ -758,13 +808,13 @@ export default function SupplierOrderDetail({ params }: { params: Promise<{ id: 
                 <label className="block text-xs text-gray-400 mb-1">Notes</label>
                 <textarea value={deliveryForm.notes} onChange={e => setDeliveryForm(prev => ({ ...prev, notes: e.target.value }))}
                   rows={2} placeholder="Notes..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 resize-none" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 resize-none" />
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-4">
-              <button onClick={closeDeliveryForm} className="px-4 py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
+            <div className="flex shrink-0 justify-end gap-3 mt-4">
+              <button onClick={closeDeliveryForm} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 text-gray-400 text-sm hover:text-white">Annuler</button>
               <button onClick={handleSaveDelivery} disabled={savingDelivery}
-                className="bg-purple-500 hover:bg-purple-600 text-white font-bold px-5 py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
+                className="flex-1 sm:flex-none justify-center bg-purple-500 hover:bg-purple-600 text-white font-bold px-5 py-2.5 sm:py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
                 <Save className="w-4 h-4" /> {savingDelivery ? '...' : editingDeliveryId ? 'Enregistrer' : 'Ajouter'}
               </button>
             </div>
