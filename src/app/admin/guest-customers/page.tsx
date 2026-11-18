@@ -97,6 +97,13 @@ export default function AdminGuestCustomers() {
   const completedGuests = guests.filter(g => g.status === 'completed' || g.status === 'mixed').length
   const conversionRate = totalGuests > 0 ? Math.round((completedGuests / totalGuests) * 100) : 0
 
+  const STATUS_CONF = {
+    completed: { label: 'Complete', color: 'text-green-400 bg-green-400/10', icon: CheckCircle2 },
+    pending: { label: 'En attente', color: 'text-yellow-400 bg-yellow-400/10', icon: Clock },
+    abandoned: { label: 'Abandonne', color: 'text-red-400 bg-red-400/10', icon: XCircle },
+    mixed: { label: 'Mixte', color: 'text-blue-400 bg-blue-400/10', icon: ShoppingCart },
+  }
+
   const filtered = guests.filter(g =>
     g.name.toLowerCase().includes(search.toLowerCase()) ||
     g.phone?.includes(search) ||
@@ -129,7 +136,7 @@ export default function AdminGuestCustomers() {
       </div>
 
       {/* Contact stats */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg bg-green-400/10 flex items-center justify-center">
             <Phone className="w-4 h-4 text-green-400" />
@@ -173,7 +180,7 @@ export default function AdminGuestCustomers() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher par nom, telephone ou email..."
-          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
       </div>
 
       {/* Table */}
@@ -184,7 +191,48 @@ export default function AdminGuestCustomers() {
             <p className="text-gray-500">Aucun client invite</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: cards */}
+          <ul className="md:hidden divide-y divide-gray-800">
+            {filtered.map(guest => {
+              const statusConf = STATUS_CONF[guest.status]
+              const StatusIcon = statusConf.icon
+              return (
+                <li key={guest.key} className="px-4 py-3">
+                  <div className="flex items-center justify-between gap-3">
+                    <p className="min-w-0 truncate text-white text-sm font-medium">{guest.name}</p>
+                    <span className="shrink-0 whitespace-nowrap text-green-400 font-bold text-sm">{formatPrice(guest.totalSpent)}</span>
+                  </div>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    {guest.phone && (
+                      <a href={`tel:${guest.phone.replace(/\s+/g, '')}`} className="text-xs px-2 py-1 rounded-full bg-green-400/10 text-green-400 inline-flex items-center gap-1">
+                        <Phone className="w-3 h-3" />{guest.phone}
+                      </a>
+                    )}
+                    {guest.email && (
+                      <span className="min-w-0 max-w-full text-xs px-2 py-1 rounded-full bg-blue-400/10 text-blue-400 inline-flex items-center gap-1">
+                        <Mail className="w-3 h-3 shrink-0" /><span className="truncate">{guest.email}</span>
+                      </span>
+                    )}
+                    {!guest.phone && !guest.email && (
+                      <span className="text-xs text-gray-600">Aucun contact</span>
+                    )}
+                  </div>
+                  <div className="mt-1.5 flex items-center justify-between gap-3 text-xs text-gray-500">
+                    <span className="truncate">
+                      {guest.orders.length} commande{guest.orders.length > 1 ? 's' : ''} · {new Date(guest.lastOrder).toLocaleDateString('fr-FR')}
+                    </span>
+                    <span className={`inline-flex shrink-0 items-center gap-1 px-2 py-0.5 rounded-full font-medium ${statusConf.color}`}>
+                      <StatusIcon className="w-3 h-3" />{statusConf.label}
+                    </span>
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+
+          {/* Tablet / desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[600px]">
               <thead>
                 <tr className="border-b border-gray-800 text-left">
@@ -198,12 +246,7 @@ export default function AdminGuestCustomers() {
               </thead>
               <tbody>
                 {filtered.map(guest => {
-                  const statusConf = {
-                    completed: { label: 'Complete', color: 'text-green-400 bg-green-400/10', icon: CheckCircle2 },
-                    pending: { label: 'En attente', color: 'text-yellow-400 bg-yellow-400/10', icon: Clock },
-                    abandoned: { label: 'Abandonne', color: 'text-red-400 bg-red-400/10', icon: XCircle },
-                    mixed: { label: 'Mixte', color: 'text-blue-400 bg-blue-400/10', icon: ShoppingCart },
-                  }[guest.status]
+                  const statusConf = STATUS_CONF[guest.status]
                   const StatusIcon = statusConf.icon
                   return (
                     <tr key={guest.key} className="border-b border-gray-800/50 hover:bg-gray-800/30">
@@ -248,6 +291,7 @@ export default function AdminGuestCustomers() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

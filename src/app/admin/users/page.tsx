@@ -89,7 +89,7 @@ export default function AdminUsers() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher par nom ou email..."
-          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-sm outline-none focus:border-green-500"
+          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
         />
       </div>
 
@@ -101,7 +101,43 @@ export default function AdminUsers() {
             <p className="text-gray-500">Aucun utilisateur trouve</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: cards */}
+          <ul className="md:hidden divide-y divide-gray-800">
+            {filtered.map(profile => (
+              <li key={profile.id} className="flex items-center gap-3 px-4 py-3">
+                {profile.avatar_url ? (
+                  <Image src={profile.avatar_url} alt="" width={36} height={36} className="shrink-0 rounded-full" />
+                ) : (
+                  <div className="w-9 h-9 shrink-0 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 text-xs font-bold">
+                    {profile.full_name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-sm font-medium truncate">{profile.full_name || 'Sans nom'}</p>
+                  <p className="text-gray-400 text-xs truncate">{profile.email || '—'}</p>
+                  <p className="mt-0.5 text-gray-500 text-xs">
+                    Inscrit le {profile.created_at ? new Date(profile.created_at).toLocaleDateString('fr-FR') : '—'}
+                  </p>
+                </div>
+                <button
+                  onClick={() => toggleAdmin(profile)}
+                  disabled={toggling === profile.id}
+                  className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 px-3 rounded-full text-xs font-medium transition-colors disabled:opacity-50 ${
+                    profile.is_admin
+                      ? 'bg-green-400/10 text-green-400'
+                      : 'bg-gray-700 text-gray-400 active:bg-gray-600'
+                  }`}
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  {profile.is_admin ? 'Admin' : 'Client'}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet / desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[560px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
@@ -151,6 +187,7 @@ export default function AdminUsers() {
             </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>
