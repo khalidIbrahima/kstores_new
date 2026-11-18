@@ -8,6 +8,8 @@ import { supabase } from '@/lib/supabase'
 import { adminFetch } from '@/lib/admin-fetch'
 import { formatPrice } from '@/lib/utils'
 import { generateInvoiceHtml } from '@/lib/invoice'
+import { downloadFile } from '@/lib/invoice-pdf'
+import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { notifyStatusUpdate } from '@/lib/notifications'
 import { useToast } from '@/components/ToastProvider'
 import {
@@ -32,13 +34,17 @@ import {
   Trash2,
   Navigation,
   ExternalLink,
+  MessageCircle,
+  Share2,
+  Printer,
 } from 'lucide-react'
 
 interface OrderItem {
   id: string
+  product_id?: string | null
   quantity: number
   price: number
-  products: { name: string; image_url: string } | null
+  products: { name: string; image_url: string; slug?: string | null } | null
 }
 
 interface ShippingAddress {
@@ -54,6 +60,9 @@ interface ShippingAddress {
   _meta?: {
     admin_discount_amount?: number
     shipping_fee?: number
+    paid_at?: string | null
+    payment_link?: string | null
+    payment_link_expires_at?: string | null
   }
 }
 
@@ -69,6 +78,8 @@ interface Order {
   created_at: string
   status: string
   total: number
+  payment_status?: string | null
+  payment_method?: string | null
   shipping_address: ShippingAddress
   userGeolocation?: GeoLocation | null
 }
@@ -87,6 +98,30 @@ const STATUSES = [
   { value: 'delivered', label: 'Livree', color: 'text-green-400', icon: CheckCircle2 },
   { value: 'cancelled', label: 'Annulee', color: 'text-red-400', icon: XCircle },
 ]
+
+const MANUAL_PAYMENT_METHODS = [
+  { value: 'cash', label: 'Especes' },
+  { value: 'wave', label: 'Wave' },
+  { value: 'orange_money', label: 'Orange Money' },
+  { value: 'bank_transfer', label: 'Virement' },
+]
+
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  cash: 'Especes',
+  wave: 'Wave',
+  orange_money: 'Orange Money',
+  bank_transfer: 'Virement',
+  credit_card: 'Carte bancaire',
+  paypal: 'PayPal',
+}
+
+/** Digits only for wa.me; a 9-digit Senegalese mobile number gets the 221 prefix. */
+const toWhatsAppNumber = (phone?: string | null) => {
+  let digits = (phone || '').replace(/\D/g, '')
+  if (digits.startsWith('00')) digits = digits.slice(2)
+  if (digits.length === 9 && digits.startsWith('7')) digits = `221${digits}`
+  return digits.length >= 10 ? digits : null
+}
 
 const TIMELINE_STATUSES = ['pending', 'processing', 'shipped', 'delivered']
 
@@ -111,11 +146,12 @@ const getBaseAdjustment = (order: Order | null, items: OrderItem[]) => {
 const clampDiscount = (value: number, subtotal: number, baseAdjustment: number) =>
   Math.max(0, Math.min(Number.isFinite(value) ? value : 0, Math.max(0, subtotal + baseAdjustment)))
 
-interface DeleteOrderItemResponse {
+interface OrderItemMutationResponse {
   success?: boolean
   error?: string
   total?: number
   discount?: number
+  item?: { id: string; quantity: number; price: number }
 }
 
 // ─── Edit Customer Modal ────────────────────────────────────────────────────
@@ -141,14 +177,14 @@ function EditCustomerModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#111827] border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl">
+      <div className="bg-[#111827] border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl flex max-h-[calc(100dvh-2rem)] flex-col">
         <div className="flex items-center justify-between p-5 border-b border-gray-800">
           <h3 className="text-white font-bold text-lg">Modifier le client</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-5 space-y-3 max-h-[60vh] overflow-y-auto">
+        <div className="p-5 space-y-3 min-h-0 flex-1 overflow-y-auto">
           {fields.map(({ key, label }) => (
             <div key={key}>
               <label className="text-gray-400 text-xs font-medium mb-1 block">{label}</label>
@@ -156,7 +192,7 @@ function EditCustomerModal({
                 type="text"
                 value={form[key] || ''}
                 onChange={e => setForm(prev => ({ ...prev, [key]: e.target.value }))}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 transition-colors"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
               />
             </div>
           ))}
@@ -237,6 +273,104 @@ function ConfirmDeleteItemDialog({
   )
 }
 
+// ─── Edit Item Modal ────────────────────────────────────────────────────────
+function EditItemModal({
+  item,
+  saving,
+  onSave,
+  onClose,
+}: {
+  item: OrderItem
+  saving: boolean
+  onSave: (changes: { quantity: number; price: number }) => void
+  onClose: () => void
+}) {
+  const [quantity, setQuantity] = useState(String(item.quantity))
+  const [price, setPrice] = useState(String(item.price))
+
+  const parsedQuantity = Number(quantity)
+  const parsedPrice = Number(price)
+  const quantityValid = quantity.trim() !== '' && Number.isInteger(parsedQuantity) && parsedQuantity >= 1 && parsedQuantity <= 9999
+  const priceValid = price.trim() !== '' && Number.isFinite(parsedPrice) && parsedPrice >= 0
+  const valid = quantityValid && priceValid
+  const changed = parsedQuantity !== item.quantity || parsedPrice !== item.price
+  const inputClass =
+    'w-full bg-gray-900 border rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors'
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+      <div className="bg-[#111827] border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl flex max-h-[calc(100dvh-2rem)] flex-col">
+        <div className="flex items-center justify-between gap-3 p-5 border-b border-gray-800">
+          <div className="min-w-0">
+            <h3 className="text-white font-bold text-lg">Modifier l&apos;article</h3>
+            <p className="text-gray-500 text-xs truncate">{item.products?.name || 'Produit supprime'}</p>
+          </div>
+          <button
+            onClick={onClose}
+            disabled={saving}
+            aria-label="Fermer"
+            className="shrink-0 text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800 disabled:opacity-50"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <div className="p-5 space-y-4 min-h-0 flex-1 overflow-y-auto">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-gray-400 text-xs font-medium mb-1 block">Quantite</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={1}
+                step={1}
+                value={quantity}
+                onChange={e => setQuantity(e.target.value)}
+                className={`${inputClass} ${quantityValid ? 'border-gray-700' : 'border-red-500/60'}`}
+              />
+            </div>
+            <div>
+              <label className="text-gray-400 text-xs font-medium mb-1 block">Prix unitaire</label>
+              <input
+                type="number"
+                inputMode="numeric"
+                min={0}
+                step={1}
+                value={price}
+                onChange={e => setPrice(e.target.value)}
+                className={`${inputClass} ${priceValid ? 'border-gray-700' : 'border-red-500/60'}`}
+              />
+            </div>
+          </div>
+          {!valid && (
+            <p className="text-red-400 text-xs">La quantite doit etre un entier d&apos;au moins 1 et le prix un montant positif.</p>
+          )}
+          <div className="flex items-center justify-between text-sm text-gray-400">
+            <span>Sous-total de la ligne</span>
+            <span className="text-green-400 font-bold">{valid ? formatPrice(parsedPrice * parsedQuantity) : '—'}</span>
+          </div>
+        </div>
+        <div className="flex gap-3 p-5 border-t border-gray-800">
+          <button
+            onClick={onClose}
+            disabled={saving}
+            className="flex-1 px-4 py-2.5 rounded-lg border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+          >
+            Annuler
+          </button>
+          <button
+            onClick={() => onSave({ quantity: parsedQuantity, price: parsedPrice })}
+            disabled={!valid || !changed || saving}
+            className="flex-1 bg-green-500 hover:bg-green-600 text-black font-bold px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
+            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          </button>
+        </div>
+      </div>
+    </div>
+  )
+}
+
 // ─── Add Item Modal ─────────────────────────────────────────────────────────
 function AddItemModal({
   orderId,
@@ -303,14 +437,14 @@ function AddItemModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="bg-[#111827] border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl">
+      <div className="bg-[#111827] border border-gray-700 rounded-2xl w-full max-w-md shadow-2xl flex max-h-[calc(100dvh-2rem)] flex-col">
         <div className="flex items-center justify-between p-5 border-b border-gray-800">
           <h3 className="text-white font-bold text-lg">Ajouter un article</h3>
           <button onClick={onClose} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800">
             <X className="w-5 h-5" />
           </button>
         </div>
-        <div className="p-5 space-y-4">
+        <div className="p-5 space-y-4 min-h-0 flex-1 overflow-y-auto">
           {/* Product Search */}
           <div className="relative">
             <label className="text-gray-400 text-xs font-medium mb-1 block">Produit</label>
@@ -321,7 +455,7 @@ function AddItemModal({
                 value={searchQuery}
                 onChange={e => searchProducts(e.target.value)}
                 placeholder="Rechercher un produit..."
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm outline-none focus:border-green-500 transition-colors"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg pl-10 pr-4 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
               />
             </div>
             {/* Search results dropdown */}
@@ -377,7 +511,7 @@ function AddItemModal({
                 min={1}
                 value={quantity}
                 onChange={e => setQuantity(Math.max(1, parseInt(e.target.value) || 1))}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 transition-colors"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
               />
             </div>
             <div>
@@ -387,7 +521,7 @@ function AddItemModal({
                 min={0}
                 value={price}
                 onChange={e => setPrice(Math.max(0, parseInt(e.target.value) || 0))}
-                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 transition-colors"
+                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
               />
             </div>
           </div>
@@ -479,6 +613,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const { id } = use(params)
   const router = useRouter()
   const toast = useToast()
+  const { settings } = useStoreSettings()
   const [order, setOrder] = useState<Order | null>(null)
   const [items, setItems] = useState<OrderItem[]>([])
   const [loading, setLoading] = useState(true)
@@ -494,11 +629,19 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const [showAddItem, setShowAddItem] = useState(false)
   const [deletingItemId, setDeletingItemId] = useState<string | null>(null)
   const [itemPendingDelete, setItemPendingDelete] = useState<OrderItem | null>(null)
+  const [itemBeingEdited, setItemBeingEdited] = useState<OrderItem | null>(null)
+  const [savingItem, setSavingItem] = useState(false)
+  const [paymentMethodInput, setPaymentMethodInput] = useState('cash')
+  const [savingPayment, setSavingPayment] = useState(false)
+  const [paymentLinkInput, setPaymentLinkInput] = useState('')
+  const [savingPaymentLink, setSavingPaymentLink] = useState(false)
+  const [preparingPdf, setPreparingPdf] = useState(false)
+  const [preparedPdf, setPreparedPdf] = useState<{ file: File; key: string } | null>(null)
 
   const fetchData = useCallback(async () => {
     const [orderRes, itemsRes] = await Promise.all([
       supabase.from('orders').select('*').eq('id', id).single(),
-      supabase.from('order_items').select('*, products(name, image_url)').eq('order_id', id),
+      supabase.from('order_items').select('*, products(name, image_url, slug)').eq('order_id', id),
     ])
     if (orderRes.data) {
       const nextOrder = orderRes.data as Order
@@ -506,6 +649,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       setNewStatus(nextOrder.status)
       setDiscountInput(String(getOrderDiscount(nextOrder)))
       setShippingFeeInput(String(getOrderShippingFee(nextOrder)))
+      setPaymentLinkInput(nextOrder.shipping_address?._meta?.payment_link || '')
     }
     if (itemsRes.data) setItems(itemsRes.data as OrderItem[])
     setLoading(false)
@@ -673,6 +817,71 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     setShowAddItem(false)
   }
 
+  /** Applies the total/discount returned by the item API. Returns false when the payload has no total. */
+  const applyServerTotals = (payload: OrderItemMutationResponse) => {
+    if (typeof payload.total !== 'number') return false
+    const nextTotal = payload.total
+    setOrder(prev => {
+      if (!prev) return null
+      return {
+        ...prev,
+        total: nextTotal,
+        shipping_address: {
+          ...prev.shipping_address,
+          _meta: {
+            ...prev.shipping_address?._meta,
+            admin_discount_amount: typeof payload.discount === 'number'
+              ? payload.discount
+              : prev.shipping_address?._meta?.admin_discount_amount,
+          },
+        },
+      }
+    })
+    if (typeof payload.discount === 'number') {
+      setDiscountInput(String(payload.discount))
+      setDiscountError('')
+    }
+    return true
+  }
+
+  const handleSaveItem = async (changes: { quantity: number; price: number }) => {
+    const target = itemBeingEdited
+    if (!target || savingItem) return
+    setSavingItem(true)
+    try {
+      const response = await adminFetch(`/api/admin/orders/${id}/items/${target.id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(changes),
+      })
+      const payload = (await response.json().catch(() => ({}))) as OrderItemMutationResponse
+      if (!response.ok) {
+        throw new Error(payload.error || 'Update failed')
+      }
+
+      const saved = payload.item
+      setItems(prev =>
+        prev.map(it =>
+          it.id === target.id
+            ? { ...it, quantity: saved?.quantity ?? changes.quantity, price: saved?.price ?? changes.price }
+            : it
+        )
+      )
+      if (!applyServerTotals(payload)) {
+        await fetchData()
+      }
+      toast('Article mis a jour.', 'success')
+      setItemBeingEdited(null)
+    } catch (error) {
+      console.error('Update order item error:', error)
+      toast(
+        error instanceof Error ? error.message : "Impossible de modifier l'article pour le moment.",
+        'error'
+      )
+    } finally {
+      setSavingItem(false)
+    }
+  }
+
   const handleDeleteItem = async (itemId: string) => {
     const targetItem = items.find(it => it.id === itemId)
     if (!targetItem || deletingItemId) return
@@ -691,31 +900,14 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       const response = await adminFetch(`/api/admin/orders/${id}/items/${itemId}`, {
         method: 'DELETE',
       })
-      const payload = (await response.json()) as DeleteOrderItemResponse
+      const payload = (await response.json()) as OrderItemMutationResponse
       if (!response.ok) {
         throw new Error(payload.error || 'Delete failed')
       }
 
       const updated = previousItems.filter(it => it.id !== itemId)
       setItems(updated)
-      if (typeof payload.total === 'number') {
-        setOrder(prev => {
-          if (!prev) return null
-          return {
-            ...prev,
-            total: payload.total ?? prev.total,
-            shipping_address: {
-              ...prev.shipping_address,
-              _meta: {
-                ...prev.shipping_address?._meta,
-                admin_discount_amount: typeof payload.discount === 'number'
-                  ? payload.discount
-                  : prev.shipping_address?._meta?.admin_discount_amount,
-              },
-            },
-          }
-        })
-      } else {
+      if (!applyServerTotals(payload)) {
         await fetchData()
       }
 
@@ -733,10 +925,147 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     }
   }
 
-  const handleDownloadInvoice = () => {
-    if (!order) return
+  const savePaymentLink = async (link: string, expiresAt: string | null = null) => {
+    if (!order) return false
+    const nextShippingAddress: ShippingAddress = {
+      ...order.shipping_address,
+      _meta: { ...order.shipping_address?._meta, payment_link: link || null, payment_link_expires_at: link ? expiresAt : null },
+    }
+    const response = await adminFetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ shipping_address: nextShippingAddress }),
+    })
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => ({}))) as { error?: string }
+      throw new Error(payload.error || 'Update failed')
+    }
+    setOrder(prev => (prev ? { ...prev, shipping_address: nextShippingAddress } : null))
+    setPaymentLinkInput(link)
+    return true
+  }
+
+  const handleSavePaymentLink = async () => {
+    const link = paymentLinkInput.trim()
+    if (link && !/^https?:\/\/\S+$/i.test(link)) {
+      toast('Le lien doit commencer par http:// ou https://', 'error')
+      return
+    }
+    setSavingPaymentLink(true)
+    try {
+      await savePaymentLink(link)
+      toast(link ? 'Lien de paiement enregistre.' : 'Lien de paiement retire.', 'success')
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Impossible d'enregistrer le lien.", 'error')
+    } finally {
+      setSavingPaymentLink(false)
+    }
+  }
+
+  const handleGenerateWaveLink = async () => {
+    if (!order || savingPaymentLink) return
+    setSavingPaymentLink(true)
+    try {
+      const response = await fetch('/api/wave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId: order.id }),
+      })
+      const payload = (await response.json().catch(() => ({}))) as {
+        checkout_url?: string
+        expires_at?: string | null
+        error?: string
+      }
+      if (!response.ok || !payload.checkout_url) {
+        throw new Error(payload.error || 'Wave n\'a pas renvoye de lien.')
+      }
+      await savePaymentLink(payload.checkout_url, payload.expires_at || null)
+      toast('Lien Wave genere. Il est valable 30 minutes.', 'success')
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Impossible de generer le lien Wave.', 'error')
+    } finally {
+      setSavingPaymentLink(false)
+    }
+  }
+
+  const handleSetPaid = async (paid: boolean) => {
+    if (!order || savingPayment) return
+    if (!paid && !confirm('Remettre cette commande en « non payee » ?')) return
+    setSavingPayment(true)
+    try {
+      const nextShippingAddress: ShippingAddress = {
+        ...order.shipping_address,
+        _meta: { ...order.shipping_address?._meta, paid_at: paid ? new Date().toISOString() : null },
+      }
+      const changes = {
+        payment_status: paid ? 'paid' : null,
+        payment_method: paid ? paymentMethodInput : null,
+        shipping_address: nextShippingAddress,
+      }
+      const response = await adminFetch(`/api/admin/orders/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(changes),
+      })
+      const payload = (await response.json().catch(() => ({}))) as { error?: string }
+      if (!response.ok) {
+        throw new Error(payload.error || 'Update failed')
+      }
+      setOrder(prev => (prev ? { ...prev, ...changes } : null))
+      toast(paid ? 'Commande marquee comme payee.' : 'Commande remise en non payee.', 'success')
+    } catch (error) {
+      console.error('Update payment error:', error)
+      toast(
+        error instanceof Error ? error.message : 'Impossible de mettre a jour le paiement pour le moment.',
+        'error'
+      )
+    } finally {
+      setSavingPayment(false)
+    }
+  }
+
+  const buildShareMessage = () => {
+    if (!order) return ''
     const addr = order.shipping_address
-    const invoiceHtml = generateInvoiceHtml({
+    const storeName = settings?.store_name || 'Kapital Stores'
+    const baseUrl = (settings?.store_url || window.location.origin).replace(/\/+$/, '')
+    const shortId = order.id.slice(0, 8).toUpperCase()
+    const paid = order.payment_status === 'paid'
+    const lines = [
+      `Bonjour${addr?.firstName ? ` ${addr.firstName}` : ''},`,
+      '',
+      `Voici votre ${paid ? 'facture' : 'facture proforma'} ${storeName} N° ${shortId}.`,
+      `${paid ? 'Total payé' : 'Total à payer'} : ${formatPrice(order.total)}`,
+      '',
+      'Facture et suivi de commande :',
+      `${baseUrl}/orders/track/${order.id}`,
+    ]
+    const meta = order.shipping_address?._meta
+    const orderLinkExpired = !!meta?.payment_link_expires_at && new Date(meta.payment_link_expires_at).getTime() <= Date.now()
+    const payLink = (!orderLinkExpired && meta?.payment_link) || settings?.payment_link
+    if (!paid && order.status !== 'cancelled' && payLink) {
+      lines.push('', 'Payer en ligne :', payLink)
+    }
+    const productLines = items
+      .filter(it => it.products && (it.products.slug || it.product_id))
+      .map(it => `• ${it.products!.name} (x${it.quantity}) : ${baseUrl}/products/${it.products!.slug || it.product_id}`)
+    if (productLines.length > 0) {
+      lines.push('', productLines.length > 1 ? 'Vos articles en boutique :' : 'Votre article en boutique :', ...productLines)
+    }
+    lines.push('', 'Merci pour votre confiance !')
+    return lines.join('\n')
+  }
+
+  const handleShareWhatsApp = () => {
+    if (!order) return
+    const number = toWhatsAppNumber(order.shipping_address?.phone)
+    const text = encodeURIComponent(buildShareMessage())
+    // Without a usable number, WhatsApp asks which contact to send to.
+    window.open(number ? `https://wa.me/${number}?text=${text}` : `https://wa.me/?text=${text}`, '_blank', 'noopener')
+  }
+
+  const buildInvoiceHtml = () => {
+    if (!order) return ''
+    const addr = order.shipping_address
+    return generateInvoiceHtml({
       id: order.id,
       date: order.created_at,
       firstName: addr?.firstName || addr?.name || '',
@@ -745,6 +1074,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       phone: addr?.phone,
       address: addr?.address,
       city: addr?.city,
+      country: addr?.country,
       items: items.map(it => ({
         name: it.products?.name || 'Produit supprime',
         quantity: it.quantity,
@@ -754,7 +1084,71 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       discount: savedDiscount,
       shipping: getOrderShippingFee(order),
       total: order.total,
+      paymentStatus: order.payment_status,
+      paymentMethod: order.payment_method,
+      paidAt: addr?._meta?.paid_at,
+      orderStatus: order.status,
+      paymentLink: addr?._meta?.payment_link,
+      paymentLinkExpiresAt: addr?._meta?.payment_link_expires_at,
+    }, {
+      name: settings?.store_name,
+      url: settings?.store_url,
+      email: settings?.contact_email,
+      phone: settings?.support_phone,
+      address: settings?.business_address,
+      ninea: settings?.ninea,
+      rccm: settings?.rccm,
+      paymentMethods: Object.entries(settings?.payment_methods || {}).filter(([, on]) => on).map(([key]) => key),
+      paymentInstructions: settings?.payment_instructions,
+      paymentLink: settings?.payment_link,
     })
+  }
+
+  /** Changes whenever something printed on the invoice changes, so a prepared PDF is never stale. */
+  const getInvoiceKey = () =>
+    JSON.stringify([order, items.map(it => [it.id, it.quantity, it.price, it.products?.name]), settings])
+
+  const handlePreparePdf = async () => {
+    if (!order || preparingPdf) return
+    setPreparingPdf(true)
+    try {
+      const { generateInvoicePdf } = await import('@/lib/invoice-pdf')
+      const prefix = order.payment_status === 'paid' ? 'facture' : 'proforma'
+      const file = await generateInvoicePdf(buildInvoiceHtml(), `${prefix}-${order.id.slice(0, 8).toUpperCase()}.pdf`)
+      setPreparedPdf({ file, key: getInvoiceKey() })
+    } catch (error) {
+      console.error('Invoice PDF error:', error)
+      toast('Impossible de generer le PDF sur cet appareil.', 'error')
+    } finally {
+      setPreparingPdf(false)
+    }
+  }
+
+  // Called straight from the click: navigator.share needs a fresh user gesture,
+  // which is why the PDF is prepared in a separate step.
+  const handleSendPdf = async (file: File) => {
+    const withText: ShareData = { files: [file], text: buildShareMessage() }
+    const filesOnly: ShareData = { files: [file] }
+    const canShare = (data: ShareData) => typeof navigator.canShare === 'function' && navigator.canShare(data)
+    const data = canShare(withText) ? withText : canShare(filesOnly) ? filesOnly : null
+    if (!data) {
+      downloadFile(file)
+      toast('PDF telecharge. Joignez-le dans WhatsApp.', 'success')
+      return
+    }
+    try {
+      await navigator.share(data)
+    } catch (error) {
+      // AbortError = the user closed the share sheet
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      downloadFile(file)
+      toast('Partage impossible : le PDF a ete telecharge.', 'error')
+    }
+  }
+
+  const handleDownloadInvoice = () => {
+    if (!order) return
+    const invoiceHtml = buildInvoiceHtml()
     const win = window.open('', '_blank')
     if (win) {
       win.document.write(invoiceHtml)
@@ -786,6 +1180,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const currentStatus = STATUSES.find(s => s.value === order.status)
   const itemsSubtotal = getItemsSubtotal(items)
   const savedDiscount = getOrderDiscount(order)
+  const readyPdf = preparedPdf && preparedPdf.key === getInvoiceKey() ? preparedPdf.file : null
   const baseAdjustment = getBaseAdjustment(order, items)
   const adjustmentLabel = baseAdjustment >= 0 ? 'Ajustement' : 'Ajustement negatif'
   const parsedDiscountInput = Number(discountInput)
@@ -794,7 +1189,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   return (
     <div className="max-w-6xl space-y-6">
       {/* ── Header with inline badges ──────────────────────────────────── */}
-      <div className="flex items-center gap-4">
+      <div className="flex items-start gap-2 sm:items-center sm:gap-4">
         <Link href="/admin/orders" className="text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors">
           <ArrowLeft className="w-5 h-5" />
         </Link>
@@ -824,7 +1219,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
               </span>
             )}
           </div>
-          <p className="text-gray-500 text-xs font-mono mt-1">{order.id}</p>
+          <p className="text-gray-500 text-xs font-mono mt-1 break-all">{order.id}</p>
         </div>
         <button
           onClick={async () => {
@@ -845,16 +1240,17 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
               )
             }
           }}
-          className="shrink-0 flex items-center gap-1.5 px-3 py-2 text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors"
+          aria-label="Supprimer la commande"
+          className="shrink-0 flex items-center gap-1.5 p-2.5 sm:px-3 sm:py-2 text-sm text-red-400 border border-red-500/30 hover:border-red-500/50 hover:bg-red-500/10 rounded-lg transition-colors"
         >
-          <Trash2 className="w-3.5 h-3.5" /> Supprimer
+          <Trash2 className="w-4 h-4 sm:w-3.5 sm:h-3.5" /> <span className="hidden sm:inline">Supprimer</span>
         </button>
       </div>
 
       {/* ── 2-Column Grid ─────────────────────────────────────────────── */}
-      <div className="grid lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
         {/* LEFT: Items + Status + Timeline */}
-        <div className="lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-6">
+        <div className="min-w-0 lg:col-span-2 space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Order Items */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
@@ -869,22 +1265,32 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
             </div>
             <div className="space-y-2">
               {items.map(item => (
-                <div key={item.id} className="flex items-center gap-3 p-3 bg-gray-800/30 rounded-lg group">
+                <div key={item.id} className="flex items-center gap-2 sm:gap-3 p-3 bg-gray-800/30 rounded-lg">
                   <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0">
                     {item.products?.image_url && (
                       <Image src={item.products.image_url} alt="" fill className="object-cover" sizes="48px" />
                     )}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-white text-sm font-medium truncate">{item.products?.name || 'Produit supprime'}</p>
+                    <p className="text-white text-sm font-medium line-clamp-2 sm:truncate sm:line-clamp-none">{item.products?.name || 'Produit supprime'}</p>
                     <p className="text-gray-500 text-xs">Qte: {item.quantity} x {formatPrice(item.price)}</p>
+                    <p className="text-green-400 font-bold text-sm mt-0.5 sm:hidden">{formatPrice(item.price * item.quantity)}</p>
                   </div>
-                  <span className="text-green-400 font-bold text-sm">{formatPrice(item.price * item.quantity)}</span>
+                  <span className="hidden sm:inline text-green-400 font-bold text-sm whitespace-nowrap">{formatPrice(item.price * item.quantity)}</span>
+                  <button
+                    onClick={() => setItemBeingEdited(item)}
+                    className="shrink-0 text-gray-400 hover:text-white p-2 rounded-lg hover:bg-gray-800 transition-colors"
+                    title="Modifier"
+                    aria-label="Modifier la quantite ou le prix"
+                  >
+                    <Pencil className="w-4 h-4" />
+                  </button>
                   <button
                     onClick={() => handleDeleteItem(item.id)}
                     disabled={deletingItemId === item.id}
-                    className="opacity-0 group-hover:opacity-100 text-gray-500 hover:text-red-400 p-1.5 rounded-lg hover:bg-red-400/10 transition-all disabled:opacity-50"
+                    className="shrink-0 text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-red-400/10 transition-colors disabled:opacity-50"
                     title="Supprimer"
+                    aria-label="Supprimer cet article"
                   >
                     {deletingItemId === item.id ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
@@ -944,7 +1350,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
                     setDiscountInput(e.target.value)
                     if (discountError) setDiscountError('')
                   }}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 transition-colors"
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
                 />
               </div>
               <p className="text-gray-500 text-xs">
@@ -980,7 +1386,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
                   step={100}
                   value={shippingFeeInput}
                   onChange={e => setShippingFeeInput(e.target.value)}
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500 transition-colors"
+                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
                 />
               </div>
               <p className="text-gray-500 text-xs">
@@ -1019,7 +1425,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
               ))}
             </div>
             {newStatus !== order.status && (
-              <div className="mt-4 flex items-center gap-4">
+              <div className="mt-4 flex flex-wrap items-center gap-x-4 gap-y-3">
                 <button
                   onClick={handleUpdateStatus}
                   disabled={saving}
@@ -1051,7 +1457,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
         </div>
 
         {/* RIGHT: Customer + Shipping + Invoice */}
-        <div className="space-y-3 sm:space-y-4 lg:space-y-6">
+        <div className="min-w-0 space-y-3 sm:space-y-4 lg:space-y-6">
           {/* Customer Info */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <div className="flex items-center justify-between mb-4">
@@ -1154,16 +1560,160 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
             )
           })()}
 
-          {/* Invoice Download */}
+          {/* Payment */}
+          <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
+            <div className="flex items-center justify-between gap-3 mb-4">
+              <h2 className="text-white font-bold">Paiement</h2>
+              {order.payment_status === 'paid' ? (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-green-500/15 text-green-400">
+                  <CheckCircle2 className="w-3 h-3" /> Payee
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold bg-yellow-400/15 text-yellow-400">
+                  <Clock className="w-3 h-3" /> A payer
+                </span>
+              )}
+            </div>
+            {order.payment_status === 'paid' ? (
+              <div className="space-y-3">
+                <div className="space-y-2 text-sm">
+                  {order.payment_method && (
+                    <div className="flex justify-between gap-3 text-gray-400">
+                      <span>Mode</span>
+                      <span className="text-white">{PAYMENT_METHOD_LABELS[order.payment_method] || order.payment_method}</span>
+                    </div>
+                  )}
+                  {addr?._meta?.paid_at && (
+                    <div className="flex justify-between gap-3 text-gray-400">
+                      <span>Date</span>
+                      <span className="text-white">
+                        {new Date(addr._meta.paid_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })}
+                      </span>
+                    </div>
+                  )}
+                </div>
+                <button
+                  onClick={() => handleSetPaid(false)}
+                  disabled={savingPayment}
+                  className="w-full px-4 py-2.5 rounded-lg border border-gray-700 text-gray-300 text-sm font-medium hover:bg-gray-800 transition-colors disabled:opacity-50"
+                >
+                  {savingPayment ? 'Enregistrement...' : 'Remettre en non payee'}
+                </button>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                <div>
+                  <label className="text-gray-400 text-xs font-medium mb-1 block">Mode de paiement recu</label>
+                  <select
+                    value={paymentMethodInput}
+                    onChange={e => setPaymentMethodInput(e.target.value)}
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
+                  >
+                    {MANUAL_PAYMENT_METHODS.map(m => (
+                      <option key={m.value} value={m.value}>{m.label}</option>
+                    ))}
+                  </select>
+                </div>
+                <button
+                  onClick={() => handleSetPaid(true)}
+                  disabled={savingPayment}
+                  className="w-full bg-green-500 hover:bg-green-600 text-black font-bold px-4 py-2.5 rounded-lg text-sm transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                >
+                  {savingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                  {savingPayment ? 'Enregistrement...' : 'Marquer comme payee'}
+                </button>
+                <div className="pt-3 border-t border-gray-800">
+                  <label className="text-gray-400 text-xs font-medium mb-1 block">Lien de paiement pour cette commande</label>
+                  <input
+                    type="url"
+                    inputMode="url"
+                    value={paymentLinkInput}
+                    onChange={e => setPaymentLinkInput(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
+                  />
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={handleSavePaymentLink}
+                      disabled={savingPaymentLink || paymentLinkInput.trim() === (addr?._meta?.payment_link || '')}
+                      className="px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      onClick={handleGenerateWaveLink}
+                      disabled={savingPaymentLink}
+                      className="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                      {savingPaymentLink ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      Generer Wave
+                    </button>
+                  </div>
+                  {addr?._meta?.payment_link_expires_at && (
+                    <p className="mt-2 text-yellow-400 text-xs">
+                      Lien Wave valable jusqu&apos;au{' '}
+                      {new Date(addr._meta.payment_link_expires_at).toLocaleString('fr-FR', { day: 'numeric', month: 'long', hour: '2-digit', minute: '2-digit' })}.
+                      Passe ce delai, il disparait de la facture : generez-en un nouveau.
+                    </p>
+                  )}
+                  <p className="mt-2 text-gray-500 text-xs">
+                    Le lien apparait sur la facture et dans le message WhatsApp tant que la commande n&apos;est pas payee.
+                    Un lien genere par Wave expire au bout de 30 minutes.
+                  </p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Invoice */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-4">Facture</h2>
-            <button
-              onClick={handleDownloadInvoice}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 hover:border-gray-600 transition-colors"
-            >
-              <FileText className="w-4 h-4 text-green-400" />
-              Telecharger facture
-            </button>
+            {readyPdf ? (
+              <>
+                <button
+                  onClick={() => handleSendPdf(readyPdf)}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-black text-sm font-bold transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Envoyer le PDF
+                </button>
+                <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                  <span className="text-gray-500 truncate">{readyPdf.name} · {Math.max(1, Math.round(readyPdf.size / 1024))} Ko</span>
+                  <button onClick={() => downloadFile(readyPdf)} className="shrink-0 text-green-400 hover:text-green-300 font-medium py-1">
+                    Telecharger
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                onClick={handlePreparePdf}
+                disabled={preparingPdf}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-black text-sm font-bold transition-colors disabled:opacity-60"
+              >
+                {preparingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                {preparingPdf ? 'Preparation du PDF...' : 'Preparer le PDF a envoyer'}
+              </button>
+            )}
+            <div className="mt-2 grid grid-cols-2 gap-2">
+              <button
+                onClick={handleShareWhatsApp}
+                className="inline-flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                <MessageCircle className="w-4 h-4 text-green-400" />
+                Lien WhatsApp
+              </button>
+              <button
+                onClick={handleDownloadInvoice}
+                className="inline-flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                <Printer className="w-4 h-4 text-green-400" />
+                Imprimer
+              </button>
+            </div>
+            <p className="mt-3 text-gray-500 text-xs">
+              « Envoyer le PDF » ouvre le menu de partage du telephone avec la facture jointe et les liens des produits.
+              « Lien WhatsApp » ecrit directement au client, sans piece jointe.
+            </p>
           </div>
 
           {/* Order Info */}
@@ -1208,6 +1758,17 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
           orderId={order.id}
           onSave={handleAddItem}
           onClose={() => setShowAddItem(false)}
+        />
+      )}
+      {itemBeingEdited && (
+        <EditItemModal
+          key={itemBeingEdited.id}
+          item={itemBeingEdited}
+          saving={savingItem}
+          onSave={handleSaveItem}
+          onClose={() => {
+            if (!savingItem) setItemBeingEdited(null)
+          }}
         />
       )}
       {itemPendingDelete && (

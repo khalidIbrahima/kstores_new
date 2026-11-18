@@ -216,7 +216,7 @@ export default function AdminSuppliers() {
                       <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-900 border border-gray-700 group">
                         <Image src={img} alt="" fill className="object-cover" sizes="64px" />
                         <button type="button" onClick={() => setFormImages(prev => prev.filter((_, j) => j !== i))}
-                          className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+                          className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
                           <X className="w-2.5 h-2.5" />
                         </button>
                       </div>

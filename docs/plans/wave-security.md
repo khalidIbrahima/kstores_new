@@ -63,3 +63,17 @@
     Wave étant injoignable depuis l'environnement de test) ; `/api/wave` : id invalide → 400, commande inconnue → 404,
     déjà payée → 409.
 - Non vérifié : un vrai paiement Wave de bout en bout (pas de clé API disponible).
+
+## Clés Wave depuis l'admin (2026-11-18)
+
+Demande : « comment ajouter mes clés depuis l'admin ? »
+
+- Même mécanisme que les clés IA (Supabase Vault, `db/ai-vault.sql`).
+- `db/wave-vault.sql` (**à exécuter une fois**) : ajoute `wave_api_key` et `wave_webhook_secret` à la liste blanche
+  de `set_ai_secret`.
+- `src/app/api/admin/payment-keys` : GET = statut (jamais la valeur), POST = enregistrement.
+- `src/lib/wave.ts` : chaque secret vient de la variable d'environnement si elle existe, sinon du Vault (cache 60 s).
+- Admin > Paramètres > Paiements : panneau « Clés Wave » + adresse du webhook à déclarer chez Wave.
+- Vérifié en local : sans variable d'environnement, clé absente du Vault → 503 ; clé + secret dans le Vault →
+  signature exigée (401) puis appel à Wave. Panneau testé sur 390 px avec API simulée.
+- Non vérifié : la route admin avec une vraie session, et le vrai Vault.

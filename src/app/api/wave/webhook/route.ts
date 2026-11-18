@@ -4,6 +4,7 @@ import { notifyTelegramCriticalError } from '@/lib/telegram'
 import {
   decideWaveWebhook,
   getWaveCheckoutSession,
+  getWaveWebhookSecret,
   isWaveConfigured,
   isWaveSessionId,
   verifyWaveWebhookAuth,
@@ -40,13 +41,13 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
 
     const supabase = getSupabaseAdmin()
-    if (!isWaveConfigured() || !supabase) {
+    if (!supabase || !(await isWaveConfigured())) {
       // Without the Wave API key nothing can be verified, so nothing is accepted.
       console.error('Wave webhook: rejected, Wave or Supabase service key is not configured')
       return NextResponse.json({ error: 'Wave webhook is not configured' }, { status: 503 })
     }
 
-    const webhookSecret = process.env.WAVE_WEBHOOK_SECRET || ''
+    const webhookSecret = await getWaveWebhookSecret()
     if (webhookSecret) {
       const authentic = verifyWaveWebhookAuth(
         rawBody,

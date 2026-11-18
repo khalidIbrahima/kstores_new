@@ -13,7 +13,8 @@ function getSupabaseAdmin() {
   return createClient(supabaseUrl, serviceRoleKey)
 }
 
-const ORDER_PATCH_FIELDS = ['status', 'total', 'shipping_address'] as const
+const ORDER_PATCH_FIELDS = ['status', 'total', 'shipping_address', 'payment_status', 'payment_method'] as const
+const PAYMENT_STATUSES = ['paid', 'pending', 'failed', 'expired']
 
 export async function PATCH(
   req: NextRequest,
@@ -34,6 +35,18 @@ export async function PATCH(
     }
     if (Object.keys(payload).length === 0) {
       return NextResponse.json({ error: 'No patchable fields' }, { status: 400 })
+    }
+    if ('payment_status' in payload) {
+      const value = payload.payment_status
+      if (value !== null && (typeof value !== 'string' || !PAYMENT_STATUSES.includes(value))) {
+        return NextResponse.json({ error: 'Invalid payment_status' }, { status: 400 })
+      }
+    }
+    if ('payment_method' in payload) {
+      const value = payload.payment_method
+      if (value !== null && (typeof value !== 'string' || value.length === 0 || value.length > 40)) {
+        return NextResponse.json({ error: 'Invalid payment_method' }, { status: 400 })
+      }
     }
     const supabase = getSupabaseAdmin()
     const { data, error } = await supabase

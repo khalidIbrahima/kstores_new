@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { adminFetch } from '@/lib/admin-fetch'
-import { Save, Loader2, Store, CreditCard, Truck, Globe, Phone, Mail, Bot, Check, X, KeyRound } from 'lucide-react'
+import { Save, Loader2, Store, CreditCard, Truck, Globe, Phone, Mail, Bot, Check, X, KeyRound, FileText } from 'lucide-react'
 
 interface SettingsData {
   id: string
@@ -36,13 +36,19 @@ interface SettingsData {
     linkedin?: string
   } | null
   ai_provider: 'groq' | 'anthropic' | null
+  ninea?: string | null
+  rccm?: string | null
+  business_address?: string | null
+  payment_instructions?: string | null
+  payment_link?: string | null
 }
 
-type Tab = 'boutique' | 'contact' | 'paiements' | 'livraison' | 'reseaux' | 'ia'
+type Tab = 'boutique' | 'contact' | 'facturation' | 'paiements' | 'livraison' | 'reseaux' | 'ia'
 
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'boutique', label: 'Boutique', icon: <Store className="w-4 h-4" /> },
   { id: 'contact', label: 'Contact', icon: <Phone className="w-4 h-4" /> },
+  { id: 'facturation', label: 'Facturation', icon: <FileText className="w-4 h-4" /> },
   { id: 'paiements', label: 'Paiements', icon: <CreditCard className="w-4 h-4" /> },
   { id: 'livraison', label: 'Livraison', icon: <Truck className="w-4 h-4" /> },
   { id: 'reseaux', label: 'Reseaux sociaux', icon: <Globe className="w-4 h-4" /> },
@@ -256,6 +262,66 @@ export default function AdminSettings() {
             </div>
           )}
 
+          {/* Facturation tab */}
+          {activeTab === 'facturation' && (() => {
+            // The columns only exist once db/store-settings-invoice-fields.sql has been run.
+            const ready = 'ninea' in settings
+            const inputClass =
+              'w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500 disabled:opacity-50'
+            return (
+              <div className="space-y-4">
+                {!ready && (
+                  <p className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-300">
+                    Ces champs ne sont pas encore disponibles : executez une fois
+                    <span className="font-mono"> db/store-settings-invoice-fields.sql </span>
+                    dans l&apos;editeur SQL de Supabase, puis rechargez cette page.
+                  </p>
+                )}
+                <p className="text-sm text-gray-500">Ces informations apparaissent sur les factures. Un champ vide n&apos;est pas affiche.</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">NINEA</label>
+                    <input type="text" disabled={!ready} value={settings.ninea || ''} onChange={e => updateField('ninea', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">RCCM</label>
+                    <input type="text" disabled={!ready} value={settings.rccm || ''} onChange={e => updateField('rccm', e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Adresse de l&apos;entreprise</label>
+                  <input type="text" disabled={!ready} value={settings.business_address || ''} onChange={e => updateField('business_address', e.target.value)} placeholder="Dakar, Sénégal" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Instructions de paiement (factures non payees)</label>
+                  <textarea
+                    rows={3}
+                    disabled={!ready}
+                    value={settings.payment_instructions || ''}
+                    onChange={e => updateField('payment_instructions', e.target.value)}
+                    placeholder="Ex. : Wave ou Orange Money au 7X XXX XX XX"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Lien de paiement general (optionnel)</label>
+                  <input
+                    type="url"
+                    inputMode="url"
+                    disabled={!ready}
+                    value={settings.payment_link || ''}
+                    onChange={e => updateField('payment_link', e.target.value)}
+                    placeholder="https://..."
+                    className={inputClass}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Affiche sur toutes les factures non payees. Un lien saisi sur une commande le remplace pour cette commande.
+                  </p>
+                </div>
+              </div>
+            )
+          })()}
+
           {/* Paiements tab */}
           {activeTab === 'paiements' && (
             <div className="space-y-3">
@@ -279,6 +345,7 @@ export default function AdminSettings() {
                   </label>
                 </div>
               ))}
+              <WaveKeysPanel storeUrl={settings.store_url} />
             </div>
           )}
 
@@ -506,6 +573,86 @@ function AiSection({
   )
 }
 
+interface WaveKeyStatus {
+  wave_api_key?: { set: boolean; source: 'env' | 'vault' }
+  wave_webhook_secret?: { set: boolean; source: 'env' | 'vault' }
+}
+
+function WaveKeysPanel({ storeUrl }: { storeUrl: string | null }) {
+  const [status, setStatus] = useState<WaveKeyStatus | null>(null)
+  const [loadingStatus, setLoadingStatus] = useState(true)
+
+  const refreshStatus = async () => {
+    try {
+      const res = await adminFetch('/api/admin/payment-keys')
+      if (res.ok) setStatus((await res.json()) as WaveKeyStatus)
+    } finally {
+      setLoadingStatus(false)
+    }
+  }
+
+  useEffect(() => {
+    let cancelled = false
+    adminFetch('/api/admin/payment-keys')
+      .then(res => (res.ok ? res.json() : null))
+      .then(data => {
+        if (cancelled) return
+        if (data) setStatus(data as WaveKeyStatus)
+        setLoadingStatus(false)
+      })
+      .catch(() => {
+        if (!cancelled) setLoadingStatus(false)
+      })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const baseUrl = (storeUrl || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/+$/, '')
+  const fromEnv = status?.wave_api_key?.source === 'env' || status?.wave_webhook_secret?.source === 'env'
+
+  return (
+    <div className="mt-4 pt-4 border-t border-gray-800">
+      <div className="flex items-center gap-2 mb-1">
+        <KeyRound className="w-4 h-4 text-green-400" />
+        <h3 className="text-white font-bold text-sm">Cles Wave (stockees dans Supabase Vault)</h3>
+      </div>
+      <p className="text-gray-500 text-xs mb-4">
+        Les cles sont chiffrees au repos et ne sont jamais renvoyees au navigateur. Sans cle API, le paiement Wave en ligne
+        est desactive et le webhook refuse toute requete.
+      </p>
+      <div className="space-y-3">
+        <KeyInput
+          name="wave_api_key"
+          endpoint="/api/admin/payment-keys"
+          label="Cle API Wave"
+          placeholder="wave_sn_prod_..."
+          isSet={status?.wave_api_key?.set ?? false}
+          loadingStatus={loadingStatus}
+          onSaved={refreshStatus}
+        />
+        <KeyInput
+          name="wave_webhook_secret"
+          endpoint="/api/admin/payment-keys"
+          label="Secret du webhook Wave"
+          placeholder="wave_sn_WHS_..."
+          isSet={status?.wave_webhook_secret?.set ?? false}
+          loadingStatus={loadingStatus}
+          onSaved={refreshStatus}
+        />
+      </div>
+      {fromEnv && (
+        <p className="mt-3 text-yellow-400 text-xs">
+          Une cle est definie dans les variables d&apos;environnement du serveur : elle est prioritaire sur celle saisie ici.
+        </p>
+      )}
+      <p className="mt-3 text-gray-500 text-xs break-all">
+        Adresse du webhook a declarer dans le portail Wave Business : <span className="font-mono text-gray-300">{baseUrl}/api/wave/webhook</span>
+      </p>
+    </div>
+  )
+}
+
 function KeyInput({
   name,
   label,
@@ -513,9 +660,11 @@ function KeyInput({
   isSet,
   loadingStatus,
   onSaved,
+  endpoint = '/api/admin/ai-keys',
 }: {
-  name: 'anthropic_api_key' | 'groq_api_key'
+  name: string
   label: string
+  endpoint?: string
   placeholder: string
   isSet: boolean
   loadingStatus: boolean
@@ -535,7 +684,7 @@ function KeyInput({
     setError(null)
     setSavedOk(false)
     try {
-      const res = await adminFetch('/api/admin/ai-keys', {
+      const res = await adminFetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ name, value }),

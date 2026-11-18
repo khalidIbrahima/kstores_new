@@ -23,7 +23,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Missing or invalid orderId' }, { status: 400 })
     }
 
-    if (!isWaveConfigured()) {
+    if (!(await isWaveConfigured())) {
       return NextResponse.json(
         { error: 'Wave payment is not configured. Please contact support.' },
         { status: 503 }

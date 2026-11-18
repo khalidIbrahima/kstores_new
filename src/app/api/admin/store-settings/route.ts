@@ -24,6 +24,11 @@ const ALLOWED_FIELDS = new Set([
   'logo_url',
   'favicon_url',
   'ai_provider',
+  'ninea',
+  'rccm',
+  'business_address',
+  'payment_instructions',
+  'payment_link',
 ])
 
 export async function PATCH(req: NextRequest) {
