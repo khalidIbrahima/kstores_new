@@ -81,4 +81,10 @@ export interface StoreSettings {
     orange_money?: boolean
   } | null
   ai_provider: 'groq' | 'anthropic' | null
+  /** Invoice fields — present only once db/store-settings-invoice-fields.sql has been run */
+  ninea?: string | null
+  rccm?: string | null
+  business_address?: string | null
+  payment_instructions?: string | null
+  payment_link?: string | null
 }

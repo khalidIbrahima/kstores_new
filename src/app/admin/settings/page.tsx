@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { adminFetch } from '@/lib/admin-fetch'
-import { Save, Loader2, Store, CreditCard, Truck, Globe, Phone, Mail, Bot, Check, X, KeyRound } from 'lucide-react'
+import { Save, Loader2, Store, CreditCard, Truck, Globe, Phone, Mail, Bot, Check, X, KeyRound, FileText } from 'lucide-react'
 
 interface SettingsData {
   id: string
@@ -36,13 +36,19 @@ interface SettingsData {
     linkedin?: string
   } | null
   ai_provider: 'groq' | 'anthropic' | null
+  ninea?: string | null
+  rccm?: string | null
+  business_address?: string | null
+  payment_instructions?: string | null
+  payment_link?: string | null
 }
 
-type Tab = 'boutique' | 'contact' | 'paiements' | 'livraison' | 'reseaux' | 'ia'
+type Tab = 'boutique' | 'contact' | 'facturation' | 'paiements' | 'livraison' | 'reseaux' | 'ia'
 
 const tabs: { id: Tab; label: string; icon: React.ReactNode }[] = [
   { id: 'boutique', label: 'Boutique', icon: <Store className="w-4 h-4" /> },
   { id: 'contact', label: 'Contact', icon: <Phone className="w-4 h-4" /> },
+  { id: 'facturation', label: 'Facturation', icon: <FileText className="w-4 h-4" /> },
   { id: 'paiements', label: 'Paiements', icon: <CreditCard className="w-4 h-4" /> },
   { id: 'livraison', label: 'Livraison', icon: <Truck className="w-4 h-4" /> },
   { id: 'reseaux', label: 'Reseaux sociaux', icon: <Globe className="w-4 h-4" /> },
@@ -255,6 +261,66 @@ export default function AdminSettings() {
               </div>
             </div>
           )}
+
+          {/* Facturation tab */}
+          {activeTab === 'facturation' && (() => {
+            // The columns only exist once db/store-settings-invoice-fields.sql has been run.
+            const ready = 'ninea' in settings
+            const inputClass =
+              'w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500 disabled:opacity-50'
+            return (
+              <div className="space-y-4">
+                {!ready && (
+                  <p className="rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-4 py-3 text-sm text-yellow-300">
+                    Ces champs ne sont pas encore disponibles : executez une fois
+                    <span className="font-mono"> db/store-settings-invoice-fields.sql </span>
+                    dans l&apos;editeur SQL de Supabase, puis rechargez cette page.
+                  </p>
+                )}
+                <p className="text-sm text-gray-500">Ces informations apparaissent sur les factures. Un champ vide n&apos;est pas affiche.</p>
+                <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">NINEA</label>
+                    <input type="text" disabled={!ready} value={settings.ninea || ''} onChange={e => updateField('ninea', e.target.value)} className={inputClass} />
+                  </div>
+                  <div>
+                    <label className="block text-sm text-gray-400 mb-1">RCCM</label>
+                    <input type="text" disabled={!ready} value={settings.rccm || ''} onChange={e => updateField('rccm', e.target.value)} className={inputClass} />
+                  </div>
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Adresse de l&apos;entreprise</label>
+                  <input type="text" disabled={!ready} value={settings.business_address || ''} onChange={e => updateField('business_address', e.target.value)} placeholder="Dakar, Sénégal" className={inputClass} />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Instructions de paiement (factures non payees)</label>
+                  <textarea
+                    rows={3}
+                    disabled={!ready}
+                    value={settings.payment_instructions || ''}
+                    onChange={e => updateField('payment_instructions', e.target.value)}
+                    placeholder="Ex. : Wave ou Orange Money au 7X XXX XX XX"
+                    className={inputClass}
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-1">Lien de paiement general (optionnel)</label>
+                  <input
+                    type="url"
+                    inputMode="url"
+                    disabled={!ready}
+                    value={settings.payment_link || ''}
+                    onChange={e => updateField('payment_link', e.target.value)}
+                    placeholder="https://..."
+                    className={inputClass}
+                  />
+                  <p className="mt-1 text-xs text-gray-500">
+                    Affiche sur toutes les factures non payees. Un lien saisi sur une commande le remplace pour cette commande.
+                  </p>
+                </div>
+              </div>
+            )
+          })()}
 
           {/* Paiements tab */}
           {activeTab === 'paiements' && (

@@ -27,6 +27,8 @@ export interface InvoiceOrder {
   paidAt?: string | null
   /** orders.status — only 'cancelled' changes the document */
   orderStatus?: string | null
+  /** Payment link for this order (e.g. a Wave checkout URL); overrides the store-wide link */
+  paymentLink?: string | null
 }
 
 /** Seller details printed on the invoice. Every field falls back to a default. */
@@ -42,6 +44,8 @@ export interface InvoiceStore {
   paymentMethods?: string[] | null
   /** Free text shown on unpaid invoices (e.g. the Wave number to pay to) */
   paymentInstructions?: string | null
+  /** Store-wide payment link shown on unpaid invoices */
+  paymentLink?: string | null
 }
 
 const DEFAULT_STORE = {
@@ -79,6 +83,12 @@ function escapeHtml(str: string): string {
 }
 
 const clean = (value?: string | null): string => (value ?? '').trim()
+
+/** Only http(s) links are ever written into the document. */
+const safeHttpUrl = (value?: string | null): string => {
+  const url = clean(value)
+  return /^https?:\/\/\S+$/i.test(url) ? url : ''
+}
 
 const displayUrl = (url: string): string =>
   url.replace(/^https?:\/\//i, '').replace(/\/+$/, '')
@@ -196,6 +206,7 @@ const STYLES = `
   .howto { background: #fffbeb; border: 1px solid #fde68a; border-radius: 10px; padding: 12px 14px; margin-bottom: 14px; }
   .howto .label { color: var(--amber-ink); }
   .howto p { font-size: 13px; color: var(--text); }
+  .howto a { color: var(--green-ink); font-weight: 700; overflow-wrap: anywhere; }
   .howto strong { display: inline; color: var(--ink); font-size: 13px; margin: 0; }
   .note { font-size: 13px; }
   .note strong { display: block; color: var(--ink); font-size: 14px; margin-bottom: 2px; }
@@ -291,12 +302,14 @@ export function generateInvoiceHtml(order: InvoiceOrder, store: InvoiceStore = {
   const totalLabel = isPaid ? 'Total payé' : state === 'cancelled' ? 'Total' : 'Total à payer'
   const acceptedMethods = (store.paymentMethods || []).map(methodLabel).filter(Boolean)
   const paymentInstructions = clean(store.paymentInstructions)
+  const paymentLink = safeHttpUrl(order.paymentLink) || safeHttpUrl(store.paymentLink)
 
   const howToPay = state === 'due' ? `
         <div class="howto">
           <div class="label">Comment payer</div>
           ${acceptedMethods.length ? `<p>Moyens acceptés : <strong>${escapeHtml(acceptedMethods.join(', '))}</strong></p>` : ''}
           ${paymentInstructions ? `<p>${escapeHtml(paymentInstructions)}</p>` : ''}
+          ${paymentLink ? `<p>Payer en ligne : <a href="${escapeHtml(paymentLink)}" target="_blank" rel="noopener">${escapeHtml(displayUrl(paymentLink))}</a></p>` : ''}
           <p>Référence à indiquer : <strong>${shortId}</strong></p>
         </div>` : ''
 

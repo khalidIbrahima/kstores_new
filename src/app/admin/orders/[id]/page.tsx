@@ -8,6 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { adminFetch } from '@/lib/admin-fetch'
 import { formatPrice } from '@/lib/utils'
 import { generateInvoiceHtml } from '@/lib/invoice'
+import { downloadFile } from '@/lib/invoice-pdf'
 import { useStoreSettings } from '@/hooks/useStoreSettings'
 import { notifyStatusUpdate } from '@/lib/notifications'
 import { useToast } from '@/components/ToastProvider'
@@ -35,6 +36,7 @@ import {
   ExternalLink,
   MessageCircle,
   Share2,
+  Printer,
 } from 'lucide-react'
 
 interface OrderItem {
@@ -59,6 +61,7 @@ interface ShippingAddress {
     admin_discount_amount?: number
     shipping_fee?: number
     paid_at?: string | null
+    payment_link?: string | null
   }
 }
 
@@ -629,6 +632,10 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const [savingItem, setSavingItem] = useState(false)
   const [paymentMethodInput, setPaymentMethodInput] = useState('cash')
   const [savingPayment, setSavingPayment] = useState(false)
+  const [paymentLinkInput, setPaymentLinkInput] = useState('')
+  const [savingPaymentLink, setSavingPaymentLink] = useState(false)
+  const [preparingPdf, setPreparingPdf] = useState(false)
+  const [preparedPdf, setPreparedPdf] = useState<{ file: File; key: string } | null>(null)
 
   const fetchData = useCallback(async () => {
     const [orderRes, itemsRes] = await Promise.all([
@@ -641,6 +648,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       setNewStatus(nextOrder.status)
       setDiscountInput(String(getOrderDiscount(nextOrder)))
       setShippingFeeInput(String(getOrderShippingFee(nextOrder)))
+      setPaymentLinkInput(nextOrder.shipping_address?._meta?.payment_link || '')
     }
     if (itemsRes.data) setItems(itemsRes.data as OrderItem[])
     setLoading(false)
@@ -916,6 +924,68 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     }
   }
 
+  const savePaymentLink = async (link: string) => {
+    if (!order) return false
+    const nextShippingAddress: ShippingAddress = {
+      ...order.shipping_address,
+      _meta: { ...order.shipping_address?._meta, payment_link: link || null },
+    }
+    const response = await adminFetch(`/api/admin/orders/${id}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ shipping_address: nextShippingAddress }),
+    })
+    if (!response.ok) {
+      const payload = (await response.json().catch(() => ({}))) as { error?: string }
+      throw new Error(payload.error || 'Update failed')
+    }
+    setOrder(prev => (prev ? { ...prev, shipping_address: nextShippingAddress } : null))
+    setPaymentLinkInput(link)
+    return true
+  }
+
+  const handleSavePaymentLink = async () => {
+    const link = paymentLinkInput.trim()
+    if (link && !/^https?:\/\/\S+$/i.test(link)) {
+      toast('Le lien doit commencer par http:// ou https://', 'error')
+      return
+    }
+    setSavingPaymentLink(true)
+    try {
+      await savePaymentLink(link)
+      toast(link ? 'Lien de paiement enregistre.' : 'Lien de paiement retire.', 'success')
+    } catch (error) {
+      toast(error instanceof Error ? error.message : "Impossible d'enregistrer le lien.", 'error')
+    } finally {
+      setSavingPaymentLink(false)
+    }
+  }
+
+  const handleGenerateWaveLink = async () => {
+    if (!order || savingPaymentLink) return
+    setSavingPaymentLink(true)
+    try {
+      const response = await fetch('/api/wave', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          amount: order.total,
+          orderId: order.id,
+          customerEmail: order.shipping_address?.email || settings?.contact_email || 'client',
+        }),
+      })
+      const payload = (await response.json().catch(() => ({}))) as { checkout_url?: string; error?: string }
+      if (!response.ok || !payload.checkout_url) {
+        throw new Error(payload.error || 'Wave n\'a pas renvoye de lien.')
+      }
+      await savePaymentLink(payload.checkout_url)
+      toast('Lien Wave genere et enregistre.', 'success')
+    } catch (error) {
+      toast(error instanceof Error ? error.message : 'Impossible de generer le lien Wave.', 'error')
+    } finally {
+      setSavingPaymentLink(false)
+    }
+  }
+
   const handleSetPaid = async (paid: boolean) => {
     if (!order || savingPayment) return
     if (!paid && !confirm('Remettre cette commande en « non payee » ?')) return
@@ -967,6 +1037,10 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       'Facture et suivi de commande :',
       `${baseUrl}/orders/track/${order.id}`,
     ]
+    const payLink = order.shipping_address?._meta?.payment_link || settings?.payment_link
+    if (!paid && order.status !== 'cancelled' && payLink) {
+      lines.push('', 'Payer en ligne :', payLink)
+    }
     const productLines = items
       .filter(it => it.products && (it.products.slug || it.product_id))
       .map(it => `• ${it.products!.name} (x${it.quantity}) : ${baseUrl}/products/${it.products!.slug || it.product_id}`)
@@ -985,27 +1059,10 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
     window.open(number ? `https://wa.me/${number}?text=${text}` : `https://wa.me/?text=${text}`, '_blank', 'noopener')
   }
 
-  const handleShareOther = async () => {
-    const text = buildShareMessage()
-    if (!text) return
-    try {
-      if (typeof navigator.share === 'function') {
-        await navigator.share({ text })
-        return
-      }
-      await navigator.clipboard.writeText(text)
-      toast('Message copie dans le presse-papiers.', 'success')
-    } catch (error) {
-      // AbortError = the user closed the share sheet
-      if (error instanceof DOMException && error.name === 'AbortError') return
-      toast('Partage impossible sur cet appareil.', 'error')
-    }
-  }
-
-  const handleDownloadInvoice = () => {
-    if (!order) return
+  const buildInvoiceHtml = () => {
+    if (!order) return ''
     const addr = order.shipping_address
-    const invoiceHtml = generateInvoiceHtml({
+    return generateInvoiceHtml({
       id: order.id,
       date: order.created_at,
       firstName: addr?.firstName || addr?.name || '',
@@ -1028,13 +1085,66 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
       paymentMethod: order.payment_method,
       paidAt: addr?._meta?.paid_at,
       orderStatus: order.status,
+      paymentLink: addr?._meta?.payment_link,
     }, {
       name: settings?.store_name,
       url: settings?.store_url,
       email: settings?.contact_email,
       phone: settings?.support_phone,
+      address: settings?.business_address,
+      ninea: settings?.ninea,
+      rccm: settings?.rccm,
       paymentMethods: Object.entries(settings?.payment_methods || {}).filter(([, on]) => on).map(([key]) => key),
+      paymentInstructions: settings?.payment_instructions,
+      paymentLink: settings?.payment_link,
     })
+  }
+
+  /** Changes whenever something printed on the invoice changes, so a prepared PDF is never stale. */
+  const getInvoiceKey = () =>
+    JSON.stringify([order, items.map(it => [it.id, it.quantity, it.price, it.products?.name]), settings])
+
+  const handlePreparePdf = async () => {
+    if (!order || preparingPdf) return
+    setPreparingPdf(true)
+    try {
+      const { generateInvoicePdf } = await import('@/lib/invoice-pdf')
+      const prefix = order.payment_status === 'paid' ? 'facture' : 'proforma'
+      const file = await generateInvoicePdf(buildInvoiceHtml(), `${prefix}-${order.id.slice(0, 8).toUpperCase()}.pdf`)
+      setPreparedPdf({ file, key: getInvoiceKey() })
+    } catch (error) {
+      console.error('Invoice PDF error:', error)
+      toast('Impossible de generer le PDF sur cet appareil.', 'error')
+    } finally {
+      setPreparingPdf(false)
+    }
+  }
+
+  // Called straight from the click: navigator.share needs a fresh user gesture,
+  // which is why the PDF is prepared in a separate step.
+  const handleSendPdf = async (file: File) => {
+    const withText: ShareData = { files: [file], text: buildShareMessage() }
+    const filesOnly: ShareData = { files: [file] }
+    const canShare = (data: ShareData) => typeof navigator.canShare === 'function' && navigator.canShare(data)
+    const data = canShare(withText) ? withText : canShare(filesOnly) ? filesOnly : null
+    if (!data) {
+      downloadFile(file)
+      toast('PDF telecharge. Joignez-le dans WhatsApp.', 'success')
+      return
+    }
+    try {
+      await navigator.share(data)
+    } catch (error) {
+      // AbortError = the user closed the share sheet
+      if (error instanceof DOMException && error.name === 'AbortError') return
+      downloadFile(file)
+      toast('Partage impossible : le PDF a ete telecharge.', 'error')
+    }
+  }
+
+  const handleDownloadInvoice = () => {
+    if (!order) return
+    const invoiceHtml = buildInvoiceHtml()
     const win = window.open('', '_blank')
     if (win) {
       win.document.write(invoiceHtml)
@@ -1066,6 +1176,7 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
   const currentStatus = STATUSES.find(s => s.value === order.status)
   const itemsSubtotal = getItemsSubtotal(items)
   const savedDiscount = getOrderDiscount(order)
+  const readyPdf = preparedPdf && preparedPdf.key === getInvoiceKey() ? preparedPdf.file : null
   const baseAdjustment = getBaseAdjustment(order, items)
   const adjustmentLabel = baseAdjustment >= 0 ? 'Ajustement' : 'Ajustement negatif'
   const parsedDiscountInput = Number(discountInput)
@@ -1507,38 +1618,89 @@ export default function OrderDetail({ params }: { params: Promise<{ id: string }
                   {savingPayment ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
                   {savingPayment ? 'Enregistrement...' : 'Marquer comme payee'}
                 </button>
+                <div className="pt-3 border-t border-gray-800">
+                  <label className="text-gray-400 text-xs font-medium mb-1 block">Lien de paiement pour cette commande</label>
+                  <input
+                    type="url"
+                    inputMode="url"
+                    value={paymentLinkInput}
+                    onChange={e => setPaymentLinkInput(e.target.value)}
+                    placeholder="https://..."
+                    className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500 transition-colors"
+                  />
+                  <div className="mt-2 grid grid-cols-2 gap-2">
+                    <button
+                      onClick={handleSavePaymentLink}
+                      disabled={savingPaymentLink || paymentLinkInput.trim() === (addr?._meta?.payment_link || '')}
+                      className="px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                      Enregistrer
+                    </button>
+                    <button
+                      onClick={handleGenerateWaveLink}
+                      disabled={savingPaymentLink}
+                      className="inline-flex items-center justify-center gap-2 px-3 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+                    >
+                      {savingPaymentLink ? <Loader2 className="w-4 h-4 animate-spin" /> : null}
+                      Generer Wave
+                    </button>
+                  </div>
+                  <p className="mt-2 text-gray-500 text-xs">
+                    Le lien apparait sur la facture et dans le message WhatsApp tant que la commande n&apos;est pas payee.
+                  </p>
+                </div>
               </div>
             )}
           </div>
 
-          {/* Invoice Download */}
+          {/* Invoice */}
           <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h2 className="text-white font-bold mb-4">Facture</h2>
-            <button
-              onClick={handleDownloadInvoice}
-              className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 hover:border-gray-600 transition-colors"
-            >
-              <FileText className="w-4 h-4 text-green-400" />
-              Telecharger facture
-            </button>
+            {readyPdf ? (
+              <>
+                <button
+                  onClick={() => handleSendPdf(readyPdf)}
+                  className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-black text-sm font-bold transition-colors"
+                >
+                  <Share2 className="w-4 h-4" />
+                  Envoyer le PDF
+                </button>
+                <div className="mt-2 flex items-center justify-between gap-3 text-xs">
+                  <span className="text-gray-500 truncate">{readyPdf.name} · {Math.max(1, Math.round(readyPdf.size / 1024))} Ko</span>
+                  <button onClick={() => downloadFile(readyPdf)} className="shrink-0 text-green-400 hover:text-green-300 font-medium py-1">
+                    Telecharger
+                  </button>
+                </div>
+              </>
+            ) : (
+              <button
+                onClick={handlePreparePdf}
+                disabled={preparingPdf}
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-black text-sm font-bold transition-colors disabled:opacity-60"
+              >
+                {preparingPdf ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileText className="w-4 h-4" />}
+                {preparingPdf ? 'Preparation du PDF...' : 'Preparer le PDF a envoyer'}
+              </button>
+            )}
             <div className="mt-2 grid grid-cols-2 gap-2">
               <button
                 onClick={handleShareWhatsApp}
-                className="inline-flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-green-500 hover:bg-green-600 text-black text-sm font-bold transition-colors"
-              >
-                <MessageCircle className="w-4 h-4" />
-                WhatsApp
-              </button>
-              <button
-                onClick={handleShareOther}
                 className="inline-flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
               >
-                <Share2 className="w-4 h-4 text-green-400" />
-                Partager
+                <MessageCircle className="w-4 h-4 text-green-400" />
+                Lien WhatsApp
+              </button>
+              <button
+                onClick={handleDownloadInvoice}
+                className="inline-flex items-center justify-center gap-2 px-3 py-3 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors"
+              >
+                <Printer className="w-4 h-4 text-green-400" />
+                Imprimer
               </button>
             </div>
-            <p className="mt-2 text-gray-500 text-xs">
-              Envoie au client le lien de sa facture et les liens des produits commandes.
+            <p className="mt-3 text-gray-500 text-xs">
+              « Envoyer le PDF » ouvre le menu de partage du telephone avec la facture jointe et les liens des produits.
+              « Lien WhatsApp » ecrit directement au client, sans piece jointe.
             </p>
           </div>
 

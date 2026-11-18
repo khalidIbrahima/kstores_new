@@ -35,7 +35,7 @@ interface Order {
     address?: string
     city?: string
     country?: string
-    _meta?: { shipping_fee?: number; paid_at?: string | null }
+    _meta?: { shipping_fee?: number; paid_at?: string | null; payment_link?: string | null }
   }
 }
 
@@ -226,12 +226,18 @@ export default function TrackOrderDetail({ params }: { params: Promise<{ id: str
               paymentMethod: order.payment_method,
               paidAt: addr._meta?.paid_at,
               orderStatus: order.status,
+              paymentLink: addr._meta?.payment_link,
             }, {
               name: settings?.store_name,
               url: settings?.store_url,
               email: settings?.contact_email,
               phone: settings?.support_phone,
+              address: settings?.business_address,
+              ninea: settings?.ninea,
+              rccm: settings?.rccm,
               paymentMethods: Object.entries(settings?.payment_methods || {}).filter(([, on]) => on).map(([key]) => key),
+              paymentInstructions: settings?.payment_instructions,
+              paymentLink: settings?.payment_link,
             })
             const win = window.open('', '_blank')
             if (win) { win.document.write(html); win.document.close() }
