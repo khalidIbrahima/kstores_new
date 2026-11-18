@@ -41,9 +41,8 @@ export async function POST(req: NextRequest) {
     const rawBody = await req.text()
 
     const supabase = getSupabaseAdmin()
-    if (!supabase || !(await isWaveConfigured())) {
-      // Without the Wave API key nothing can be verified, so nothing is accepted.
-      console.error('Wave webhook: rejected, Wave or Supabase service key is not configured')
+    if (!supabase) {
+      console.error('Wave webhook: rejected, Supabase service key is not configured')
       return NextResponse.json({ error: 'Wave webhook is not configured' }, { status: 503 })
     }
 
@@ -66,11 +65,32 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid webhook payload' }, { status: 400 })
     }
 
+    const eventType = typeof payload?.type === 'string' ? payload.type : ''
+
+    // "Webhook Tester" of the Wave Business Portal: nothing to process, the answer only
+    // tells whether the endpoint is reachable and, when a secret is set, correctly signed.
+    if (eventType === 'test.test_event') {
+      return NextResponse.json({
+        success: true,
+        status: 'test_ok',
+        signature: webhookSecret ? 'verified' : 'not_checked_no_secret_configured',
+      })
+    }
+
     const sessionId = payload?.data?.id
     if (!isWaveSessionId(sessionId)) {
-      return NextResponse.json({ error: 'Missing checkout session id' }, { status: 400 })
+      if (eventType.startsWith('checkout.session.')) {
+        return NextResponse.json({ error: 'Missing checkout session id' }, { status: 400 })
+      }
+      // Other Wave events are not used here: acknowledge them so Wave does not retry for days.
+      return NextResponse.json({ success: true, status: 'ignored', reason: 'event_not_handled' })
     }
-    const eventType = typeof payload?.type === 'string' ? payload.type : ''
+
+    if (!(await isWaveConfigured())) {
+      // Without the Wave API key no payment can be verified, so none is accepted.
+      console.error('Wave webhook: rejected, Wave API key is not configured')
+      return NextResponse.json({ error: 'Wave webhook is not configured' }, { status: 503 })
+    }
 
     const sessionResult = await getWaveCheckoutSession(sessionId)
     if (!sessionResult.success) {

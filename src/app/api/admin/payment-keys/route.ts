@@ -6,12 +6,13 @@ import { invalidateWaveSecretCache } from '@/lib/wave'
 // Wave keys entered from the admin. They are written to Supabase Vault and never
 // sent back to the browser: GET only reports whether each key is set, and where from.
 
-const SECRET_NAMES = ['wave_api_key', 'wave_webhook_secret'] as const
+const SECRET_NAMES = ['wave_api_key', 'wave_webhook_secret', 'wave_signing_secret'] as const
 type SecretName = (typeof SECRET_NAMES)[number]
 
 const ENV_NAMES: Record<SecretName, string> = {
   wave_api_key: 'WAVE_API_KEY',
   wave_webhook_secret: 'WAVE_WEBHOOK_SECRET',
+  wave_signing_secret: 'WAVE_SIGNING_SECRET',
 }
 
 function getSupabaseAdmin() {
@@ -57,8 +58,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Invalid secret value' }, { status: 400 })
     }
 
+    // The three values are easy to paste into the wrong field; Wave's prefixes tell them apart.
+    const trimmed = value.trim()
+    const PREFIXES: Record<SecretName, string> = {
+      wave_api_key: 'wave_sn_prod_',
+      wave_webhook_secret: 'wave_sn_WHS_',
+      wave_signing_secret: 'wave_sn_AKS_',
+    }
+    const LABELS: Record<SecretName, string> = {
+      wave_api_key: 'une cle API',
+      wave_webhook_secret: 'un secret de webhook',
+      wave_signing_secret: 'une cle de signature',
+    }
+    const target = name as SecretName
+    const actual = SECRET_NAMES.find((other) => other !== target && trimmed.startsWith(PREFIXES[other]))
+    if (actual) {
+      return NextResponse.json(
+        { error: `Ceci ressemble a ${LABELS[actual]}, pas a ${LABELS[target]}.` },
+        { status: 400 }
+      )
+    }
+
     const supabase = getSupabaseAdmin()
-    const { error } = await supabase.rpc('set_ai_secret', { p_name: name, p_value: value.trim() })
+    const { error } = await supabase.rpc('set_ai_secret', { p_name: name, p_value: trimmed })
     if (error) {
       const notReady = /Invalid secret name/i.test(error.message)
       return NextResponse.json(

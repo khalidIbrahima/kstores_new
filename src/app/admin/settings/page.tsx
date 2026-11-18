@@ -576,13 +576,31 @@ function AiSection({
 interface WaveKeyStatus {
   wave_api_key?: { set: boolean; source: 'env' | 'vault' }
   wave_webhook_secret?: { set: boolean; source: 'env' | 'vault' }
+  wave_signing_secret?: { set: boolean; source: 'env' | 'vault' }
 }
 
 function WaveKeysPanel({ storeUrl }: { storeUrl: string | null }) {
   const [status, setStatus] = useState<WaveKeyStatus | null>(null)
   const [loadingStatus, setLoadingStatus] = useState(true)
+  const [testing, setTesting] = useState(false)
+  const [testResult, setTestResult] = useState<{ ok: boolean; message: string; code?: string } | null>(null)
+
+  const handleTest = async () => {
+    setTesting(true)
+    setTestResult(null)
+    try {
+      const res = await adminFetch('/api/admin/payment-keys/test', { method: 'POST' })
+      const data = (await res.json().catch(() => ({}))) as { ok?: boolean; message?: string; code?: string; error?: string }
+      setTestResult({ ok: res.ok && data.ok === true, message: data.message || data.error || 'Test impossible.', code: data.code })
+    } catch {
+      setTestResult({ ok: false, message: 'Test impossible : serveur injoignable.' })
+    } finally {
+      setTesting(false)
+    }
+  }
 
   const refreshStatus = async () => {
+    setTestResult(null)
     try {
       const res = await adminFetch('/api/admin/payment-keys')
       if (res.ok) setStatus((await res.json()) as WaveKeyStatus)
@@ -609,7 +627,7 @@ function WaveKeysPanel({ storeUrl }: { storeUrl: string | null }) {
   }, [])
 
   const baseUrl = (storeUrl || (typeof window !== 'undefined' ? window.location.origin : '')).replace(/\/+$/, '')
-  const fromEnv = status?.wave_api_key?.source === 'env' || status?.wave_webhook_secret?.source === 'env'
+  const fromEnv = status?.wave_api_key?.source === 'env' || status?.wave_webhook_secret?.source === 'env' || status?.wave_signing_secret?.source === 'env'
 
   return (
     <div className="mt-4 pt-4 border-t border-gray-800">
@@ -632,6 +650,15 @@ function WaveKeysPanel({ storeUrl }: { storeUrl: string | null }) {
           onSaved={refreshStatus}
         />
         <KeyInput
+          name="wave_signing_secret"
+          endpoint="/api/admin/payment-keys"
+          label="Cle de signature des requetes (si activee sur la cle API)"
+          placeholder="wave_sn_AKS_..."
+          isSet={status?.wave_signing_secret?.set ?? false}
+          loadingStatus={loadingStatus}
+          onSaved={refreshStatus}
+        />
+        <KeyInput
           name="wave_webhook_secret"
           endpoint="/api/admin/payment-keys"
           label="Secret du webhook Wave"
@@ -641,6 +668,30 @@ function WaveKeysPanel({ storeUrl }: { storeUrl: string | null }) {
           onSaved={refreshStatus}
         />
       </div>
+      <div className="mt-3">
+        <button
+          onClick={handleTest}
+          disabled={testing || loadingStatus || !(status?.wave_api_key?.set ?? false)}
+          className="w-full sm:w-auto inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-lg bg-gray-800 border border-gray-700 text-white text-sm font-medium hover:bg-gray-700 transition-colors disabled:opacity-50"
+        >
+          {testing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Check className="w-4 h-4 text-green-400" />}
+          {testing ? 'Test en cours...' : 'Tester la cle API'}
+        </button>
+        {testResult && (
+          <p
+            role="status"
+            className={`mt-2 rounded-lg border px-3 py-2 text-xs break-words ${
+              testResult.ok ? 'border-green-500/30 bg-green-500/10 text-green-300' : 'border-red-500/30 bg-red-500/10 text-red-300'
+            }`}
+          >
+            {testResult.message}
+            {testResult.code ? ` (${testResult.code})` : ''}
+          </p>
+        )}
+        <p className="mt-2 text-gray-500 text-xs">
+          Le test interroge Wave en lecture seule : aucun paiement n&apos;est cree.
+        </p>
+      </div>
       {fromEnv && (
         <p className="mt-3 text-yellow-400 text-xs">
           Une cle est definie dans les variables d&apos;environnement du serveur : elle est prioritaire sur celle saisie ici.
@@ -648,6 +699,10 @@ function WaveKeysPanel({ storeUrl }: { storeUrl: string | null }) {
       )}
       <p className="mt-3 text-gray-500 text-xs break-all">
         Adresse du webhook a declarer dans le portail Wave Business : <span className="font-mono text-gray-300">{baseUrl}/api/wave/webhook</span>
+      </p>
+      <p className="mt-2 text-gray-500 text-xs">
+        Pour tester le secret du webhook : dans le portail Wave Business, ouvrez ce webhook et utilisez son bouton de test.
+        Une reponse 200 signifie que l&apos;adresse est joignable et la signature correcte ; une reponse 401, que le secret saisi ici ne correspond pas.
       </p>
     </div>
   )
