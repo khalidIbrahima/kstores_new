@@ -133,7 +133,7 @@ export default function ProductsClient({
       <div className="flex gap-6">
         {/* Sidebar Filters */}
         <aside className={`${showFilters ? 'fixed inset-0 z-40 bg-black/50 lg:static lg:bg-transparent' : 'hidden lg:block'} lg:w-64 flex-shrink-0`}>
-          <div className={`${showFilters ? 'fixed right-0 top-0 h-full w-72 bg-[#0a0f1a] p-6 overflow-y-auto z-50' : ''} lg:static lg:p-0`}>
+          <div className={`${showFilters ? 'fixed right-0 top-0 h-full w-72 bg-[#0a0f1a] p-6 pt-[max(1.5rem,env(safe-area-inset-top))] pb-[max(1.5rem,env(safe-area-inset-bottom))] overflow-y-auto z-50' : ''} lg:static lg:p-0`}>
             {showFilters && (
               <button
                 onClick={() => setShowFilters(false)}

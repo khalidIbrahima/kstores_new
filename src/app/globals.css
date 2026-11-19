@@ -8,6 +8,9 @@
 html,
 body {
   overflow-x: hidden;
+  /* `clip` hides horizontal overflow like `hidden`, but without turning html/body into scroll containers:
+     with `hidden`, every `position: sticky` bar (shop header, admin top bar, order summaries) scrolled away. */
+  overflow-x: clip;
 }
 
 body {
