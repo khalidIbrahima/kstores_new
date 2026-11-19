@@ -244,7 +244,7 @@ export default function AdminProducts() {
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-black text-white">Produits</h1>
           <p className="text-gray-500 text-sm mt-1">{totalProducts} produit{totalProducts > 1 ? 's' : ''} au total</p>
         </div>
-        <div className="flex flex-col gap-2 sm:flex-row">
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-row">
           <button
             onClick={exportCSV}
             className="flex items-center justify-center gap-1.5 rounded-lg border border-gray-700 px-3 py-2.5 text-sm text-gray-400 transition-colors hover:border-gray-500"
@@ -261,7 +261,7 @@ export default function AdminProducts() {
           </button>
           <Link
             href="/admin/products/new"
-            className="flex items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-green-600"
+            className="col-span-2 order-first sm:order-none flex items-center justify-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 text-sm font-bold text-black transition-colors hover:bg-green-600"
           >
             <Plus className="w-4 h-4" />
             Ajouter
@@ -272,14 +272,15 @@ export default function AdminProducts() {
       {showImport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4" onClick={() => !importing && setShowImport(false)}>
           <div
-            className="w-full max-w-md rounded-xl border border-gray-800 bg-[#111827] p-6"
+            className="w-full max-w-md max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-xl border border-gray-800 bg-[#111827] p-5 sm:p-6"
             onClick={e => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h2 className="text-lg font-bold text-white">Importer un produit Alibaba</h2>
               <button
                 onClick={() => !importing && setShowImport(false)}
-                className="text-gray-500 hover:text-white"
+                aria-label="Fermer"
+                className="shrink-0 p-1 -m-1 text-gray-500 hover:text-white"
                 disabled={importing}
               >
                 <X className="w-5 h-5" />
@@ -296,7 +297,7 @@ export default function AdminProducts() {
                   required
                   disabled={importing}
                   autoFocus
-                  className="w-full rounded-lg border border-gray-800 bg-[#0b1220] px-3 py-2.5 text-sm text-white outline-none focus:border-green-500 disabled:opacity-50"
+                  className="w-full rounded-lg border border-gray-800 bg-[#0b1220] px-3 py-2.5 text-base sm:text-sm text-white outline-none focus:border-green-500 disabled:opacity-50"
                 />
               </div>
               {importError && (
@@ -310,14 +311,14 @@ export default function AdminProducts() {
                   type="button"
                   onClick={() => setShowImport(false)}
                   disabled={importing}
-                  className="px-4 py-2 text-sm text-gray-400 hover:text-white disabled:opacity-50"
+                  className="px-4 py-2.5 sm:py-2 text-sm text-gray-400 hover:text-white disabled:opacity-50"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
                   disabled={importing || !importUrl.trim()}
-                  className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2 text-sm font-bold text-black hover:bg-green-600 disabled:opacity-50"
+                  className="flex items-center gap-2 rounded-lg bg-green-500 px-4 py-2.5 sm:py-2 text-sm font-bold text-black hover:bg-green-600 disabled:opacity-50"
                 >
                   {importing ? <Loader2 className="w-4 h-4 animate-spin" /> : <Link2 className="w-4 h-4" />}
                   {importing ? 'Import en cours...' : 'Importer'}
@@ -329,15 +330,15 @@ export default function AdminProducts() {
       )}
 
       {/* Stats */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         {[
           { label: 'Total', value: totalProducts, icon: Package, color: 'text-blue-400', bg: 'bg-blue-400/10' },
           { label: 'Actifs', value: activeProducts, icon: Eye, color: 'text-green-400', bg: 'bg-green-400/10' },
           { label: 'En promo', value: promoProducts, icon: Tag, color: 'text-orange-400', bg: 'bg-orange-400/10' },
           { label: 'Rupture', value: outOfStock, icon: AlertTriangle, color: 'text-red-400', bg: 'bg-red-400/10' },
         ].map(stat => (
-          <div key={stat.label} className="bg-[#111827] border border-gray-800 rounded-xl p-4 flex items-center gap-3">
-            <div className={`w-10 h-10 rounded-lg ${stat.bg} flex items-center justify-center`}>
+          <div key={stat.label} className="min-w-0 bg-[#111827] border border-gray-800 rounded-xl p-3 sm:p-4 flex items-center gap-3">
+            <div className={`w-10 h-10 shrink-0 rounded-lg ${stat.bg} flex items-center justify-center`}>
               <stat.icon className={`w-5 h-5 ${stat.color}`} />
             </div>
             <div>
@@ -357,7 +358,7 @@ export default function AdminProducts() {
             value={search}
             onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
             placeholder="Rechercher un produit..."
-            className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm outline-none focus:border-green-500"
+            className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500"
           />
         </div>
         <div className="relative w-full sm:w-auto">
@@ -365,7 +366,7 @@ export default function AdminProducts() {
           <select
             value={categoryFilter}
             onChange={e => { setCategoryFilter(e.target.value); setCurrentPage(1) }}
-            className="w-full appearance-none rounded-lg border border-gray-800 bg-[#111827] py-2.5 pl-10 pr-8 text-sm text-white outline-none focus:border-green-500 sm:w-auto"
+            className="w-full appearance-none rounded-lg border border-gray-800 bg-[#111827] py-2.5 pl-10 pr-8 text-base sm:text-sm text-white outline-none focus:border-green-500 sm:w-auto"
           >
             <option value="">Toutes categories</option>
             {categories.map(cat => (
@@ -378,7 +379,7 @@ export default function AdminProducts() {
           <select
             value={statusFilter}
             onChange={e => { setStatusFilter(e.target.value as typeof statusFilter); setCurrentPage(1) }}
-            className="w-full appearance-none rounded-lg border border-gray-800 bg-[#111827] px-4 py-2.5 pr-8 text-sm text-white outline-none focus:border-green-500 sm:w-auto"
+            className="w-full appearance-none rounded-lg border border-gray-800 bg-[#111827] px-4 py-2.5 pr-8 text-base sm:text-sm text-white outline-none focus:border-green-500 sm:w-auto"
           >
             <option value="">Tous statuts</option>
             <option value="active">Actifs</option>
@@ -393,21 +394,21 @@ export default function AdminProducts() {
       {/* Bulk actions */}
       {selected.size > 0 && (
         <div className="animate-fade-in flex flex-wrap items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
-          <span className="text-green-400 text-sm font-medium">{selected.size} selectionne(s)</span>
-          <button onClick={() => handleBulkToggle(true)} className="text-xs text-gray-300 hover:text-white bg-gray-800 px-3 py-1.5 rounded-lg">
+          <span className="w-full sm:w-auto text-green-400 text-sm font-medium">{selected.size} selectionne(s)</span>
+          <button onClick={() => handleBulkToggle(true)} className="text-xs text-gray-300 hover:text-white bg-gray-800 px-3 py-2.5 sm:py-1.5 rounded-lg">
             Activer
           </button>
-          <button onClick={() => handleBulkToggle(false)} className="text-xs text-gray-300 hover:text-white bg-gray-800 px-3 py-1.5 rounded-lg">
+          <button onClick={() => handleBulkToggle(false)} className="text-xs text-gray-300 hover:text-white bg-gray-800 px-3 py-2.5 sm:py-1.5 rounded-lg">
             Desactiver
           </button>
           <button
             onClick={handleBulkDelete}
             disabled={bulkDeleting}
-            className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 px-3 py-1.5 rounded-lg disabled:opacity-50"
+            className="text-xs text-red-400 hover:text-red-300 bg-red-500/10 px-3 py-2.5 sm:py-1.5 rounded-lg disabled:opacity-50"
           >
             {bulkDeleting ? 'Suppression...' : 'Supprimer'}
           </button>
-          <button onClick={() => setSelected(new Set())} className="text-xs text-gray-500 hover:text-gray-300 sm:ml-auto">
+          <button onClick={() => setSelected(new Set())} className="py-2.5 sm:py-0 text-xs text-gray-500 hover:text-gray-300 sm:ml-auto">
             Tout deselectionner
           </button>
         </div>
@@ -422,7 +423,98 @@ export default function AdminProducts() {
         ) : filtered.length === 0 ? (
           <div className="p-8 text-center text-gray-500">Aucun produit trouve</div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile : cartes */}
+          <div className="md:hidden">
+            <div className="flex items-center justify-between gap-3 border-b border-gray-800 px-2 py-1">
+              <button onClick={toggleAll} className="flex items-center gap-2 whitespace-nowrap p-2 text-xs text-gray-500 hover:text-white">
+                {allSelected ? <CheckSquare className="w-4 h-4 text-green-400" /> : <Square className="w-4 h-4" />}
+                Tout selectionner
+              </button>
+              <div className="relative">
+                <select
+                  value={`${sortField}:${sortDir}`}
+                  onChange={e => { const [f, d] = e.target.value.split(':'); setSortField(f as SortField); setSortDir(d as SortDir) }}
+                  aria-label="Trier"
+                  className="appearance-none rounded-lg bg-transparent py-2 pl-2 pr-7 text-base text-gray-400 outline-none"
+                >
+                  <option value="created_at:desc">Plus recents</option>
+                  <option value="created_at:asc">Plus anciens</option>
+                  <option value="name:asc">Nom A-Z</option>
+                  <option value="name:desc">Nom Z-A</option>
+                  <option value="price:desc">Prix decroissant</option>
+                  <option value="price:asc">Prix croissant</option>
+                  <option value="stock:asc">Stock croissant</option>
+                  <option value="stock:desc">Stock decroissant</option>
+                </select>
+                <ChevronDown className="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-500 pointer-events-none" />
+              </div>
+            </div>
+            <div className="divide-y divide-gray-800/70">
+              {paginated.map(product => {
+                const hasPromo = product.promotion_active && product.promotion_percentage
+                const stock = product.stock ?? product.inventory ?? 0
+                const isSelected = selected.has(product.id)
+                return (
+                  <div key={product.id} className={`flex items-start gap-1 py-3 pl-1 pr-2 ${isSelected ? 'bg-green-500/5' : ''}`}>
+                    <button
+                      onClick={() => toggleOne(product.id)}
+                      aria-label={isSelected ? 'Deselectionner' : 'Selectionner'}
+                      className="shrink-0 p-2.5 text-gray-500 hover:text-white"
+                    >
+                      {isSelected ? <CheckSquare className="w-4 h-4 text-green-400" /> : <Square className="w-4 h-4" />}
+                    </button>
+                    <Link href={`/admin/products/${product.id}`} className="flex min-w-0 flex-1 items-start gap-3 pt-1">
+                      <div className="relative w-14 h-14 shrink-0 rounded-lg overflow-hidden bg-gray-900 border border-gray-700">
+                        <Image src={product.image_url} alt="" fill className="object-cover" sizes="56px" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="line-clamp-2 break-words text-white text-sm font-medium leading-snug">{product.name}</p>
+                        <p className="mt-0.5 truncate text-gray-500 text-xs">{product.categories?.name || 'Sans categorie'}</p>
+                        <div className="mt-1 flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+                          <span className={`text-sm font-bold whitespace-nowrap ${hasPromo ? 'text-green-400' : 'text-white'}`}>{formatPrice(product.price)}</span>
+                          {hasPromo && (
+                            <>
+                              <span className="text-gray-600 text-xs line-through whitespace-nowrap">{formatPrice(product.old_price)}</span>
+                              <span className="inline-flex items-center gap-1 text-[10px] text-orange-400 bg-orange-400/10 px-1.5 py-0.5 rounded-full font-medium">
+                                <Tag className="w-2.5 h-2.5" />-{product.promotion_percentage}%
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    </Link>
+                    <div className="flex shrink-0 flex-col items-end gap-1.5">
+                      <button
+                        onClick={() => setOpenMenu(product.id)}
+                        aria-label="Plus d'actions"
+                        className="p-2 -mr-1 text-gray-400 hover:text-white hover:bg-gray-800 rounded-lg transition-colors"
+                      >
+                        <MoreHorizontal className="w-5 h-5" />
+                      </button>
+                      <span className={`text-xs font-bold whitespace-nowrap ${stock > 10 ? 'text-green-400' : stock > 0 ? 'text-yellow-400' : 'text-red-400'}`}>
+                        Stock {stock}
+                      </span>
+                      <button
+                        onClick={() => toggleActive(product)}
+                        className={`inline-flex items-center gap-1 px-2.5 py-2 rounded-full text-xs font-medium transition-colors ${
+                          product.isActive !== false
+                            ? 'bg-green-400/10 text-green-400 hover:bg-green-400/20'
+                            : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
+                        }`}
+                      >
+                        {product.isActive !== false ? <Eye className="w-3 h-3" /> : <EyeOff className="w-3 h-3" />}
+                        {product.isActive !== false ? 'Actif' : 'Masque'}
+                      </button>
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </div>
+
+          {/* Tablette / desktop : table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[1120px]">
               <thead>
                 <tr className="border-b border-gray-800 text-left">
@@ -581,8 +673,61 @@ export default function AdminProducts() {
               </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
+
+      {/* Mobile : menu d'actions en feuille du bas */}
+      {openMenu && (() => {
+        const product = products.find(p => p.id === openMenu)
+        if (!product) return null
+        return (
+          <div className="md:hidden fixed inset-0 z-50 flex items-end bg-black/60" onClick={() => setOpenMenu(null)}>
+            <div
+              className="w-full max-h-[calc(100dvh-2rem)] overflow-y-auto rounded-t-2xl border-t border-gray-700 bg-[#111827] p-2 pb-[max(0.5rem,env(safe-area-inset-bottom))]"
+              onClick={e => e.stopPropagation()}
+            >
+              <div className="px-3 pt-2 pb-3 border-b border-gray-800 mb-1">
+                <p className="text-sm font-medium text-white line-clamp-2 break-words">{product.name}</p>
+              </div>
+              <Link
+                href={`/admin/products/${product.id}`}
+                onClick={() => setOpenMenu(null)}
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-gray-200 active:bg-gray-800"
+              >
+                <Edit3 className="w-4 h-4" /> Modifier
+              </Link>
+              <Link
+                href={`/products/${product.slug || product.id}`}
+                target="_blank"
+                onClick={() => setOpenMenu(null)}
+                className="flex items-center gap-3 rounded-lg px-3 py-3 text-sm text-gray-200 active:bg-gray-800"
+              >
+                <ExternalLink className="w-4 h-4" /> Voir en boutique
+              </Link>
+              <button
+                onClick={() => handleClone(product)}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-gray-200 active:bg-gray-800"
+              >
+                <Copy className="w-4 h-4" /> Cloner
+              </button>
+              <button
+                onClick={() => { handleDelete(product.id); setOpenMenu(null) }}
+                disabled={deleting === product.id}
+                className="flex w-full items-center gap-3 rounded-lg px-3 py-3 text-left text-sm text-red-400 active:bg-gray-800 disabled:opacity-50"
+              >
+                <Trash2 className="w-4 h-4" /> Supprimer
+              </button>
+              <button
+                onClick={() => setOpenMenu(null)}
+                className="mt-1 w-full rounded-lg border border-gray-700 px-3 py-3 text-sm text-gray-300"
+              >
+                Annuler
+              </button>
+            </div>
+          </div>
+        )
+      })()}
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />
     </div>
   )

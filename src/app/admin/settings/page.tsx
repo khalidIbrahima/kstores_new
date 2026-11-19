@@ -149,7 +149,7 @@ export default function AdminSettings() {
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-2 px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
+              className={`flex shrink-0 items-center gap-2 px-4 sm:px-5 py-3.5 text-sm font-medium whitespace-nowrap transition-colors ${
                 activeTab === tab.id
                   ? 'text-green-400 border-b-2 border-green-400'
                   : 'text-gray-500 hover:text-gray-300'
@@ -162,7 +162,7 @@ export default function AdminSettings() {
         </div>
 
         {/* Tab content */}
-        <div className="p-6">
+        <div className="p-4 sm:p-6">
           {/* Boutique tab */}
           {activeTab === 'boutique' && (
             <div className="space-y-4">
@@ -173,7 +173,7 @@ export default function AdminSettings() {
                     type="text"
                     value={settings.store_name}
                     onChange={e => updateField('store_name', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   />
                 </div>
                 <div>
@@ -182,7 +182,7 @@ export default function AdminSettings() {
                     type="url"
                     value={settings.store_url || ''}
                     onChange={e => updateField('store_url', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   />
                 </div>
               </div>
@@ -192,7 +192,7 @@ export default function AdminSettings() {
                   value={settings.store_description || ''}
                   onChange={e => updateField('store_description', e.target.value)}
                   rows={3}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500 resize-none"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500 resize-none"
                 />
               </div>
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -201,7 +201,7 @@ export default function AdminSettings() {
                   <select
                     value={settings.currency || 'XOF'}
                     onChange={e => updateField('currency', e.target.value)}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   >
                     <option value="XOF">XOF (FCFA)</option>
                     <option value="EUR">EUR</option>
@@ -215,19 +215,19 @@ export default function AdminSettings() {
                     value={settings.tax_rate ?? 0}
                     onChange={e => updateField('tax_rate', Number(e.target.value))}
                     min={0}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   />
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer min-h-11 sm:min-h-0">
                   <input
                     type="checkbox"
                     checked={settings.maintenance_mode || false}
                     onChange={e => updateField('maintenance_mode', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-gray-700 peer-checked:bg-yellow-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                  <div className="relative w-11 h-6 sm:w-9 sm:h-5 bg-gray-700 peer-checked:bg-yellow-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 sm:after:h-4 sm:after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                 </label>
                 <span className="text-sm text-gray-400">Mode maintenance</span>
               </div>
@@ -245,7 +245,7 @@ export default function AdminSettings() {
                   type="email"
                   value={settings.contact_email || ''}
                   onChange={e => updateField('contact_email', e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
               <div>
@@ -256,7 +256,7 @@ export default function AdminSettings() {
                   type="tel"
                   value={settings.support_phone || ''}
                   onChange={e => updateField('support_phone', e.target.value)}
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                 />
               </div>
             </div>
@@ -334,14 +334,14 @@ export default function AdminSettings() {
               ].map(method => (
                 <div key={method.key} className="flex items-center justify-between p-3 bg-gray-800/30 rounded-lg">
                   <span className="text-gray-300 text-sm">{method.label}</span>
-                  <label className="relative inline-flex items-center cursor-pointer">
+                  <label className="relative inline-flex items-center cursor-pointer min-h-11 sm:min-h-0">
                     <input
                       type="checkbox"
                       checked={settings.payment_methods?.[method.key as keyof typeof settings.payment_methods] || false}
                       onChange={e => updatePayment(method.key, e.target.checked)}
                       className="sr-only peer"
                     />
-                    <div className="w-9 h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                    <div className="relative w-11 h-6 sm:w-9 sm:h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 sm:after:h-4 sm:after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                   </label>
                 </div>
               ))}
@@ -360,7 +360,7 @@ export default function AdminSettings() {
                     value={settings.shipping_options?.standard_shipping_cost ?? 0}
                     onChange={e => updateShipping('standard_shipping_cost', Number(e.target.value))}
                     min={0}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   />
                 </div>
                 <div>
@@ -370,7 +370,7 @@ export default function AdminSettings() {
                     value={settings.shipping_options?.express_shipping_cost ?? 0}
                     onChange={e => updateShipping('express_shipping_cost', Number(e.target.value))}
                     min={0}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   />
                 </div>
                 <div>
@@ -380,19 +380,19 @@ export default function AdminSettings() {
                     value={settings.shipping_options?.free_shipping_threshold ?? 0}
                     onChange={e => updateShipping('free_shipping_threshold', Number(e.target.value))}
                     min={0}
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   />
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <label className="relative inline-flex items-center cursor-pointer">
+                <label className="relative inline-flex items-center cursor-pointer min-h-11 sm:min-h-0">
                   <input
                     type="checkbox"
                     checked={settings.shipping_options?.local_pickup || false}
                     onChange={e => updateShipping('local_pickup', e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-9 h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:after:translate-x-full" />
+                  <div className="relative w-11 h-6 sm:w-9 sm:h-5 bg-gray-700 peer-checked:bg-green-500 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 sm:after:h-4 sm:after:w-4 after:transition-all peer-checked:after:translate-x-full" />
                 </label>
                 <span className="text-sm text-gray-400">Retrait en boutique</span>
               </div>
@@ -416,7 +416,7 @@ export default function AdminSettings() {
                     value={settings.social_media?.[social.key as keyof typeof settings.social_media] || ''}
                     onChange={e => updateSocial(social.key, e.target.value)}
                     placeholder="https://..."
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-sm outline-none focus:border-green-500"
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
                   />
                 </div>
               ))}
@@ -759,34 +759,34 @@ function KeyInput({
 
   return (
     <div className="bg-gray-800/30 rounded-lg p-3">
-      <div className="flex items-center justify-between mb-2">
-        <span className="text-gray-300 text-sm font-medium">{label}</span>
+      <div className="flex items-center justify-between gap-2 mb-2">
+        <span className="min-w-0 text-gray-300 text-sm font-medium">{label}</span>
         {loadingStatus ? (
           <Loader2 className="w-3.5 h-3.5 animate-spin text-gray-500" />
         ) : isSet ? (
-          <span className="inline-flex items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full">
             <Check className="w-3 h-3" /> Configuree
           </span>
         ) : (
-          <span className="inline-flex items-center gap-1 text-xs text-gray-500 bg-gray-700/40 px-2 py-0.5 rounded-full">
+          <span className="inline-flex shrink-0 items-center gap-1 text-xs text-gray-500 bg-gray-700/40 px-2 py-0.5 rounded-full">
             <X className="w-3 h-3" /> Non configuree
           </span>
         )}
       </div>
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <input
           type="password"
           value={value}
           onChange={e => setValue(e.target.value)}
           placeholder={isSet ? 'Remplacer la cle existante...' : placeholder}
-          className="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm font-mono outline-none focus:border-purple-500"
+          className="min-w-0 flex-1 bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 sm:py-2 text-white text-base sm:text-sm font-mono outline-none focus:border-purple-500"
           autoComplete="off"
         />
         <button
           type="button"
           onClick={handleSave}
           disabled={busy || value.trim().length < 10}
-          className="bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold px-4 rounded-lg transition-colors disabled:opacity-50 flex items-center gap-1.5"
+          className="bg-purple-500 hover:bg-purple-600 text-white text-sm font-bold px-4 py-2.5 sm:py-0 rounded-lg transition-colors disabled:opacity-50 flex items-center justify-center gap-1.5"
         >
           {busy ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : savedOk ? <Check className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
           {savedOk ? 'OK' : 'Enregistrer'}

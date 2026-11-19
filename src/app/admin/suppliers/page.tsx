@@ -163,49 +163,49 @@ export default function AdminSuppliers() {
       {/* Modal */}
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-start justify-center bg-black/60 backdrop-blur-sm" onClick={handleCancel}>
-          <div className="bg-[#111827] border border-gray-800 rounded-xl w-full max-w-lg mx-4 mt-10 sm:mt-20 p-4 sm:p-6" onClick={e => e.stopPropagation()}>
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-[#111827] border border-gray-800 rounded-xl w-[calc(100%-2rem)] sm:w-full max-w-lg mx-4 mt-4 sm:mt-20 p-4 sm:p-6 flex max-h-[calc(100dvh-2rem)] flex-col" onClick={e => e.stopPropagation()}>
+            <div className="flex items-center justify-between gap-3 mb-4">
               <h2 className="text-white font-bold text-lg">{editingItem ? 'Modifier' : 'Nouveau'} produit fournisseur</h2>
-              <button onClick={handleCancel} className="text-gray-400 hover:text-white p-1 rounded-lg hover:bg-gray-800"><X className="w-5 h-5" /></button>
+              <button onClick={handleCancel} aria-label="Fermer" className="shrink-0 text-gray-400 hover:text-white p-2 sm:p-1 rounded-lg hover:bg-gray-800"><X className="w-5 h-5" /></button>
             </div>
-            <div className="space-y-3 max-h-[65vh] overflow-y-auto pr-1">
+            <div className="space-y-3 min-h-0 flex-1 overflow-y-auto sm:max-h-[65vh] pr-1">
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Nom du produit *</label>
                 <input type="text" value={form.name} onChange={e => setForm(prev => ({ ...prev, name: e.target.value }))}
                   placeholder="Nom du produit..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">Fournisseur *</label>
                 <input type="text" value={form.supplier_name} onChange={e => setForm(prev => ({ ...prev, supplier_name: e.target.value }))}
                   placeholder="Nom du fournisseur"
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">Reference</label>
                   <input type="text" value={form.ref} onChange={e => setForm(prev => ({ ...prev, ref: e.target.value }))}
                     placeholder="Ref produit"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
                 <div>
                   <label className="block text-xs text-gray-400 mb-1">SKU</label>
                   <input type="text" value={form.sku} onChange={e => setForm(prev => ({ ...prev, sku: e.target.value }))}
                     placeholder="SKU"
-                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                    className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                 </div>
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">URL produit</label>
                 <input type="url" value={form.url} onChange={e => setForm(prev => ({ ...prev, url: e.target.value }))}
                   placeholder="https://alibaba.com/..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               <div>
                 <label className="block text-xs text-gray-400 mb-1">URL profil fournisseur</label>
                 <input type="url" value={form.supplier_profile_url} onChange={e => setForm(prev => ({ ...prev, supplier_profile_url: e.target.value }))}
                   placeholder="https://..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+                  className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
               </div>
               {/* Images management */}
               <div>
@@ -216,8 +216,9 @@ export default function AdminSuppliers() {
                       <div key={i} className="relative w-16 h-16 rounded-lg overflow-hidden bg-gray-900 border border-gray-700 group">
                         <Image src={img} alt="" fill className="object-cover" sizes="64px" />
                         <button type="button" onClick={() => setFormImages(prev => prev.filter((_, j) => j !== i))}
-                          className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
-                          <X className="w-2.5 h-2.5" />
+                          aria-label="Retirer l'image"
+                          className="absolute top-0.5 right-0.5 bg-red-500/80 text-white rounded-full p-0.5 pointer-coarse:p-1 opacity-0 group-hover:opacity-100 pointer-coarse:opacity-100 transition-opacity">
+                          <X className="w-2.5 h-2.5 pointer-coarse:w-3.5 pointer-coarse:h-3.5" />
                         </button>
                       </div>
                     ))}
@@ -233,23 +234,24 @@ export default function AdminSuppliers() {
                         setForm(prev => ({ ...prev, newImageUrl: '' }))
                       }
                     }}
-                    className="flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2 text-white text-sm outline-none focus:border-green-500" />
+                    className="min-w-0 flex-1 bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 sm:py-2 text-white text-base sm:text-sm outline-none focus:border-green-500" />
                   <button type="button" onClick={() => {
                     if (form.newImageUrl.trim()) {
                       setFormImages(prev => [...prev, form.newImageUrl.trim()])
                       setForm(prev => ({ ...prev, newImageUrl: '' }))
                     }
                   }}
-                    className="bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 px-3 py-2 rounded-lg text-sm transition-colors">
+                    aria-label="Ajouter l'image"
+                    className="shrink-0 bg-blue-500/20 text-blue-400 hover:bg-blue-500/30 px-3 py-2 rounded-lg text-sm transition-colors">
                     <Plus className="w-4 h-4" />
                   </button>
                 </div>
               </div>
             </div>
-            <div className="flex justify-end gap-3 mt-5">
-              <button onClick={handleCancel} className="px-4 py-2 rounded-lg text-gray-400 hover:text-white text-sm hover:bg-gray-800">Annuler</button>
+            <div className="flex shrink-0 justify-end gap-3 mt-5">
+              <button onClick={handleCancel} className="flex-1 sm:flex-none px-4 py-2.5 sm:py-2 rounded-lg text-gray-400 hover:text-white text-sm hover:bg-gray-800">Annuler</button>
               <button onClick={handleSave} disabled={saving || !form.name.trim()}
-                className="bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
+                className="flex-1 sm:flex-none justify-center bg-green-500 hover:bg-green-600 text-black font-bold px-5 py-2.5 sm:py-2 rounded-lg flex items-center gap-2 text-sm disabled:opacity-50">
                 <Save className="w-4 h-4" /> {saving ? '...' : editingItem ? 'Modifier' : 'Ajouter'}
               </button>
             </div>
@@ -262,7 +264,7 @@ export default function AdminSuppliers() {
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
         <input type="text" value={search} onChange={e => setSearch(e.target.value)}
           placeholder="Rechercher par nom, fournisseur, ref..."
-          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-sm outline-none focus:border-green-500" />
+          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-2.5 text-white text-base sm:text-sm outline-none focus:border-green-500" />
       </div>
 
       {/* Table */}
@@ -273,7 +275,50 @@ export default function AdminSuppliers() {
             <p className="text-gray-500">Aucun produit fournisseur</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: cards */}
+          <ul className="md:hidden divide-y divide-gray-800">
+            {filtered.map(item => (
+              <li key={item.id} className="flex items-start gap-3 px-4 py-3">
+                {item.images && item.images[0] ? (
+                  <div className="relative w-12 h-12 rounded-lg overflow-hidden bg-gray-900 shrink-0 border border-gray-700">
+                    <Image src={item.images[0]} alt="" fill className="object-cover" sizes="48px" />
+                  </div>
+                ) : (
+                  <div className="w-12 h-12 rounded-lg bg-gray-800 flex items-center justify-center shrink-0 border border-gray-700">
+                    <ImageIcon className="w-4 h-4 text-gray-600" />
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-sm font-medium line-clamp-2 break-words">{item.name}</p>
+                  <p className="text-gray-400 text-xs truncate">{item.supplier_name || '—'}</p>
+                  {(item.ref || item.sku) && (
+                    <p className="mt-0.5 text-gray-500 text-xs font-mono truncate">
+                      {[item.ref, item.sku].filter(Boolean).join(' · ')}
+                    </p>
+                  )}
+                </div>
+                <div className="flex shrink-0 items-center">
+                  {item.url && (
+                    <a href={item.url} target="_blank" rel="noopener noreferrer" aria-label="Ouvrir le lien"
+                      className="p-2.5 text-green-400 active:bg-gray-800 rounded-lg">
+                      <ExternalLink className="w-4 h-4" />
+                    </a>
+                  )}
+                  <button onClick={() => handleEdit(item)} aria-label="Modifier" className="p-2.5 text-gray-400 active:bg-gray-800 rounded-lg">
+                    <Edit3 className="w-4 h-4" />
+                  </button>
+                  <button onClick={() => handleDelete(item.id)} disabled={deleting === item.id} aria-label="Supprimer"
+                    className="p-2.5 text-gray-400 active:text-red-400 active:bg-gray-800 rounded-lg disabled:opacity-50">
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet / desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[640px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
@@ -328,6 +373,7 @@ export default function AdminSuppliers() {
             </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

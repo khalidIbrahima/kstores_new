@@ -112,12 +112,17 @@ const methodLabel = (key?: string | null): string => {
   return value ? PAYMENT_METHOD_LABELS[value.toLowerCase()] || value : ''
 }
 
-const LOGO_MARK = `<svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48" fill="none" aria-hidden="true">
-  <rect width="48" height="48" rx="11" fill="#111827"/>
-  <rect x="12" y="10" width="5" height="28" rx="1" fill="#22c55e"/>
-  <path d="M17 23 L17 15 L35 10 L35 14 Z" fill="#22c55e"/>
-  <path d="M17 26 L17 34 L35 39 L35 35 Z" fill="#22c55e"/>
-  <path d="M27 13 L22 24 L27 23 L24 36 L32 22 L26 23 Z" fill="#ffffff"/>
+// Logo "C" (dark K on a green badge) — same artwork as public/logo.svg, see scripts/pwa-icons/generate.py
+const LOGO_MARK = `<svg class="mark" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" aria-hidden="true">
+  <rect width="512" height="512" rx="112" fill="#22c55e"/>
+  <g transform="translate(256 256) scale(1.0779) translate(-279 -256)">
+    <g fill="#0b1220">
+      <path d="M124 104h92v304h-92z"/>
+      <path d="M208 232 320 104h104L208 352z"/>
+      <path d="M230 313 294 241 428 408H322z"/>
+    </g>
+    <path fill="#ffffff" stroke="#22c55e" stroke-width="16" stroke-linejoin="round" paint-order="stroke" d="M412 168 338 272h42l-30 86 84-116h-44l32-74z"/>
+  </g>
 </svg>`
 
 const STYLES = `

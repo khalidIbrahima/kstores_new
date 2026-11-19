@@ -1,4 +1,4 @@
-import type { Metadata } from "next"
+import type { Metadata, Viewport } from "next"
 import "./globals.css"
 import LayoutShell from "@/components/LayoutShell"
 import PostHogProvider from "@/components/PostHogProvider"
@@ -6,33 +6,21 @@ import { CartProvider } from "@/context/CartContext"
 import { AuthProvider } from "@/context/AuthContext"
 import { ToastProvider } from "@/components/ToastProvider"
 import ScrollToTop from "@/components/ScrollToTop"
-import DynamicFavicon from "@/components/DynamicFavicon"
 import MaintenanceGuard from "@/components/MaintenanceGuard"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import AnalyticsTracker from "@/components/AnalyticsTracker"
-import ServiceWorkerRegister from "@/components/ServiceWorkerRegister"
 
 export const metadata: Metadata = {
   title: "Kapital Stores - Boutique en ligne",
   description: "Boutique en ligne Kapital Stores - Produits tech, electronique et plus. Livraison rapide, prix bas, qualite garantie.",
   keywords: "boutique en ligne, produits tech, electronique, livraison rapide, Kapital Stores, gaming, Dakar, Sénégal",
-  manifest: "/manifest.json",
+  // Pas de manifeste ici : seule l'admin est installable (manifeste lié par src/app/admin/layout.tsx).
   icons: {
     icon: [
-      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
-      { url: '/logo.svg', type: 'image/svg+xml' },
+      { url: '/favicon.ico', sizes: '16x16 32x32 48x48' },
+      { url: '/icons/favicon.svg', type: 'image/svg+xml' },
     ],
-    apple: '/icon-192.png',
-  },
-  appleWebApp: {
-    capable: true,
-    statusBarStyle: "black-translucent",
-    title: "Kapital Stores",
-  },
-  other: {
-    "mobile-web-app-capable": "yes",
-    "theme-color": "#22c55e",
-    "apple-mobile-web-app-capable": "yes",
+    apple: { url: '/icons/apple-touch-icon.png', sizes: '180x180', type: 'image/png' },
   },
   metadataBase: new URL('https://kapitalstores.com'),
   openGraph: {
@@ -49,6 +37,17 @@ export const metadata: Metadata = {
   },
 }
 
+// Next 16 : le viewport se déclare par cet export (et non plus par une balise <meta> ou `metadata.viewport`).
+// Le zoom n'est plus bloqué (ancien `maximum-scale=1, user-scalable=no`) : le zoom automatique d'iOS sur
+// les champs de saisie est évité par une règle CSS dans globals.css.
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover",
+  themeColor: "#0a0f1a",
+  colorScheme: "dark",
+}
+
 export default function RootLayout({
   children,
 }: {
@@ -56,9 +55,6 @@ export default function RootLayout({
 }) {
   return (
     <html lang="fr">
-      <head>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
-      </head>
       <body className="antialiased">
         <AuthProvider>
           <CartProvider>
@@ -70,9 +66,7 @@ export default function RootLayout({
                   </MaintenanceGuard>
                 </ErrorBoundary>
                 <ScrollToTop />
-                <DynamicFavicon />
                 <AnalyticsTracker />
-                <ServiceWorkerRegister />
               </PostHogProvider>
             </ToastProvider>
           </CartProvider>

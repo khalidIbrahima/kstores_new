@@ -88,7 +88,7 @@ export default function AdminCustomers() {
           value={search}
           onChange={e => { setSearch(e.target.value); setCurrentPage(1) }}
           placeholder="Rechercher par nom ou email..."
-          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-sm outline-none focus:border-green-500"
+          className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
         />
       </div>
 
@@ -101,7 +101,47 @@ export default function AdminCustomers() {
             <p className="text-gray-500">Aucun client trouvé</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile: cards */}
+          <ul className="md:hidden divide-y divide-gray-800">
+            {paginated.map(profile => (
+              <li key={profile.id} className="flex items-center gap-3 px-4 py-3">
+                {profile.avatar_url ? (
+                  <Image src={profile.avatar_url} alt="" width={36} height={36} className="shrink-0 rounded-full" />
+                ) : (
+                  <div className="w-9 h-9 shrink-0 rounded-full bg-green-500/20 flex items-center justify-center text-green-400 text-xs font-bold">
+                    {profile.full_name?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                )}
+                <div className="min-w-0 flex-1">
+                  <p className="text-white text-sm font-medium truncate">{profile.full_name || 'Sans nom'}</p>
+                  <p className="text-gray-400 text-xs truncate">{profile.email || '—'}</p>
+                  <div className="mt-1 flex items-center gap-2 text-xs text-gray-500">
+                    <span className={`px-2 py-0.5 rounded-full ${
+                      profile.google_id ? 'bg-blue-400/10 text-blue-400' : 'bg-gray-700 text-gray-400'
+                    }`}>
+                      {profile.google_id ? 'Google' : 'Email'}
+                    </span>
+                    {profile.created_at ? new Date(profile.created_at).toLocaleDateString('fr-FR') : '—'}
+                  </div>
+                </div>
+                <button
+                  onClick={() => toggleAdmin(profile)}
+                  className={`inline-flex min-h-10 shrink-0 items-center gap-1.5 px-3 rounded-full text-xs font-medium transition-colors ${
+                    profile.is_admin
+                      ? 'bg-green-400/10 text-green-400'
+                      : 'bg-gray-700 text-gray-400 active:bg-gray-600'
+                  }`}
+                >
+                  <Shield className="w-3.5 h-3.5" />
+                  {profile.is_admin ? 'Admin' : 'Client'}
+                </button>
+              </li>
+            ))}
+          </ul>
+
+          {/* Tablet / desktop: table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[600px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
@@ -158,6 +198,7 @@ export default function AdminCustomers() {
             </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
       <Pagination currentPage={currentPage} totalPages={totalPages} onPageChange={setCurrentPage} />

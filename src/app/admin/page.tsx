@@ -7,7 +7,7 @@ import { formatPrice } from '@/lib/utils'
 import {
   Package, ShoppingCart, Users, TrendingUp, ArrowUpRight, ArrowDownRight,
   Clock, CheckCircle2, Truck, XCircle, Eye, BarChart3,
-  AlertTriangle, Boxes, Calendar,
+  AlertTriangle, Boxes, Calendar, ChevronRight,
 } from 'lucide-react'
 
 type Period = '7d' | '30d' | '90d' | 'all'
@@ -37,6 +37,15 @@ const STATUS_CFG: Record<string, { label: string; color: string; chartColor: str
   shipped: { label: 'Expediee', color: 'text-purple-400 bg-purple-400/10', chartColor: '#a78bfa', icon: Truck },
   delivered: { label: 'Livree', color: 'text-green-400 bg-green-400/10', chartColor: '#22c55e', icon: CheckCircle2 },
   cancelled: { label: 'Annulee', color: 'text-red-400 bg-red-400/10', chartColor: '#ef4444', icon: XCircle },
+}
+
+// Montant et devise séparés par une espace normale : sur mobile la devise peut passer
+// à la ligne (Intl utilise des espaces insécables qui empêchent tout retour à la ligne).
+function PriceText({ value }: { value: number }) {
+  const s = formatPrice(value)
+  const m = s.match(/^(.*?)\s*(F\s*CFA)$/)
+  if (!m) return <>{s}</>
+  return <>{m[1]} <span className="whitespace-nowrap">{m[2]}</span></>
 }
 
 function daysAgo(n: number) {
@@ -207,12 +216,12 @@ export default function AdminDashboard() {
           <p className="text-gray-500 text-xs mt-0.5">Vue d&apos;ensemble de votre boutique</p>
         </div>
         <div className="flex items-center gap-1 bg-[#0d1117] border border-gray-800 rounded-lg p-1">
-          <Calendar className="w-3.5 h-3.5 text-gray-500 ml-2 mr-1" />
+          <Calendar className="w-3.5 h-3.5 shrink-0 text-gray-500 ml-2 mr-1" />
           {periodOptions.map(opt => (
             <button
               key={opt.key}
               onClick={() => setPeriod(opt.key)}
-              className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
+              className={`flex-1 sm:flex-none px-2 sm:px-3 py-2 sm:py-1.5 rounded-md text-xs font-medium whitespace-nowrap transition-colors ${
                 period === opt.key ? 'bg-[#111827] text-green-400' : 'text-gray-500 hover:text-gray-300'
               }`}
             >
@@ -223,25 +232,25 @@ export default function AdminDashboard() {
       </div>
 
       {/* ═══ KPI CARDS ═══ */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
         {[
-          { label: 'Revenus', value: formatPrice(revenue), icon: TrendingUp, accent: '#22c55e', bg: 'bg-green-400/10', growth: revenueGrowth, href: '/admin/orders' },
+          { label: 'Revenus', value: <PriceText value={revenue} />, icon: TrendingUp, accent: '#22c55e', bg: 'bg-green-400/10', growth: revenueGrowth, href: '/admin/orders' },
           { label: 'Commandes', value: orderCount, icon: ShoppingCart, accent: '#60a5fa', bg: 'bg-blue-400/10', growth: orderGrowth, href: '/admin/orders' },
-          { label: 'Panier moyen', value: formatPrice(avgOrderValue), icon: Package, accent: '#a78bfa', bg: 'bg-purple-400/10', growth: 0, href: '/admin/orders' },
+          { label: 'Panier moyen', value: <PriceText value={avgOrderValue} />, icon: Package, accent: '#a78bfa', bg: 'bg-purple-400/10', growth: 0, href: '/admin/orders' },
           { label: 'Clients', value: customerCount, icon: Users, accent: '#facc15', bg: 'bg-yellow-400/10', growth: 0, href: '/admin/customers' },
         ].map(card => (
           <Link key={card.label} href={card.href}
-            className="bg-[#111827] border border-[#1f2937] rounded-xl p-4 hover:border-gray-600 transition-all group">
-            <div className="flex items-center justify-between mb-2">
-              <div className="flex items-center gap-2">
-                <div className={`w-7 h-7 rounded-md ${card.bg} flex items-center justify-center`}>
+            className="min-w-0 bg-[#111827] border border-[#1f2937] rounded-xl p-3 sm:p-4 hover:border-gray-600 transition-all group">
+            <div className="flex items-center justify-between gap-1 mb-2">
+              <div className="flex min-w-0 items-center gap-2">
+                <div className={`w-7 h-7 shrink-0 rounded-md ${card.bg} flex items-center justify-center`}>
                   <card.icon className="w-3.5 h-3.5" style={{ color: card.accent }} />
                 </div>
-                <span className="text-gray-400 text-xs">{card.label}</span>
+                <span className="text-gray-400 text-xs truncate">{card.label}</span>
               </div>
-              {period !== 'all' && <GrowthBadge value={card.growth} />}
+              {period !== 'all' && <span className="flex shrink-0"><GrowthBadge value={card.growth} /></span>}
             </div>
-            <p className="text-lg font-black text-white">{card.value}</p>
+            <p className="text-base sm:text-lg font-black text-white">{card.value}</p>
           </Link>
         ))}
       </div>
@@ -249,45 +258,58 @@ export default function AdminDashboard() {
       {/* ═══ REVENUE CHART + DONUT ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Revenue Bar Chart */}
-        <div className="lg:col-span-2 bg-[#111827] border border-[#1f2937] rounded-xl p-5">
+        <div className="min-w-0 lg:col-span-2 bg-[#111827] border border-[#1f2937] rounded-xl p-4 sm:p-5">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-white font-bold text-sm">Revenus</h2>
             <span className="text-green-400 font-bold text-sm">{formatPrice(revenue)}</span>
           </div>
-          <div className="relative" style={{ height: 200 }}>
-            {[0, 1, 2, 3].map(i => (
-              <div key={i} className="absolute left-0 right-0 border-t border-[#1a2332]" style={{ top: `${i * 33.33}%` }}>
-                <span className="absolute -top-2 -left-1 text-[9px] text-gray-600 font-mono">
-                  {formatPrice(maxRev * (1 - i / 3)).replace(/\s*F\s*CFA/, '')}
-                </span>
-              </div>
-            ))}
-            <div className="absolute inset-0 flex items-end gap-[2px] pl-10">
-              {revenueChart.map((day, i) => {
-                const pct = maxRev > 0 ? (day.amount / maxRev) * 100 : 0
-                return (
-                  <div key={i} className="flex-1 flex flex-col items-center">
-                    <div className="w-full flex justify-center" style={{ height: 170 }}>
-                      <div
-                        className="w-full max-w-[32px] rounded-t-md transition-all hover:brightness-125 cursor-default self-end"
-                        style={{ height: `${Math.max(pct, 2)}%`, background: 'linear-gradient(to top, #16a34a, #22c55e)' }}
-                        title={formatPrice(day.amount)}
-                      />
+          {(() => {
+            const showLabels = period === '7d' || revenueChart.length <= 14
+            // Short axis labels ("9,9 M", "650 k") so they fit in the gutter instead of covering the bars
+            const axisLabel = (value: number) =>
+              new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(Math.round(value))
+            return (
+              <div>
+                {/* Plot area: grid lines and bars share the same box, so a full bar reaches the top line */}
+                <div className="relative" style={{ height: showLabels ? 180 : 200 }}>
+                  {[0, 1, 2, 3].map(i => (
+                    <div key={i} className="absolute left-0 right-0 border-t border-[#1a2332]" style={{ top: `${(i * 100) / 3}%` }}>
+                      <span className="absolute -top-2 left-0 w-10 pr-1 text-[9px] leading-4 text-gray-500 font-mono whitespace-nowrap">
+                        {axisLabel(maxRev * (1 - i / 3))}
+                      </span>
                     </div>
-                    {(period === '7d' || revenueChart.length <= 14) && (
-                      <span className="text-gray-600 text-[8px] mt-1 truncate w-full text-center">
+                  ))}
+                  <div className="absolute inset-0 flex items-end gap-[2px] pl-11">
+                    {revenueChart.map((day, i) => {
+                      const pct = maxRev > 0 ? (day.amount / maxRev) * 100 : 0
+                      return (
+                        <div key={i} className="flex-1 h-full flex items-end justify-center">
+                          <div
+                            className="w-full max-w-[32px] rounded-t-md transition-all hover:brightness-125 cursor-default"
+                            style={{ height: `${Math.max(pct, 2)}%`, background: 'linear-gradient(to top, #16a34a, #22c55e)' }}
+                            title={formatPrice(day.amount)}
+                          />
+                        </div>
+                      )
+                    })}
+                  </div>
+                </div>
+                {showLabels && (
+                  <div className="flex gap-[2px] pl-11 mt-1">
+                    {revenueChart.map((day, i) => (
+                      <span key={i} className="flex-1 min-w-0 text-gray-600 text-[8px] truncate text-center">
                         {period === '90d' ? day.label : new Date(day.label + 'T00:00:00').toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }).replace('.', '')}
                       </span>
-                    )}
+                    ))}
                   </div>
-                )
-              })}
-            </div>
-          </div>
+                )}
+              </div>
+            )
+          })()}
         </div>
 
         {/* Donut */}
-        <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-5 flex flex-col">
+        <div className="min-w-0 bg-[#111827] border border-[#1f2937] rounded-xl p-4 sm:p-5 flex flex-col">
           <h2 className="text-white font-bold text-sm mb-3">Statuts commandes</h2>
           <div className="flex-1 flex items-center justify-center">
             <div className="relative w-36 h-36">
@@ -300,7 +322,7 @@ export default function AdminDashboard() {
               </div>
             </div>
           </div>
-          <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-x-3 gap-y-1">
+          <div className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1">
             {donut.segments.map(s => (
               <div key={s.label} className="flex items-center gap-1.5">
                 <div className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: s.color }} />
@@ -315,16 +337,16 @@ export default function AdminDashboard() {
       {/* ═══ STOCK ALERTS + RECENT ORDERS ═══ */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         {/* Stock Alerts */}
-        <div className="bg-[#111827] border border-[#1f2937] rounded-xl p-5">
+        <div className="min-w-0 bg-[#111827] border border-[#1f2937] rounded-xl p-4 sm:p-5">
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-white font-bold text-sm flex items-center gap-2">
               <Boxes className="w-4 h-4 text-blue-400" /> Stock
             </h2>
-            <Link href="/admin/inventory" className="text-green-400 hover:text-green-300 text-xs">Inventaire</Link>
+            <Link href="/admin/inventory" className="text-green-400 hover:text-green-300 text-xs pointer-coarse:py-2">Inventaire</Link>
           </div>
 
           {/* Stock summary */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 mb-4">
+          <div className="grid grid-cols-3 gap-2 mb-4">
             <div className="text-center p-2 rounded-lg bg-blue-400/5 border border-blue-500/10">
               <p className="text-blue-400 font-black text-lg">{stockData.totalProducts}</p>
               <p className="text-gray-500 text-[9px]">Total</p>
@@ -348,11 +370,11 @@ export default function AdminDashboard() {
               <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
                 {stockData.outOfStock.slice(0, 5).map(p => (
                   <Link key={p.id} href={`/admin/products/${p.id}`}
-                    className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-800/50 transition-colors">
+                    className="flex items-center gap-2 p-1.5 pointer-coarse:py-2 rounded-lg hover:bg-gray-800/50 transition-colors">
                     <div className="w-7 h-7 rounded bg-gray-900 flex-shrink-0 overflow-hidden">
                       <img src={p.image_url} alt="" className="w-full h-full object-cover" />
                     </div>
-                    <span className="text-gray-300 text-xs truncate">{p.name}</span>
+                    <span className="min-w-0 text-gray-300 text-xs truncate">{p.name}</span>
                     <span className="text-red-400 text-[10px] font-bold ml-auto">0</span>
                   </Link>
                 ))}
@@ -375,11 +397,11 @@ export default function AdminDashboard() {
               <div className="space-y-1.5 max-h-[140px] overflow-y-auto">
                 {stockData.lowStock.slice(0, 5).map(p => (
                   <Link key={p.id} href={`/admin/products/${p.id}`}
-                    className="flex items-center gap-2 p-1.5 rounded-lg hover:bg-gray-800/50 transition-colors">
+                    className="flex items-center gap-2 p-1.5 pointer-coarse:py-2 rounded-lg hover:bg-gray-800/50 transition-colors">
                     <div className="w-7 h-7 rounded bg-gray-900 flex-shrink-0 overflow-hidden">
                       <img src={p.image_url} alt="" className="w-full h-full object-cover" />
                     </div>
-                    <span className="text-gray-300 text-xs truncate">{p.name}</span>
+                    <span className="min-w-0 text-gray-300 text-xs truncate">{p.name}</span>
                     <span className="text-yellow-400 text-[10px] font-bold ml-auto">{p.stock ?? p.inventory}</span>
                   </Link>
                 ))}
@@ -389,20 +411,51 @@ export default function AdminDashboard() {
         </div>
 
         {/* Recent Orders */}
-        <div className="lg:col-span-2 bg-[#111827] border border-[#1f2937] rounded-xl p-5">
-          <div className="flex items-center justify-between mb-3">
+        <div className="min-w-0 lg:col-span-2 bg-[#111827] border border-[#1f2937] rounded-xl p-4 sm:p-5">
+          <div className="flex items-center justify-between gap-2 mb-3">
             <h2 className="text-white font-bold text-sm">Commandes recentes</h2>
-            <div className="flex items-center gap-3">
+            <div className="flex shrink-0 items-center gap-3">
               {guestOrders > 0 && (
                 <span className="text-xs px-2 py-0.5 rounded-full bg-purple-400/10 text-purple-400">{guestOrders} invites</span>
               )}
-              <Link href="/admin/orders" className="text-green-400 hover:text-green-300 text-xs">Voir tout</Link>
+              <Link href="/admin/orders" className="text-green-400 hover:text-green-300 text-xs pointer-coarse:py-2">Voir tout</Link>
             </div>
           </div>
           {filteredOrders.length === 0 ? (
             <p className="text-gray-500 text-sm py-8 text-center">Aucune commande sur cette periode</p>
           ) : (
-            <div className="overflow-x-auto">
+            <>
+            {/* Mobile : lignes cliquables */}
+            <div className="md:hidden -mx-1 divide-y divide-[#1f2937]/70">
+              {filteredOrders.slice(0, 8).map(order => {
+                const cfg = STATUS_CFG[order.status] || STATUS_CFG.pending
+                const name = order.shipping_address?.firstName
+                  ? `${order.shipping_address.firstName} ${order.shipping_address.lastName || ''}`
+                  : order.shipping_address?.name || 'Invite'
+                return (
+                  <Link key={order.id} href={`/admin/orders/${order.id}`}
+                    className="flex items-center gap-2 px-1 py-2.5 active:bg-gray-800/40 transition-colors">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-2">
+                        <p className="min-w-0 truncate text-white text-sm font-medium">{name.trim()}</p>
+                        <span className="shrink-0 whitespace-nowrap text-green-400 font-bold text-sm">{formatPrice(order.total)}</span>
+                      </div>
+                      <div className="mt-1 flex items-center justify-between gap-2">
+                        <span className="min-w-0 truncate text-gray-500 text-xs">
+                          {new Date(order.created_at).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' })}
+                          {!order.user_id && <span className="text-purple-400 ml-1.5">invite</span>}
+                        </span>
+                        <span className={`shrink-0 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium ${cfg.color}`}>
+                          {cfg.label}
+                        </span>
+                      </div>
+                    </div>
+                    <ChevronRight className="w-4 h-4 shrink-0 text-gray-600" />
+                  </Link>
+                )
+              })}
+            </div>
+            <div className="hidden md:block overflow-x-auto">
               <table className="w-full text-left">
                 <thead>
                   <tr className="border-b border-[#1f2937]">
@@ -441,6 +494,7 @@ export default function AdminDashboard() {
                 </tbody>
               </table>
             </div>
+            </>
           )}
         </div>
       </div>

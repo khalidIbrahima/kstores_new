@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useSyncExternalStore } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { formatPrice } from '@/lib/utils'
@@ -46,6 +46,14 @@ function generateSlug(name: string) {
   return name.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '')
 }
 
+// On a phone the full placeholder wraps and spills out of the one-line composer.
+const NARROW_QUERY = '(max-width: 639px)'
+function subscribeNarrow(onChange: () => void) {
+  const mql = window.matchMedia(NARROW_QUERY)
+  mql.addEventListener('change', onChange)
+  return () => mql.removeEventListener('change', onChange)
+}
+
 const PROVIDER_META = {
   groq: { label: 'Groq', model: 'LLaMA 3.3 70B' },
   anthropic: { label: 'Anthropic', model: 'Claude Haiku 4.5' },
@@ -60,6 +68,7 @@ export default function AdminAI() {
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
   const [creatingProduct, setCreatingProduct] = useState<string | null>(null)
+  const isNarrow = useSyncExternalStore(subscribeNarrow, () => window.matchMedia(NARROW_QUERY).matches, () => false)
   const chatEndRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
 
@@ -74,6 +83,7 @@ export default function AdminAI() {
     const userMsg: Message = { role: 'user', content: text }
     setMessages(prev => [...prev, userMsg])
     setInput('')
+    if (inputRef.current) inputRef.current.style.height = 'auto'
     setLoading(true)
 
     try {
@@ -142,7 +152,7 @@ export default function AdminAI() {
   ]
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] lg:h-[calc(100vh-40px)]">
+    <div className="flex flex-col h-[calc(100dvh-93px)] sm:h-[calc(100dvh-109px)] lg:h-[calc(100vh-40px)]">
       {/* Header */}
       <div className="flex items-center justify-between px-1 pb-3 border-b border-gray-800 shrink-0">
         <div className="flex items-center gap-2.5">
@@ -154,7 +164,7 @@ export default function AdminAI() {
             <p className="text-gray-500 text-[10px] sm:text-xs">{meta.label} · {meta.model}</p>
           </div>
         </div>
-        <button onClick={clearChat} className="text-gray-500 hover:text-red-400 p-2 rounded-lg hover:bg-gray-800 transition-colors" title="Effacer">
+        <button onClick={clearChat} aria-label="Effacer" className="text-gray-500 hover:text-red-400 p-2.5 sm:p-2 rounded-lg hover:bg-gray-800 transition-colors" title="Effacer">
           <Trash2 className="w-4 h-4" />
         </button>
       </div>
@@ -192,20 +202,20 @@ export default function AdminAI() {
           const displayText = raw.replace(/```json[\s\S]*?```/g, '').trim()
 
           return (
-            <div key={i} className={`flex gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
+            <div key={i} className={`flex gap-2 sm:gap-3 ${isUser ? 'justify-end' : 'justify-start'}`}>
               {!isUser && (
                 <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center shrink-0 mt-1">
                   <Bot className="w-4 h-4 text-purple-400" />
                 </div>
               )}
-              <div className={`max-w-[85%] sm:max-w-[75%] space-y-3`}>
+              <div className={`min-w-0 max-w-[85%] sm:max-w-[75%] space-y-3`}>
                 {displayText && (
                   <div className={`rounded-2xl px-4 py-3 text-sm leading-relaxed ${
                     isUser
                       ? 'bg-green-500 text-black rounded-br-md'
                       : 'bg-[#111827] border border-gray-800 text-gray-200 rounded-bl-md'
                   }`}>
-                    <p className="whitespace-pre-wrap"
+                    <p className="whitespace-pre-wrap [overflow-wrap:anywhere]"
                       dangerouslySetInnerHTML={{
                         __html: displayText
                           .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
@@ -294,9 +304,9 @@ export default function AdminAI() {
             onKeyDown={e => {
               if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage() }
             }}
-            placeholder="Collez un lien Alibaba ou posez une question..."
+            placeholder={isNarrow ? 'Lien Alibaba ou question...' : 'Collez un lien Alibaba ou posez une question...'}
             rows={1}
-            className="flex-1 bg-[#111827] border border-gray-800 rounded-xl px-4 py-3 text-white text-sm outline-none focus:border-purple-500 resize-none min-h-[48px] max-h-[120px]"
+            className="min-w-0 flex-1 bg-[#111827] border border-gray-800 rounded-xl px-4 py-3 text-white text-base sm:text-sm outline-none focus:border-purple-500 resize-none min-h-[48px] max-h-[120px]"
             style={{ height: 'auto', overflow: 'hidden' }}
             onInput={e => {
               const el = e.currentTarget
@@ -307,7 +317,8 @@ export default function AdminAI() {
           <button
             onClick={sendMessage}
             disabled={loading || !input.trim()}
-            className="bg-purple-500 hover:bg-purple-600 text-white px-4 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 shrink-0"
+            aria-label="Envoyer"
+            className="bg-purple-500 hover:bg-purple-600 text-white px-4 min-w-12 rounded-xl flex items-center justify-center transition-colors disabled:opacity-50 shrink-0"
           >
             <Send className="w-4 h-4" />
           </button>

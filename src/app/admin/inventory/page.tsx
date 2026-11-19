@@ -118,12 +118,12 @@ export default function AdminInventory() {
             value={search}
             onChange={e => setSearch(e.target.value)}
             placeholder="Rechercher un produit..."
-            className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-sm outline-none focus:border-green-500"
+            className="w-full bg-[#111827] border border-gray-800 rounded-lg pl-10 pr-4 py-3 text-white text-base sm:text-sm outline-none focus:border-green-500"
           />
         </div>
         <button
           onClick={() => setSortDir(prev => prev === 'asc' ? 'desc' : 'asc')}
-          className="flex items-center gap-2 bg-[#111827] border border-gray-800 rounded-lg px-4 py-3 text-gray-400 hover:text-white text-sm transition-colors"
+          className="flex items-center justify-center gap-2 bg-[#111827] border border-gray-800 rounded-lg px-4 py-3 text-gray-400 hover:text-white text-sm transition-colors"
         >
           <ArrowUpDown className="w-4 h-4" />
           Stock {sortDir === 'asc' ? 'croissant' : 'decroissant'}
@@ -136,7 +136,7 @@ export default function AdminInventory() {
           <button
             key={tab.key}
             onClick={() => setStatusFilter(tab.key)}
-            className={`px-3 py-1.5 rounded-full text-xs font-medium transition-colors ${
+            className={`px-3 py-2 sm:py-1.5 rounded-full text-xs font-medium transition-colors ${
               statusFilter === tab.key
                 ? 'bg-green-400/20 text-green-400'
                 : 'bg-[#111827] text-gray-400 hover:text-white border border-gray-800'
@@ -155,7 +155,38 @@ export default function AdminInventory() {
             <p className="text-gray-500">Aucun produit trouve</p>
           </div>
         ) : (
-          <div className="overflow-x-auto">
+          <>
+          {/* Mobile : liste */}
+          <div className="md:hidden divide-y divide-gray-800/70">
+            {filtered.map(product => {
+              const stock = getStock(product)
+              const status = getStatus(stock)
+              const StatusIcon = status.icon
+              return (
+                <div key={product.id} className="flex items-center gap-3 px-3 py-3">
+                  <div className="relative w-11 h-11 rounded-lg overflow-hidden bg-gray-900 shrink-0">
+                    <Image src={product.image_url} alt="" fill className="object-cover" sizes="44px" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="line-clamp-2 break-words text-white text-sm font-medium leading-snug">{product.name}</p>
+                    <p className="mt-0.5 truncate text-gray-500 text-xs">{product.categories?.name || '—'}</p>
+                  </div>
+                  <div className="flex shrink-0 flex-col items-end gap-1">
+                    <span className={`text-base font-bold leading-none ${stock === 0 ? 'text-red-400' : stock < 10 ? 'text-yellow-400' : 'text-green-400'}`}>
+                      {stock}
+                    </span>
+                    <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-medium whitespace-nowrap ${status.color}`}>
+                      <StatusIcon className="w-3 h-3" />
+                      {status.label}
+                    </span>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+
+          {/* Tablette / desktop : table */}
+          <div className="hidden md:block overflow-x-auto">
             <table className="w-full min-w-[560px]">
             <thead>
               <tr className="border-b border-gray-800 text-left">
@@ -200,6 +231,7 @@ export default function AdminInventory() {
             </tbody>
             </table>
           </div>
+          </>
         )}
       </div>
     </div>

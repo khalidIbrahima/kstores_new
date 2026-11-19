@@ -106,7 +106,7 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
         return (
           <div key={variant.id} className="bg-gray-800/50 border border-gray-700 rounded-lg overflow-hidden">
             {/* Header */}
-            <div className="flex items-center gap-2 px-4 py-3 cursor-pointer hover:bg-gray-800/80 transition-colors" onClick={() => toggle(variant.id)}>
+            <div className="flex items-center gap-2 px-3 sm:px-4 py-3 cursor-pointer hover:bg-gray-800/80 transition-colors" onClick={() => toggle(variant.id)}>
               <Icon className="w-4 h-4 text-purple-400 flex-shrink-0" />
               <input
                 type="text"
@@ -114,11 +114,11 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
                 onChange={e => { e.stopPropagation(); updateVariant(variant.id, 'name', e.target.value) }}
                 onClick={e => e.stopPropagation()}
                 placeholder="Nom du variant (ex: Couleur, Taille...)"
-                className={`bg-transparent text-white text-sm font-medium outline-none flex-1 min-w-0 ${!variant.name ? 'border-b border-red-500/50' : ''}`}
+                className={`bg-transparent text-white text-base sm:text-sm font-medium outline-none flex-1 min-w-0 ${!variant.name ? 'border-b border-red-500/50' : ''}`}
               />
               <div className="flex items-center gap-1 flex-shrink-0">
                 {!isOpen && variant.options.length > 0 && (
-                  <div className="flex gap-1 mr-2">
+                  <div className="hidden sm:flex gap-1 mr-2">
                     {variant.options.slice(0, 4).map(o => (
                       <span key={o.id} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-700 text-gray-300 max-w-[60px] truncate">
                         {isColor && o.image_url?.startsWith('#') ? (
@@ -132,9 +132,10 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
                     )}
                   </div>
                 )}
-                <span className="text-xs text-gray-500">{variant.options.length} option{variant.options.length !== 1 ? 's' : ''}</span>
+                <span className="text-xs text-gray-500 whitespace-nowrap">{variant.options.length} option{variant.options.length !== 1 ? 's' : ''}</span>
                 <button type="button" onClick={e => { e.stopPropagation(); removeVariant(variant.id) }}
-                  className="p-1 text-gray-600 hover:text-red-400 transition-colors ml-1">
+                  aria-label="Supprimer le variant"
+                  className="p-1 pointer-coarse:p-2 text-gray-600 hover:text-red-400 transition-colors ml-1">
                   <Trash2 className="w-3.5 h-3.5" />
                 </button>
                 {isOpen ? <ChevronUp className="w-4 h-4 text-gray-500" /> : <ChevronDown className="w-4 h-4 text-gray-500" />}
@@ -148,14 +149,14 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
                   <p className="text-gray-600 text-xs text-center py-2">Aucune option. Ajoutez-en une.</p>
                 )}
                 {variant.options.map(option => (
-                  <div key={option.id} className="flex items-center gap-2 bg-gray-900/50 rounded-lg px-3 py-2">
+                  <div key={option.id} className="flex flex-wrap sm:flex-nowrap items-center gap-2 bg-gray-900/50 rounded-lg px-3 py-2">
                     {/* Color swatch or image indicator */}
                     {isColor ? (
                       <input
                         type="color"
                         value={option.image_url?.startsWith('#') ? option.image_url : '#22c55e'}
                         onChange={e => updateOption(variant.id, option.id, 'image_url', e.target.value)}
-                        className="w-7 h-7 rounded border border-gray-600 bg-gray-800 cursor-pointer flex-shrink-0"
+                        className="w-7 h-7 pointer-coarse:w-9 pointer-coarse:h-9 rounded border border-gray-600 bg-gray-800 cursor-pointer flex-shrink-0"
                       />
                     ) : option.image_url ? (
                       <img src={option.image_url} alt="" className="w-7 h-7 rounded object-cover border border-gray-600 flex-shrink-0" />
@@ -167,9 +168,11 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
                       value={option.name}
                       onChange={e => updateOption(variant.id, option.id, 'name', e.target.value)}
                       placeholder="Nom (ex: Rouge, S, XL...)"
-                      className={`bg-transparent text-white text-sm outline-none flex-1 min-w-0 ${!option.name ? 'border-b border-red-500/30' : ''}`}
+                      className={`bg-transparent text-white text-base sm:text-sm outline-none flex-1 min-w-0 ${!option.name ? 'border-b border-red-500/30' : ''}`}
                     />
 
+                    {/* Stock + image URL : 2e ligne sur mobile */}
+                    <div className="order-last sm:order-none flex w-full sm:w-auto items-center gap-2 sm:flex-shrink-0">
                     {/* Stock */}
                     <div className="flex items-center gap-1 flex-shrink-0">
                       <span className="text-gray-600 text-[10px]">Stock:</span>
@@ -179,7 +182,7 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
                         value={option.stock ?? ''}
                         onChange={e => updateOption(variant.id, option.id, 'stock', e.target.value ? Math.max(0, parseInt(e.target.value)) : null)}
                         placeholder="—"
-                        className="bg-transparent text-white text-sm outline-none w-14 text-center border-b border-gray-700 focus:border-green-500"
+                        className="bg-transparent text-white text-base sm:text-sm outline-none w-14 text-center border-b border-gray-700 focus:border-green-500"
                       />
                     </div>
 
@@ -190,20 +193,22 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
                         value={option.image_url}
                         onChange={e => updateOption(variant.id, option.id, 'image_url', e.target.value)}
                         placeholder="Image URL"
-                        className="bg-transparent text-gray-400 text-xs outline-none w-24 border-b border-gray-700 focus:border-green-500 flex-shrink-0"
+                        className="bg-transparent text-gray-400 text-base sm:text-xs outline-none min-w-0 flex-1 sm:flex-none sm:w-24 border-b border-gray-700 focus:border-green-500 sm:flex-shrink-0"
                       />
                     )}
+                    </div>
 
                     {/* Delete option */}
                     <button type="button" onClick={() => removeOption(variant.id, option.id)}
-                      className="p-1 text-gray-600 hover:text-red-400 transition-colors flex-shrink-0">
+                      aria-label="Supprimer l'option"
+                      className="p-1 pointer-coarse:p-2 text-gray-600 hover:text-red-400 transition-colors flex-shrink-0">
                       <X className="w-3.5 h-3.5" />
                     </button>
                   </div>
                 ))}
 
                 <button type="button" onClick={() => addOption(variant.id)}
-                  className="w-full text-center py-2 text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-500/5 rounded-lg border border-dashed border-gray-700 hover:border-purple-500/30 transition-colors flex items-center justify-center gap-1">
+                  className="w-full text-center py-2.5 sm:py-2 text-xs text-purple-400 hover:text-purple-300 hover:bg-purple-500/5 rounded-lg border border-dashed border-gray-700 hover:border-purple-500/30 transition-colors flex items-center justify-center gap-1">
                   <Plus className="w-3 h-3" /> Ajouter une option
                 </button>
               </div>
@@ -213,17 +218,17 @@ export default function ProductVariantsManager({ variants, onChange }: Props) {
       })}
 
       {/* Add Variant Type */}
-      <div className="flex gap-2">
+      <div className="flex flex-wrap gap-2">
         <button type="button" onClick={() => addVariant('Couleur')}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20">
+          className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20">
           <Palette className="w-3.5 h-3.5" /> Couleur
         </button>
         <button type="button" onClick={() => addVariant('Taille')}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20">
+          className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs bg-purple-500/10 text-purple-400 hover:bg-purple-500/20 rounded-lg transition-colors border border-purple-500/20">
           <Ruler className="w-3.5 h-3.5" /> Taille
         </button>
         <button type="button" onClick={() => addVariant('')}
-          className="flex items-center gap-1.5 px-3 py-2 text-xs bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors border border-gray-700">
+          className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs bg-gray-800 text-gray-400 hover:text-white hover:bg-gray-700 rounded-lg transition-colors border border-gray-700">
           <Plus className="w-3.5 h-3.5" /> Personnalise
         </button>
       </div>

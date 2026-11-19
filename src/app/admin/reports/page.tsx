@@ -120,7 +120,7 @@ export default function AdminReports() {
   if (loading) {
     return (
       <div className="space-y-6">
-        <h1 className="text-3xl font-black text-white">Rapports</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-white">Rapports</h1>
         <div className="flex items-center justify-center py-20">
           <Loader2 className="w-8 h-8 text-green-400 animate-spin" />
         </div>
@@ -135,7 +135,7 @@ export default function AdminReports() {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-black text-white">Rapports</h1>
+        <h1 className="text-2xl sm:text-3xl font-black text-white">Rapports</h1>
         <p className="text-gray-500 text-sm mt-1">Vue d&apos;ensemble de votre activite</p>
       </div>
 
@@ -148,7 +148,7 @@ export default function AdminReports() {
             <button
               key={tab.key}
               onClick={() => setActiveTab(tab.key)}
-              className={`flex-1 flex items-center justify-center gap-2 px-4 py-3 text-sm font-semibold transition-colors relative ${
+              className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-4 py-3 text-sm font-semibold transition-colors relative ${
                 isActive
                   ? 'text-green-400 border-b-2 border-green-400'
                   : 'text-gray-500 hover:text-gray-300 border-b-2 border-transparent'
@@ -168,7 +168,7 @@ export default function AdminReports() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           {/* Left: Stat Cards */}
           <div className="flex flex-col gap-4">
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Revenus totaux</span>
                 <div className="w-10 h-10 rounded-lg bg-green-400/10 flex items-center justify-center">
@@ -177,7 +177,7 @@ export default function AdminReports() {
               </div>
               <p className="text-lg sm:text-2xl font-black text-white">{formatPrice(data.totalRevenue)}</p>
             </div>
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Commandes</span>
                 <div className="w-10 h-10 rounded-lg bg-blue-400/10 flex items-center justify-center">
@@ -186,7 +186,7 @@ export default function AdminReports() {
               </div>
               <p className="text-lg sm:text-2xl font-black text-white">{data.ordersCount}</p>
             </div>
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Panier moyen</span>
                 <div className="w-10 h-10 rounded-lg bg-yellow-400/10 flex items-center justify-center">
@@ -198,7 +198,7 @@ export default function AdminReports() {
           </div>
 
           {/* Right: Revenue Bar Chart */}
-          <div className="lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="min-w-0 lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h3 className="text-white font-bold mb-6">Revenus par mois</h3>
             {data.revenueByMonth.length === 0 ? (
               <p className="text-gray-500 text-center py-8">Aucune donnee disponible</p>
@@ -209,15 +209,21 @@ export default function AdminReports() {
                   const [year, month] = item.month.split('-')
                   const label = new Date(Number(year), Number(month) - 1).toLocaleDateString('fr-FR', { month: 'short' })
                   return (
-                    <div key={item.month} className="flex-1 flex flex-col items-center gap-2 group relative">
+                    <div key={item.month} className="min-w-0 h-full flex-1 flex flex-col items-center justify-end gap-2 group relative">
                       <div className="opacity-0 group-hover:opacity-100 absolute -top-10 bg-gray-900 border border-gray-700 rounded-lg px-2 py-1 text-xs text-white whitespace-nowrap z-10 pointer-events-none transition-opacity">
                         {formatPrice(item.revenue)}
                       </div>
-                      <div
-                        className="w-full bg-green-500/70 rounded-t hover:bg-green-400 transition-colors cursor-pointer min-h-[4px]"
-                        style={{ height: `${Math.max(heightPercent, 2)}%` }}
-                      />
+                      <div className="w-full flex-1 flex items-end">
+                        <div
+                          className="w-full bg-green-500/70 rounded-t hover:bg-green-400 transition-colors cursor-pointer min-h-[4px]"
+                          style={{ height: `${Math.max(heightPercent, 2)}%` }}
+                        />
+                      </div>
                       <span className="text-gray-500 text-xs capitalize">{label}</span>
+                      {/* Écran tactile : pas de survol, on affiche le montant abrégé */}
+                      <span className="hidden pointer-coarse:block -mt-1 max-w-full truncate text-[10px] font-medium text-gray-300">
+                        {new Intl.NumberFormat('fr-FR', { notation: 'compact', maximumFractionDigits: 1 }).format(item.revenue)}
+                      </span>
                     </div>
                   )
                 })}
@@ -232,7 +238,7 @@ export default function AdminReports() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           {/* Left: Stat Cards */}
           <div className="flex flex-col gap-4">
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Total clients</span>
                 <div className="w-10 h-10 rounded-lg bg-purple-400/10 flex items-center justify-center">
@@ -241,7 +247,7 @@ export default function AdminReports() {
               </div>
               <p className="text-lg sm:text-2xl font-black text-white">{data.totalCustomers}</p>
             </div>
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Nouveaux ce mois</span>
                 <div className="w-10 h-10 rounded-lg bg-blue-400/10 flex items-center justify-center">
@@ -250,7 +256,7 @@ export default function AdminReports() {
               </div>
               <p className="text-lg sm:text-2xl font-black text-white">{data.newThisMonth}</p>
             </div>
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Clients recurrents</span>
                 <div className="w-10 h-10 rounded-lg bg-green-400/10 flex items-center justify-center">
@@ -262,7 +268,7 @@ export default function AdminReports() {
           </div>
 
           {/* Right: Customer Breakdown */}
-          <div className="lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="min-w-0 lg:col-span-2 bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
             <h3 className="text-white font-bold mb-6">Repartition des clients</h3>
             <div className="space-y-6">
               {/* Returning vs New ratio bar */}
@@ -314,7 +320,7 @@ export default function AdminReports() {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-6">
           {/* Left: Stat Cards */}
           <div className="flex flex-col gap-4">
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Total produits</span>
                 <div className="w-10 h-10 rounded-lg bg-blue-400/10 flex items-center justify-center">
@@ -323,7 +329,7 @@ export default function AdminReports() {
               </div>
               <p className="text-lg sm:text-2xl font-black text-white">{data.totalProducts}</p>
             </div>
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <div className="flex items-center justify-between mb-3">
                 <span className="text-gray-400 text-sm">Produits actifs</span>
                 <div className="w-10 h-10 rounded-lg bg-green-400/10 flex items-center justify-center">
@@ -335,8 +341,8 @@ export default function AdminReports() {
           </div>
 
           {/* Right: Stock Alerts */}
-          <div className="lg:col-span-2 flex flex-col gap-4">
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+          <div className="min-w-0 lg:col-span-2 flex flex-col gap-4">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <h3 className="text-white font-bold mb-6">Alertes de stock</h3>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="flex items-center gap-4 bg-red-500/5 border border-red-500/20 rounded-xl p-4">
@@ -361,7 +367,7 @@ export default function AdminReports() {
             </div>
 
             {/* Inventory Breakdown Bar */}
-            <div className="bg-[#111827] border border-gray-800 rounded-xl p-6">
+            <div className="bg-[#111827] border border-gray-800 rounded-xl p-4 sm:p-6">
               <h3 className="text-white font-bold mb-4">Repartition</h3>
               <div className="w-full h-4 bg-gray-800 rounded-full overflow-hidden flex">
                 {data.totalProducts > 0 && (
@@ -390,7 +396,7 @@ export default function AdminReports() {
                   </>
                 )}
               </div>
-              <div className="flex items-center gap-3 sm:gap-6 mt-3 text-xs">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 sm:gap-6 mt-3 text-xs">
                 <div className="flex items-center gap-1.5">
                   <div className="w-2.5 h-2.5 rounded-full bg-green-500" />
                   <span className="text-gray-400">En stock</span>
