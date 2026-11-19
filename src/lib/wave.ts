@@ -3,9 +3,9 @@
 
 import { createHmac, timingSafeEqual } from 'node:crypto'
 import { createClient } from '@supabase/supabase-js'
+import { SITE_URL } from './site'
 
 const WAVE_API_URL = 'https://api.wave.com/v1'
-const SITE_URL = process.env.NEXT_PUBLIC_SITE_URL || 'https://kapitalstores.com'
 /** Webhook signatures older than this are rejected (replay protection). */
 const SIGNATURE_TOLERANCE_MS = 5 * 60 * 1000
 

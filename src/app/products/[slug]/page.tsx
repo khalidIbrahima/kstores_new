@@ -3,6 +3,7 @@ import { Product, Review } from '@/lib/types'
 import ProductDetailClient from './ProductDetailClient'
 import { notFound } from 'next/navigation'
 import type { Metadata } from 'next'
+import { SITE_URL, sharePreviewImage } from '@/lib/site'
 
 export const revalidate = 60
 
@@ -55,11 +56,9 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
   const title = `${product.name} - ${price} | Kapital Stores`
   const description = product.description?.slice(0, 160) || `Achetez ${product.name} sur Kapital Stores. Livraison rapide a Dakar.`
 
-  // Proxy image through Next.js for consistent format and caching
-  const baseUrl = process.env.NEXT_PUBLIC_PRODUCTION_URL || 'https://kapitalstores.com'
-  const ogImage = product.image_url
-    ? `${baseUrl}/_next/image?url=${encodeURIComponent(product.image_url)}&w=1200&q=80`
-    : `${baseUrl}/opengraph-image`
+  // Product photo resized by the site (consistent weight and caching); site-wide card when there is none.
+  const baseUrl = SITE_URL
+  const ogImage = product.image_url ? sharePreviewImage(product.image_url) : `${baseUrl}/opengraph-image`
 
   return {
     title,
@@ -72,13 +71,8 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       locale: 'fr_FR',
       url: `${baseUrl}/products/${slug}`,
       images: [
-        {
-          url: ogImage,
-          width: 1200,
-          height: 630,
-          alt: product.name,
-          type: 'image/jpeg',
-        },
+        // No width/height/type: photos are often square and sometimes PNG, and wrong values mislead crawlers.
+        { url: ogImage, alt: product.name },
       ],
     },
     twitter: {
