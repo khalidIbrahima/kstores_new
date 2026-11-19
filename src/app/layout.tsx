@@ -6,7 +6,6 @@ import { CartProvider } from "@/context/CartContext"
 import { AuthProvider } from "@/context/AuthContext"
 import { ToastProvider } from "@/components/ToastProvider"
 import ScrollToTop from "@/components/ScrollToTop"
-import DynamicFavicon from "@/components/DynamicFavicon"
 import MaintenanceGuard from "@/components/MaintenanceGuard"
 import ErrorBoundary from "@/components/ErrorBoundary"
 import AnalyticsTracker from "@/components/AnalyticsTracker"
@@ -67,7 +66,6 @@ export default function RootLayout({
                   </MaintenanceGuard>
                 </ErrorBoundary>
                 <ScrollToTop />
-                <DynamicFavicon />
                 <AnalyticsTracker />
               </PostHogProvider>
             </ToastProvider>
