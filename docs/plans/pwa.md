@@ -154,3 +154,12 @@ Fait sur un build de production (le service worker n'est enregistré qu'en produ
 - [x] Service worker + nettoyage de l'ancien
 - [x] Invite d'installation (admin)
 - [x] Vérifications Playwright
+
+## Nouvelle icône d'application — piste C (2026-11-19)
+
+- Khalidou a choisi la piste « C — badge vert » (planche de pistes : artefact « Kapital Stores — pistes de logo »).
+- `scripts/pwa-icons/generate.py` : les icônes `any`, `maskable` et `apple-touch` utilisent le K sombre plein sur
+  fond vert `#22c55e` avec éclair blanc, en aplats. Marque dans un rayon de 0,37 × la taille pour la version maskable.
+- Les favicons (onglet du navigateur, **tout le site**) gardent l'ancienne marque : le changement de logo pour
+  la boutique (en-tête, pied de page, e-mails, facture, favicon) est une décision de marque à part, non prise.
+- Noms de fichiers inchangés, donc `manifest.json` n'a pas bougé.

@@ -1,4 +1,9 @@
-"""Génère les icônes PWA de Kapital Stores à partir de la marque de public/logo.svg.
+"""Génère les icônes de Kapital Stores.
+
+Icônes de l'application (any, maskable, apple-touch) : piste « C — badge vert » retenue par Khalidou le
+2026-11-19 — K sombre plein sur fond vert, éclair blanc. Aplats uniquement, sans dégradé ni lueur.
+Favicons (onglet du navigateur, tout le site) : encore l'ancienne marque de public/logo.svg, tant que
+le changement de logo pour l'ensemble du site n'est pas décidé.
 
 Usage (depuis la racine du dépôt) :
     python3 scripts/pwa-icons/generate.py
@@ -37,6 +42,45 @@ DEFS = """
 """
 
 
+# --- Piste C : badge vert -------------------------------------------------------------------------
+GREEN, INK, WHITE = "#22c55e", "#0b1220", "#ffffff"
+# Boîte englobante du K + éclair dans le repère 512 : x 124..434, y 104..408.
+C_CX, C_CY = 279, 256
+C_H = 304
+C_RADIUS = 217  # distance max centre -> point le plus éloigné (coin haut-gauche de la barre)
+C_MARK = f"""
+  <g fill="{INK}">
+    <path d="M124 104h92v304h-92z"/>  <!-- 8 px sous le bras : pas de liseré -->
+    <path d="M208 232 320 104h104L208 352z"/>
+    <path d="M230 313 294 241 428 408H322z"/>  <!-- chevauche le bras de 8 px : pas de liseré à la jonction -->
+  </g>
+  <path fill="{WHITE}" stroke="{GREEN}" stroke-width="16" stroke-linejoin="round" paint-order="stroke"
+        d="M412 168 338 272h42l-30 86 84-116h-44l32-74z"/>"""
+
+
+def app_icon_svg(kind: str) -> str:
+    """kind: 'any' (carré arrondi, coins transparents), 'maskable' (plein cadre, marque dans la zone sûre),
+    'apple' (plein cadre opaque, iOS arrondit lui-même)."""
+    V = 512
+    if kind == "any":
+        scale = 0.64 * V / C_H
+        bg = f'<rect width="{V}" height="{V}" rx="{0.22 * V}" fill="{GREEN}"/>'
+    elif kind == "maskable":
+        # Zone sûre : cercle de rayon 0,4 × taille. La marque entière tient dans un rayon de 0,37.
+        scale = 0.37 * V / C_RADIUS
+        bg = f'<rect width="{V}" height="{V}" fill="{GREEN}"/>'
+    elif kind == "apple":
+        scale = 0.6 * V / C_H
+        bg = f'<rect width="{V}" height="{V}" fill="{GREEN}"/>'
+    else:
+        raise ValueError(kind)
+    return f"""<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 {V} {V}" width="{V}" height="{V}">
+{bg}
+<g transform="translate({V/2} {V/2}) scale({scale:.4f}) translate({-C_CX} {-C_CY})">{C_MARK}</g>
+</svg>"""
+
+
+# --- Ancienne marque (favicons seulement) ---------------------------------------------------------
 def mark(glow: bool, dot: bool = True) -> str:
     f = ' filter="url(#glow)"' if glow else ""
     # Sans lueur, les bras sont rendus opaques pour rester nets aux petites tailles.
@@ -67,8 +111,8 @@ def circuit(view: int) -> str:
 
 
 def svg(kind: str, detail: bool, dot: bool = True) -> str:
-    """kind: 'any' (carré arrondi, coins transparents), 'maskable' (plein cadre, marque dans la zone sûre),
-    'apple' (plein cadre opaque, iOS arrondit lui-même)."""
+    if kind != "favicon":
+        return app_icon_svg(kind)
     V = 512
     if kind in ("any", "favicon"):
         # La marque occupe 62 % de la hauteur (53 % dans logo.svg) ; 72 % pour le favicon, minuscule à l'écran.
