@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
+import { SESSION_COOKIE, sessionKey, verifySession } from './session'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || ''
 const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
@@ -48,32 +49,83 @@ interface GoogleTokenInfo {
   email_verified?: string | boolean
 }
 
-async function tryValidateGoogleIdToken(token: string): Promise<string | null> {
+export interface VerifiedGoogleUser {
+  sub: string
+  email: string
+  name: string
+  picture: string
+}
+
+/** Verifies a Google ID token (audience, expiry, verified email). */
+export async function verifyGoogleIdToken(token: string): Promise<VerifiedGoogleUser | null> {
   if (!GOOGLE_CLIENT_ID) return null
   try {
     const res = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${encodeURIComponent(token)}`)
     if (!res.ok) return null
-    const info = (await res.json()) as GoogleTokenInfo
+    const info = (await res.json()) as GoogleTokenInfo & { sub?: string; name?: string; picture?: string }
     if (info.aud !== GOOGLE_CLIENT_ID) return null
     if (info.exp && Number(info.exp) * 1000 < Date.now()) return null
     if (info.email_verified !== true && info.email_verified !== 'true') return null
-    return info.email || null
+    if (!info.email || !info.sub) return null
+    return { sub: info.sub, email: info.email, name: info.name || '', picture: info.picture || '' }
   } catch {
     return null
   }
 }
 
+async function tryValidateGoogleIdToken(token: string): Promise<string | null> {
+  return (await verifyGoogleIdToken(token))?.email ?? null
+}
+
+/** Google ID tokens are RS256; Supabase access tokens are not. Avoids a pointless call (and a 403 in the Auth logs). */
+function jwtAlg(token: string): string | null {
+  try {
+    const header = JSON.parse(Buffer.from(token.split('.')[0], 'base64').toString('utf8')) as { alg?: string }
+    return header.alg ?? null
+  } catch {
+    return null
+  }
+}
+
+async function emailFromBearer(token: string): Promise<string | null> {
+  if (jwtAlg(token) === 'RS256') {
+    return (await tryValidateGoogleIdToken(token)) || (await tryValidateSupabaseJwt(token))
+  }
+  return (await tryValidateSupabaseJwt(token)) || (await tryValidateGoogleIdToken(token))
+}
+
+/** A cookie is sent by the browser automatically, so a state-changing request must come from our own pages. */
+function isSameOrigin(req: NextRequest): boolean {
+  const fetchSite = req.headers.get('sec-fetch-site')
+  if (fetchSite) return fetchSite === 'same-origin'
+  const origin = req.headers.get('origin')
+  if (!origin) return false
+  try {
+    return new URL(origin).host === (req.headers.get('x-forwarded-host') || req.headers.get('host'))
+  } catch {
+    return false
+  }
+}
+
+function emailFromSessionCookie(req: NextRequest): string | null {
+  const key = sessionKey()
+  if (!key) return null
+  const method = req.method.toUpperCase()
+  if (method !== 'GET' && method !== 'HEAD' && !isSameOrigin(req)) return null
+  return verifySession(req.cookies.get(SESSION_COOKIE)?.value, key)?.email ?? null
+}
+
 export async function requireAdmin(req: NextRequest): Promise<AdminCheck> {
   try {
     const auth = req.headers.get('authorization')
-    if (!auth || !auth.toLowerCase().startsWith('bearer ')) {
-      return { ok: false, status: 401, error: 'Missing Authorization header' }
+    let email: string | null = null
+    if (auth && auth.toLowerCase().startsWith('bearer ') && auth.slice(7).trim()) {
+      email = await emailFromBearer(auth.slice(7).trim())
     }
-    const token = auth.slice(7).trim()
-    if (!token) return { ok: false, status: 401, error: 'Empty token' }
-
-    const email = (await tryValidateSupabaseJwt(token)) || (await tryValidateGoogleIdToken(token))
-    if (!email) return { ok: false, status: 401, error: 'Invalid or expired token' }
+    if (!email) email = emailFromSessionCookie(req)
+    if (!email) {
+      return { ok: false, status: 401, error: auth ? 'Invalid or expired token' : 'Not signed in' }
+    }
 
     const admin = await profileIsAdmin(email)
     if (!admin) return { ok: false, status: 403, error: 'Forbidden: not an admin' }

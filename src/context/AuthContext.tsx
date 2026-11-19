@@ -51,6 +51,29 @@ function isGoogleCredentialValid(): boolean {
   }
 }
 
+/** Exchanges a fresh Google ID token for the server's 30-day session cookie. */
+async function startServerSession(credential: string): Promise<void> {
+  try {
+    await fetch('/api/auth/session', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ credential }),
+    })
+  } catch { /* offline: the Google token still works for the next hour */ }
+}
+
+/** The Google ID token only lasts an hour; the server session lasts 30 days. */
+async function fetchServerSession(): Promise<GoogleUser | null | 'offline'> {
+  try {
+    const res = await fetch('/api/auth/session', { cache: 'no-store' })
+    if (!res.ok) return null
+    const { user } = (await res.json()) as { user?: GoogleUser | null }
+    return user ?? null
+  } catch {
+    return 'offline'
+  }
+}
+
 function purgeGoogleSession(): void {
   if (typeof window === 'undefined') return
   localStorage.removeItem('ks-google-credential')
@@ -136,7 +159,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setGoogleUser(gUser)
     localStorage.setItem('ks-google-user', JSON.stringify(gUser))
     localStorage.setItem('ks-google-credential', response.credential)
-    await upsertGoogleProfile(gUser)
+    await Promise.all([startServerSession(response.credential), upsertGoogleProfile(gUser)])
   }, [upsertGoogleProfile])
 
   // === SINGLE INITIAL LOAD ===
@@ -146,21 +169,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const init = async () => {
       const promises: Promise<void>[] = []
 
-      // 1. Check saved Google session — purge if credential is expired (Google ID tokens last ~1h)
+      // 1. Restore the Google session. The Google ID token expires after ~1h; when it has,
+      //    the 30-day server session cookie keeps the user signed in.
       const savedGoogle = localStorage.getItem('ks-google-user')
       if (savedGoogle) {
-        if (!isGoogleCredentialValid()) {
-          purgeGoogleSession()
-        } else {
-          try {
-            const gUser = JSON.parse(savedGoogle) as GoogleUser
-            setGoogleUser(gUser)
-            pendingProfileLoads.current++
-            promises.push(
-              upsertGoogleProfile(gUser).finally(() => { pendingProfileLoads.current-- })
-            )
-          } catch { /* corrupted localStorage, ignore */ }
+        const restore = async () => {
+          let gUser: GoogleUser | null = null
+          if (isGoogleCredentialValid()) {
+            try { gUser = JSON.parse(savedGoogle) as GoogleUser } catch { /* corrupted */ }
+            // Sessions opened before the server session existed: create the cookie now.
+            const cred = localStorage.getItem('ks-google-credential')
+            if (gUser && cred) void startServerSession(cred)
+          } else {
+            const server = await fetchServerSession()
+            if (server === 'offline') {
+              try { gUser = JSON.parse(savedGoogle) as GoogleUser } catch { /* corrupted */ }
+            } else if (server) {
+              gUser = server
+              localStorage.setItem('ks-google-user', JSON.stringify(server))
+              localStorage.removeItem('ks-google-credential')
+            }
+          }
+          if (!gUser) { purgeGoogleSession(); return }
+          setGoogleUser(gUser)
+          await upsertGoogleProfile(gUser)
         }
+        pendingProfileLoads.current++
+        promises.push(restore().finally(() => { pendingProfileLoads.current-- }))
       }
 
       // 2. Check Supabase session
@@ -259,6 +294,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setProfile(null)
       localStorage.removeItem('ks-google-user')
       localStorage.removeItem('ks-google-credential')
+      fetch('/api/auth/session', { method: 'DELETE' }).catch(() => {})
       const google = (window as unknown as { google?: { accounts?: { id?: {
         revoke: (email: string, callback: () => void) => void
         disableAutoSelect: () => void

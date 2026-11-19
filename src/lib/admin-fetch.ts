@@ -10,9 +10,9 @@ async function getAdminToken(): Promise<string | null> {
     try {
       const payload = JSON.parse(atob(googleCred.split('.')[1])) as { exp?: number }
       if (typeof payload.exp === 'number' && payload.exp * 1000 > Date.now()) return googleCred
-    } catch { /* malformed, fall through to purge */ }
-    localStorage.removeItem('ks-google-credential')
-    localStorage.removeItem('ks-google-user')
+    } catch { /* malformed */ }
+    // Expired Google token: don't send it. The 30-day session cookie
+    // (same-origin, sent automatically) authenticates the request.
   }
   return null
 }
