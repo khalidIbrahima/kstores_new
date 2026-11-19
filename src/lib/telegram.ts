@@ -2,7 +2,8 @@
 // Les notifs de paiement et de stock bas sont gérées par des triggers Postgres
 // (voir db/telegram-notifications.sql), pas par ce module.
 
-const SITE_URL = process.env.NEXT_PUBLIC_PRODUCTION_URL || 'https://kapitalstores.com'
+import { SITE_URL } from './site'
+
 
 export function escapeHtml(s: string): string {
   return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
