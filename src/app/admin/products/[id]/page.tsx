@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, use } from 'react'
+import { useState, useEffect, use, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import Image from 'next/image'
 import Link from 'next/link'
@@ -11,9 +11,11 @@ import { formatPrice } from '@/lib/utils'
 import {
   ArrowLeft, Loader2, ExternalLink, Copy, Check, Trash2,
   Eye, EyeOff, Tag, Package, BarChart3, Star, Calendar,
-  ShoppingCart, Edit3
+  ShoppingCart, Edit3, Instagram
 } from 'lucide-react'
 import ProductForm, { ProductFormData } from '@/components/admin/ProductForm'
+import InstagramVisualModal from '@/components/admin/InstagramVisualModal'
+import type { VisualProduct } from '@/lib/instagram-visual'
 import type { Variant } from '@/components/admin/ProductVariantsManager'
 
 type Tab = 'overview' | 'edit'
@@ -48,6 +50,19 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
   const [reviewStats, setReviewStats] = useState<ReviewStats>({ count: 0, avg: 0 })
   const [orderCount, setOrderCount] = useState(0)
   const [selectedImage, setSelectedImage] = useState(0)
+  const [showVisual, setShowVisual] = useState(false)
+  const visualProduct = useMemo<VisualProduct | null>(() => {
+    if (!product) return null
+    const promo = !!(product.promotion_active && product.promotion_percentage && product.old_price && product.old_price > product.price)
+    return {
+      name: product.name,
+      price: product.price,
+      oldPrice: promo ? product.old_price : null,
+      promoPercentage: promo ? product.promotion_percentage : null,
+      imageUrl: product.image_url || null,
+      categoryName: product.categories?.name ?? null,
+    }
+  }, [product])
 
   useEffect(() => {
     const fetchAll = async () => {
@@ -341,6 +356,12 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
             <ExternalLink className="w-3.5 h-3.5" /> Boutique
           </Link>
           <button
+            onClick={() => setShowVisual(true)}
+            className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs sm:text-sm text-green-400 border border-green-500/30 hover:border-green-500/50 rounded-lg transition-colors"
+          >
+            <Instagram className="w-3.5 h-3.5" /> Visuel Instagram
+          </button>
+          <button
             onClick={handleClone}
             disabled={cloning}
             className="flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs sm:text-sm text-purple-400 border border-purple-500/30 hover:border-purple-500/50 rounded-lg transition-colors disabled:opacity-50"
@@ -524,6 +545,10 @@ export default function EditProduct({ params }: { params: Promise<{ id: string }
             onCancel={() => setTab('overview')}
           />
         </div>
+      )}
+
+      {showVisual && visualProduct && (
+        <InstagramVisualModal product={visualProduct} onClose={() => setShowVisual(false)} />
       )}
     </div>
   )
