@@ -89,18 +89,18 @@ export default function ProductsClient({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div>
+      <div className="flex flex-wrap items-end justify-between gap-3 mb-6">
+        <div className="min-w-0">
           <h1 className="text-3xl sm:text-4xl font-black italic text-white">
             Produits <span className="text-green-400">Gaming</span>
           </h1>
           <p className="text-gray-500 text-sm mt-1">{filtered.length} produits trouvés</p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-2 sm:gap-3 min-w-0">
           <select
             value={sortBy}
             onChange={e => { setSortBy(e.target.value as SortOption); setCurrentPage(1) }}
-            className="bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded-lg px-3 py-2 outline-none focus:border-green-500"
+            className="min-w-0 max-w-full bg-gray-800 border border-gray-700 text-gray-300 text-sm rounded-lg px-3 py-2.5 outline-none focus:border-green-500"
           >
             <option value="newest">Trier par nouveauté</option>
             <option value="popular">Trier par popularité</option>
@@ -123,7 +123,8 @@ export default function ProductsClient({
           </div>
           <button
             onClick={() => setShowFilters(!showFilters)}
-            className="lg:hidden bg-gray-800 border border-gray-700 p-2 rounded-lg text-gray-400"
+            aria-label="Filtres"
+            className="lg:hidden shrink-0 bg-gray-800 border border-gray-700 p-2.5 rounded-lg text-gray-400"
           >
             <SlidersHorizontal className="w-4 h-4" />
           </button>

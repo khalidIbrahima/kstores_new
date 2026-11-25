@@ -54,7 +54,7 @@ export default function CartPage() {
         <p className="text-gray-500 text-sm mt-1">{totalItems} article{totalItems > 1 ? 's' : ''} dans votre panier</p>
       </div>
 
-      <div className="grid lg:grid-cols-3 gap-8">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 lg:gap-8 [&>*]:min-w-0">
         {/* Cart Items */}
         <div className="lg:col-span-2 space-y-4">
           {items.map(item => {
@@ -63,9 +63,9 @@ export default function CartPage() {
             return (
               <div
                 key={item.product.id}
-                className="bg-[#111827] border border-gray-800 rounded-xl p-4 flex gap-4"
+                className="bg-[#111827] border border-gray-800 rounded-xl p-3 sm:p-4 flex gap-3 sm:gap-4"
               >
-                <div className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0">
+                <div className="relative w-20 h-20 sm:w-32 sm:h-32 rounded-lg overflow-hidden bg-gray-900 flex-shrink-0">
                   <Image
                     src={item.product.image_url}
                     alt={item.product.name}
@@ -77,38 +77,43 @@ export default function CartPage() {
                 <div className="flex-1 flex flex-col justify-between min-w-0">
                   <div className="flex items-start justify-between gap-2">
                     <div>
-                      <h3 className="text-white font-semibold text-sm sm:text-base">{item.product.name}</h3>
+                      <h3 className="text-white font-semibold text-sm sm:text-base break-words line-clamp-2">{item.product.name}</h3>
                       <p className="text-gray-500 text-xs mt-0.5">
                         {item.product.categories?.name}
                       </p>
                     </div>
                     <button
                       onClick={() => removeFromCart(item.product.id)}
-                      className="text-gray-500 hover:text-red-400 p-1 flex-shrink-0"
+                      aria-label="Retirer du panier"
+                      className="text-gray-500 hover:text-red-400 p-2.5 -m-1.5 flex-shrink-0"
                     >
                       <Trash2 className="w-4 h-4" />
                     </button>
                   </div>
 
-                  <div className="flex items-center justify-between mt-3">
+                  <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2 mt-3">
                     <div className="flex items-center bg-gray-800 rounded-lg">
                       <button
                         onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
-                        className="p-2 text-gray-400 hover:text-white"
+                        aria-label="Diminuer la quantité"
+                        className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white"
                       >
-                        <Minus className="w-3 h-3" />
+                        <Minus className="w-4 h-4" />
                       </button>
-                      <span className="px-3 text-white text-sm font-medium">{item.quantity}</span>
+                      <span className="min-w-8 text-center text-white text-sm font-medium">{item.quantity}</span>
                       <button
                         onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
-                        className="p-2 text-gray-400 hover:text-white"
+                        aria-label="Augmenter la quantité"
+                        className="w-10 h-10 flex items-center justify-center text-gray-400 hover:text-white"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Plus className="w-4 h-4" />
                       </button>
                     </div>
-                    <div className="text-right">
-                      <p className="text-green-400 font-bold">{formatPrice(unitPrice * item.quantity)}</p>
-                      <p className="text-gray-500 text-xs">Prix unitaire</p>
+                    <div className="ml-auto text-right">
+                      <p className="text-green-400 font-bold whitespace-nowrap">{formatPrice(unitPrice * item.quantity)}</p>
+                      {item.quantity > 1 && (
+                        <p className="text-gray-500 text-xs whitespace-nowrap">{formatPrice(unitPrice)} / unité</p>
+                      )}
                     </div>
                   </div>
                 </div>

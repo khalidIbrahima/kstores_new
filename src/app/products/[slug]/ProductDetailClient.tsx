@@ -86,7 +86,7 @@ export default function ProductDetailClient({
       </nav>
 
       {/* Main Product Section */}
-      <div className="grid lg:grid-cols-2 gap-6 mb-10">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10 [&>*]:min-w-0">
         {/* Image Gallery */}
         <div>
           <div className="relative aspect-square rounded-xl overflow-hidden bg-gray-900 border border-gray-800">
@@ -129,7 +129,7 @@ export default function ProductDetailClient({
 
         {/* Product Info */}
         <div className="flex flex-col gap-4">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black italic text-white">{product.name}</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-black italic text-white break-words">{product.name}</h1>
 
           {/* Rating */}
           {reviews.length > 0 && (

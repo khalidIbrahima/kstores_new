@@ -121,9 +121,9 @@ export default function OrderConfirmationPage() {
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* Header */}
       <div className="mb-8">
-        <h1 className="text-3xl sm:text-4xl font-black italic text-white flex items-center gap-3">
-          <Package className="w-8 h-8 text-green-400" />
-          Confirmation de <span className="text-green-400">commande</span>
+        <h1 className="text-2xl sm:text-4xl font-black italic text-white flex items-center gap-3">
+          <Package className="w-7 h-7 sm:w-8 sm:h-8 text-green-400 shrink-0" />
+          <span>Confirmation de <span className="text-green-400">commande</span></span>
         </h1>
         <p className="text-gray-500 text-sm mt-1 font-mono">#{order.id.slice(0, 8)}</p>
       </div>
@@ -176,7 +176,7 @@ export default function OrderConfirmationPage() {
                 </p>
                 <p className="text-gray-500 text-sm">Quantite : {item.quantity}</p>
               </div>
-              <span className="text-green-400 font-bold">
+              <span className="text-green-400 font-bold whitespace-nowrap">
                 {formatPrice(item.price * item.quantity)}
               </span>
             </div>
